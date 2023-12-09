@@ -8,7 +8,7 @@
 void LinxIpcEndpointImpl::task() {
     
     while (running) {
-        LinxMessageIpc *msg{};
+        LinxMessageIpcPtr msg{};
         std::string from;
 
         int ret = socket->receive(&msg, &from, -1);
@@ -17,16 +17,12 @@ void LinxIpcEndpointImpl::task() {
             if (msg->getReqId() == IPC_HUNT_REQ) {
                 LinxMessageIpc rsp = LinxMessageIpc(IPC_HUNT_RSP);
                 socket->send(&rsp, from);
-
-                delete msg;
                 continue;
             }
 
-            msg->setClient(new LinxIpcClientImpl(shared_from_this(), from));
-            if (queue->add(msg) != 0) {
+            if (queue->add(msg, from) != 0) {
                 LOG_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
                     msg->getReqId(), msg->getClient()->getName().c_str());
-                delete msg;
             }
         }
     }
@@ -56,9 +52,13 @@ LinxIpcEndpointImpl::LinxIpcEndpointImpl(LinxQueue *queue, LinxIpcSocket *socket
 }
 
 LinxIpcEndpointImpl::~LinxIpcEndpointImpl() {
-    running = false;
-    pthread_cancel(threadId);
-    pthread_join(threadId, NULL);
+    if (running) {
+        running = false;
+        pthread_cancel(threadId);
+        pthread_join(threadId, NULL);
+    }
+
+    queue->clear();
 
     delete queue;
     delete socket;
@@ -74,11 +74,17 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
 
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClientPtr from) {
 
-    LinxMessageIpcPtr msg = LinxMessageIpcPtr(queue->get(timeoutMs, sigsel, from.get()));
-    if (msg != nullptr) {
-        LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(),
-            msg->getReqId(), msg->getClient()->getName().c_str());
+    std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, from.get());
+    if (container == nullptr) {
+        return nullptr;
     }
+
+    LinxMessageIpcPtr msg = container->message;
+    msg->setClient(new LinxIpcClientImpl(shared_from_this(), container->from));
+
+
+    LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(),
+        msg->getReqId(), msg->getClient()->getName().c_str());
 
     return msg;
 }

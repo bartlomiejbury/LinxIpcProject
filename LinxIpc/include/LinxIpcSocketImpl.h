@@ -14,7 +14,7 @@ class LinxIpcSocketImpl: public LinxIpcSocket {
     int getFd() override;
 
     int send(const LinxMessageIpc *message, const std::string &to) override;
-    int receive(LinxMessageIpc **msg, std::string *from, int timeout) override;
+    int receive(LinxMessageIpcPtr *msg, std::string *from, int timeout) override;
 
     int flush() override;
 

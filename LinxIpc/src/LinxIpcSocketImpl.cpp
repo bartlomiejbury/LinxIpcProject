@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <errno.h>
+#include <vector>
 #include <sys/ioctl.h>
 #include <poll.h>
 #include "LinxIpc.h"
@@ -40,7 +41,7 @@ LinxIpcSocketImpl::~LinxIpcSocketImpl() {
     }
 }
 
-int LinxIpcSocketImpl::receive(LinxMessageIpc **msg, std::string *from, int timeoutMs) {
+int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int timeoutMs) {
 
     if (this->fd < 0) {
         LOG_ERROR("IPC recv on wrong socket for IPC: %s", this->serviceName.c_str());
@@ -91,7 +92,7 @@ int LinxIpcSocketImpl::receive(LinxMessageIpc **msg, std::string *from, int time
     }
 
     if (msg) {
-        *msg = new LinxMessageIpc(ipc->reqId, ipc->payload, len - sizeof(ipc->reqId));
+        *msg = std::make_shared<LinxMessageIpc>(ipc->reqId, ipc->payload, len - sizeof(ipc->reqId));
     }
 
     return len - sizeof(ipc->reqId);

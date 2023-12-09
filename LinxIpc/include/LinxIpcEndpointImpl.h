@@ -8,7 +8,7 @@
 class LinxIpcSocket;
 class LinxQueue;
 
-class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpoint>, public LinxIpcEndpoint {
+class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointImpl>, public LinxIpcEndpoint {
 
   public:
     
@@ -19,6 +19,7 @@ class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpoint>
 
     LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) override;
     LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClientPtr from) override;
+
     int receive() override;
 
     void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) override;

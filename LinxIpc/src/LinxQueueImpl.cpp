@@ -11,12 +11,12 @@ LinxQueueImpl::LinxQueueImpl(int size) {
     pthread_cond_init(&m_cv, &attr);
 }
 
-int LinxQueueImpl::add(LinxMessageIpc *msg) {
+int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
     pthread_mutex_lock(&m_mutex);
 
     int result = -1;
     if (queue.size() < (std::size_t)max_size) {
-        queue.push_back(msg);
+        queue.push_back(std::make_shared<LinxQueueContainer>(msg, from));
         result = 0;
     }
 
@@ -25,7 +25,13 @@ int LinxQueueImpl::add(LinxMessageIpc *msg) {
     return result;
 };
 
-LinxMessageIpc *LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+void LinxQueueImpl::clear() {
+    pthread_mutex_lock(&m_mutex);
+    queue.clear();
+    pthread_mutex_unlock(&m_mutex);
+}
+
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
     if (timeoutMs == INFINITE_TIMEOUT) {
         return waitForMessage(sigsel, from);
     } else {
@@ -33,10 +39,10 @@ LinxMessageIpc *LinxQueueImpl::get(int timeoutMs, const std::initializer_list<ui
     }
 }
 
-LinxMessageIpc* LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
     pthread_mutex_lock(&m_mutex);
 
-    LinxMessageIpc *msg = nullptr;
+    std::shared_ptr<LinxQueueContainer> msg = nullptr;
     while ((msg = findMessage(sigsel, from)) == nullptr) {
         pthread_cond_wait(&m_cv, &m_mutex);
     }
@@ -45,7 +51,7 @@ LinxMessageIpc* LinxQueueImpl::waitForMessage(const std::initializer_list<uint32
     return msg;
 };
 
-LinxMessageIpc* LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
     pthread_mutex_lock(&m_mutex);
 
     timespec ts{};
@@ -62,7 +68,7 @@ LinxMessageIpc* LinxQueueImpl::waitForMessage(int timeoutMs, const std::initiali
     ts.tv_sec += seconds;
     ts.tv_nsec += nano_seconds;
 
-    LinxMessageIpc *msg = nullptr;
+    std::shared_ptr<LinxQueueContainer> msg = nullptr;
     while ((msg = findMessage(sigsel, from)) == nullptr) {
         int ret = pthread_cond_timedwait(&m_cv, &m_mutex, &ts);
         if (ret == ETIMEDOUT) {
@@ -78,16 +84,16 @@ int LinxQueueImpl::size() {
     return queue.size();
 }
 
-LinxMessageIpc* LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
 
-    auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](LinxMessageIpc *msg) {
-        if (from == nullptr || msg->getClient()->getName() == from->getName()) {
+    auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
+        if (from == nullptr || msg->from == from->getName()) {
 
             if (sigsel.size() == 0) {
                 return true;
             }
 
-            uint32_t reqId = msg->getReqId();
+            uint32_t reqId = msg->message->getReqId();
             for (uint32_t id : sigsel) {
                 if (reqId == id) {
                     return true;
@@ -99,8 +105,9 @@ LinxMessageIpc* LinxQueueImpl::findMessage(const std::initializer_list<uint32_t>
     });
 
     if (it != queue.end()) {
+        std::shared_ptr<LinxQueueContainer> container = *it;
         queue.erase(it);
-        return *it;
+        return container;
     }
 
     return nullptr;
