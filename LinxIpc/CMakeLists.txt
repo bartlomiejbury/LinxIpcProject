@@ -1,0 +1,24 @@
+
+add_library(LinxIpc
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcMessage.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcSocketImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcEndpointImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcClientImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/trace.cpp
+)
+
+target_include_directories(
+    LinxIpc
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/exports
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
+target_link_libraries(LinxIpc pthread)
+
+if(DEFINED USE_LINX_LOGGING)
+    target_compile_definitions(LinxIpc PRIVATE USE_LINX_LOGGING=${USE_LINX_LOGGING})
+endif()
