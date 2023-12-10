@@ -22,7 +22,7 @@ void LinxIpcEndpointImpl::task() {
 
             if (queue->add(msg, from) != 0) {
                 LOG_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
-                    msg->getReqId(), msg->getClient()->getName().c_str());
+                    msg->getReqId(), from.c_str());
             }
         }
     }
@@ -80,11 +80,10 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
     }
 
     LinxMessageIpcPtr msg = container->message;
-    msg->setClient(new LinxIpcClientImpl(shared_from_this(), container->from));
-
+    msg->setClient(std::make_shared<LinxIpcClientImpl>(shared_from_this(), container->from));
 
     LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(),
-        msg->getReqId(), msg->getClient()->getName().c_str());
+        msg->getReqId(), container->from.c_str());
 
     return msg;
 }
@@ -114,7 +113,7 @@ int LinxIpcEndpointImpl::send(const LinxMessageIpc *message, LinxIpcClientPtr to
 }
 
 LinxIpcClientPtr LinxIpcEndpointImpl::createClient(const std::string &serviceName) {
-    return LinxIpcClientPtr(new LinxIpcClientImpl(shared_from_this(), serviceName));
+    return std::make_shared<LinxIpcClientImpl>(shared_from_this(), serviceName);
 }
 
 int LinxIpcEndpointImpl::getQueueSize() {

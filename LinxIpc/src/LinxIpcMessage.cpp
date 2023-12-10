@@ -1,25 +1,22 @@
 #include "LinxIpc.h"
 
-LinxMessageIpc::LinxMessageIpc(uint32_t reqId) : reqId{reqId}, client{nullptr} {}
+LinxMessageIpc::LinxMessageIpc() : LinxMessageIpc(0) {}
 
-LinxMessageIpc::LinxMessageIpc(uint32_t reqId, void *buffer, uint32_t payloadSize, LinxIpcClient *client)
-    : reqId{reqId}, client{client} {
+LinxMessageIpc::LinxMessageIpc(uint32_t reqId) : reqId{reqId} {}
+
+LinxMessageIpc::LinxMessageIpc(uint32_t reqId, void *buffer, uint32_t payloadSize)
+    : reqId{reqId} {
     std::copy((uint8_t *)buffer, (uint8_t *)buffer + payloadSize, std::back_inserter(payload));
 }
 
-LinxMessageIpc::LinxMessageIpc() : reqId{0} {}
-
 LinxMessageIpc::~LinxMessageIpc() {
-    if (client) {
-         delete client;
-    }
 };
 
 LinxIpcClient *LinxMessageIpc::getClient() const {
-     return this->client;
+     return this->client.get();
 };
 
-void LinxMessageIpc::setClient(LinxIpcClient *client) {
+void LinxMessageIpc::setClient(const LinxIpcClientPtr &client) {
     this->client = client;
 };
 
