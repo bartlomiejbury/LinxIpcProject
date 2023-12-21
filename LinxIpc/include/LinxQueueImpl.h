@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <initializer_list>
 #include "LinxQueue.h"
+#include "LinxTime.h"
 
 class LinxQueueImpl: public LinxQueue {
   public:

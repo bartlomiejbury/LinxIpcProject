@@ -2,9 +2,9 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <poll.h>
-#include <time.h>
 #include "trace.h"
 #include "LinxIpcClientImpl.h"
+#include "LinxTime.h"
 
 LinxIpcClientImpl::LinxIpcClientImpl(LinxIpcEndpointPtr client, const std::string &serviceName) {
 
@@ -32,16 +32,6 @@ bool LinxIpcClientImpl::connect(int timeout) {
     }
 
     return waitForConnect(timeout);
-}
-
-uint64_t LinxIpcClientImpl::getTimeMs() {
-
-    timespec ts{};
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-
-    uint64_t milisecondsFromSeconds = ts.tv_sec * MILLI_SECONDS;
-    uint64_t milisecondsFromNanoseconds = ts.tv_nsec / (NANO_SECONDS / MILLI_SECONDS);
-    return milisecondsFromSeconds + milisecondsFromNanoseconds;
 }
 
 bool LinxIpcClientImpl::waitForConnect(int timeoutMs) {

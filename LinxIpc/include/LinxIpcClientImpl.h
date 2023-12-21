@@ -20,5 +20,4 @@ class LinxIpcClientImpl : public std::enable_shared_from_this<LinxIpcClient>, pu
 
   private:
     bool waitForConnect(int timeoutMs);
-    uint64_t getTimeMs();
 };

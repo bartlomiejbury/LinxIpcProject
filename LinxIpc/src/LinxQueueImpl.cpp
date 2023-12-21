@@ -1,4 +1,3 @@
-#include <time.h>
 #include "LinxQueueImpl.h"
 
 LinxQueueImpl::LinxQueueImpl(int size) {
@@ -32,7 +31,9 @@ void LinxQueueImpl::clear() {
 }
 
 std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
-    if (timeoutMs == INFINITE_TIMEOUT) {
+    if (timeoutMs == IMMEDIATE_TIMEOUT) {
+        return findMessage(sigsel, from);
+    } else if (timeoutMs == INFINITE_TIMEOUT) {
         return waitForMessage(sigsel, from);
     } else {
         return waitForMessage(timeoutMs, sigsel, from);
@@ -54,19 +55,8 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::ini
 std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
     pthread_mutex_lock(&m_mutex);
 
-    timespec ts{};
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-
-    uint64_t seconds = timeoutMs / MILLI_SECONDS;
-    uint64_t nano_seconds = (timeoutMs % MILLI_SECONDS) * (NANO_SECONDS / MILLI_SECONDS);
-
-    if (ts.tv_nsec + nano_seconds > NANO_SECONDS) {
-        seconds = seconds + 1;
-        nano_seconds = ts.tv_nsec + nano_seconds - NANO_SECONDS;
-    }
-
-    ts.tv_sec += seconds;
-    ts.tv_nsec += nano_seconds;
+    uint64_t currentTime = getTimeMs();
+    timespec ts = timeMsToTimespec(currentTime + timeoutMs);
 
     std::shared_ptr<LinxQueueContainer> msg = nullptr;
     while ((msg = findMessage(sigsel, from)) == nullptr) {

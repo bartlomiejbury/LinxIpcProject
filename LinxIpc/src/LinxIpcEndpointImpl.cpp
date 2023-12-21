@@ -90,7 +90,7 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
 
 int LinxIpcEndpointImpl::receive() {
 
-    LinxMessageIpcPtr msg = receive(0, {});
+    LinxMessageIpcPtr msg = receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG);
     if (msg == nullptr) {
         return -1;
     }

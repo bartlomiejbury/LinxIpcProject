@@ -12,13 +12,12 @@
 #define IPC_HUNT_REQ 1
 #define IPC_HUNT_RSP 2
 
-static constexpr uint64_t NANO_SECONDS = 1000000000;
-static constexpr uint64_t MILLI_SECONDS = 1000;
-
 typedef enum {
   INFINITE_TIMEOUT = -1,
   IMMEDIATE_TIMEOUT = 0
 } LinxTimeout;
+
+const std::initializer_list<uint32_t> LINX_ANY_SIG({});
 
 class LinxMessageIpc;
 class LinxIpcClient;
