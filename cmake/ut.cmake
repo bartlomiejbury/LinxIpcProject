@@ -18,21 +18,76 @@ if(COVERITY)
 endif()
 
 get_property(UNIT_TEST_SRC GLOBAL PROPERTY UNIT_TEST_SRC)
-get_property(UNIT_TEST_INCLUDE_DIRECTORIES GLOBAL PROPERTY UNIT_TEST_INCLUDE_DIRECTORIES)
+get_property(UNIT_TEST_TESTS GLOBAL PROPERTY UNIT_TEST_TESTS)
+get_property(UNIT_TEST_INCLUDE GLOBAL PROPERTY UNIT_TEST_INCLUDE)
+get_property(UNIT_TEST_MOCKS GLOBAL PROPERTY UNIT_TEST_MOCKS)
 
-add_executable(${PROJECT_NAME}-ut
+#############################
+#     Generate Mocks
+#############################
+set(UT_MOCKS_GENERATED_SOURCES)
+foreach(file ${UNIT_TEST_MOCKS})
+    file(GLOB mocks "${file}/*Mock.cpp")
+    list(APPEND UT_MOCKS_GENERATED_SOURCES ${mocks})
+endforeach()
+
+#############################
+#     Compile Mocks library
+#############################
+add_library(ut_mocks OBJECT 
+    ${UT_MOCKS_GENERATED_SOURCES}
+)
+
+target_link_libraries(ut_mocks
+    PUBLIC
+    gmock
+)
+
+target_include_directories(ut_mocks
+    PUBLIC
+    ${UNIT_TEST_INCLUDE}
+    ${UNIT_TEST_MOCKS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmock
+)
+
+#############################
+#     Compile sources
+#############################
+add_library(ut_sources OBJECT 
     ${UNIT_TEST_SRC}
 )
 
-target_include_directories(${PROJECT_NAME}-ut
+target_include_directories(ut_sources
     PRIVATE
-    ${UNIT_TEST_INCLUDE_DIRECTORIES}
+    ${UNIT_TEST_INCLUDE}
+)
+
+#############################
+#     Creating Rerouted Objects
+#############################s
+set(REROUTES_SYMBOL_FILE ${CMAKE_CURRENT_BINARY_DIR}/reroute.txt)
+
+add_custom_target(ut_reroute
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/reroute.py ${UT_MOCKS_GENERATED_SOURCES} --output ${REROUTES_SYMBOL_FILE}
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.sh -r ${REROUTES_SYMBOL_FILE} $<TARGET_OBJECTS:ut_sources>
+    DEPENDS ut_sources
+    COMMAND_EXPAND_LISTS
+)
+
+#############################
+#     Creating Unit tests
+#############################
+
+add_executable(${PROJECT_NAME}-ut
+    ${UNIT_TEST_TESTS}
 )
 
 target_link_libraries(${PROJECT_NAME}-ut
     PRIVATE
-    gtest gmock gmock_main
+    gtest gmock_main ut_mocks ut_sources
 )
+
+add_dependencies(${PROJECT_NAME}-ut ut_reroute)
 
 add_custom_target(clear_gcda
     COMMAND find . -name *.gcda -exec rm {} "\\;"

@@ -18,18 +18,37 @@ add_link_options(
     -Wl,--gc-sections
 )
 
-macro(add_to_ut)
+function(add_to_ut)
+    if(NOT UNIT_TESTS)
+        return()
+    endif()
+        
     set(options OPTIONAL "")
     set(oneValueArgs TARGET)
-    set(multiValueArgs SOURCES)
+    set(multiValueArgs SOURCES INCLUDES MOCKS)
     cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}"
                         "${multiValueArgs}" ${ARGN} )
 
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_SRC 
-        $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},SOURCES>
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TESTS 
         ${ADD_TO_UT_SOURCES}
     )
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_INCLUDE_DIRECTORIES
-        $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},INCLUDE_DIRECTORIES>
+
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_INCLUDE
+        ${ADD_TO_UT_INCLUDES}
     )
-endmacro()
+
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_MOCKS
+        ${ADD_TO_UT_MOCKS}
+    )
+
+    get_target_property(MY_PROJECT_SOURCES ${ADD_TO_UT_TARGET} SOURCES)
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_SRC 
+        ${MY_PROJECT_SOURCES}
+    )
+
+    get_target_property(MY_PROJECT_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_INCLUDE
+        ${MY_PROJECT_INCLUDES}
+    )
+
+endfunction()
