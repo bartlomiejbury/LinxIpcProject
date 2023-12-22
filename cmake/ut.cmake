@@ -68,7 +68,7 @@ target_include_directories(ut_sources
 set(REROUTES_SYMBOL_FILE ${CMAKE_CURRENT_BINARY_DIR}/reroute.txt)
 
 add_custom_target(ut_reroute
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/reroute.py ${UT_MOCKS_GENERATED_SOURCES} --output ${REROUTES_SYMBOL_FILE}
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/reroute.py $<TARGET_PROPERTY:ut_mocks,SOURCES> --output ${REROUTES_SYMBOL_FILE}
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.sh -r ${REROUTES_SYMBOL_FILE} $<TARGET_OBJECTS:ut_sources>
     DEPENDS ut_sources
     COMMAND_EXPAND_LISTS
