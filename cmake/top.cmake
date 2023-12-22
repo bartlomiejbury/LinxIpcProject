@@ -18,37 +18,11 @@ add_link_options(
     -Wl,--gc-sections
 )
 
-function(add_to_ut)
-    if(NOT UNIT_TESTS)
-        return()
-    endif()
-        
-    set(options OPTIONAL "")
-    set(oneValueArgs TARGET)
-    set(multiValueArgs SOURCES INCLUDES MOCKS)
-    cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}"
-                        "${multiValueArgs}" ${ARGN} )
+if(UNIT_TESTS)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ut.cmake)
+else()
+    function(add_to_ut)
+    endfunction()
+endif()
 
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TESTS 
-        ${ADD_TO_UT_SOURCES}
-    )
 
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_INCLUDE
-        ${ADD_TO_UT_INCLUDES}
-    )
-
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_MOCKS
-        ${ADD_TO_UT_MOCKS}
-    )
-
-    get_target_property(MY_PROJECT_SOURCES ${ADD_TO_UT_TARGET} SOURCES)
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_SRC 
-        ${MY_PROJECT_SOURCES}
-    )
-
-    get_target_property(MY_PROJECT_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_INCLUDE
-        ${MY_PROJECT_INCLUDES}
-    )
-
-endfunction()

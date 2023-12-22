@@ -1,3 +1,37 @@
+function(add_to_ut) 
+
+    set(options OPTIONAL "")
+    set(oneValueArgs TARGET)
+    set(multiValueArgs SOURCES INCLUDES MOCKS)
+    cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" ${ARGN} )
+
+    set(GENERATED_MOCKS)
+    foreach(file ${ADD_TO_UT_MOCKS})
+        file(GLOB mocks "${file}/*Mock.cpp")
+        list(APPEND GENERATED_MOCKS ${mocks})
+    endforeach()
+
+    target_sources(ut_mocks PRIVATE ${GENERATED_MOCKS})
+    target_include_directories(ut_mocks
+        PUBLIC
+        ${ADD_TO_UT_INCLUDES}
+        ${ADD_TO_UT_MOCKS}
+    )
+
+    get_target_property(TARGET_SOURCES ${ADD_TO_UT_TARGET} SOURCES)
+    get_target_property(TARGET_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
+    target_sources(ut_sources PRIVATE ${TARGET_SOURCES})
+    target_include_directories(ut_sources
+        PUBLIC
+        ${ADD_TO_UT_INCLUDES}
+        ${TARGET_INCLUDES}
+    )
+
+    target_sources(${PROJECT_NAME}-ut PRIVATE ${ADD_TO_UT_SOURCES})
+
+endfunction()
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -17,26 +51,14 @@ if(COVERITY)
     add_link_options(-lgcov -fprofile-arcs -ftest-coverage --coverage)
 endif()
 
-get_property(UNIT_TEST_SRC GLOBAL PROPERTY UNIT_TEST_SRC)
-get_property(UNIT_TEST_TESTS GLOBAL PROPERTY UNIT_TEST_TESTS)
-get_property(UNIT_TEST_INCLUDE GLOBAL PROPERTY UNIT_TEST_INCLUDE)
-get_property(UNIT_TEST_MOCKS GLOBAL PROPERTY UNIT_TEST_MOCKS)
-
 #############################
 #     Generate Mocks
 #############################
-set(UT_MOCKS_GENERATED_SOURCES)
-foreach(file ${UNIT_TEST_MOCKS})
-    file(GLOB mocks "${file}/*Mock.cpp")
-    list(APPEND UT_MOCKS_GENERATED_SOURCES ${mocks})
-endforeach()
 
 #############################
 #     Compile Mocks library
 #############################
-add_library(ut_mocks OBJECT 
-    ${UT_MOCKS_GENERATED_SOURCES}
-)
+add_library(ut_mocks OBJECT)
 
 target_link_libraries(ut_mocks
     PUBLIC
@@ -45,22 +67,13 @@ target_link_libraries(ut_mocks
 
 target_include_directories(ut_mocks
     PUBLIC
-    ${UNIT_TEST_INCLUDE}
-    ${UNIT_TEST_MOCKS}
     ${CMAKE_CURRENT_SOURCE_DIR}/cmock
 )
 
 #############################
 #     Compile sources
 #############################
-add_library(ut_sources OBJECT 
-    ${UNIT_TEST_SRC}
-)
-
-target_include_directories(ut_sources
-    PRIVATE
-    ${UNIT_TEST_INCLUDE}
-)
+add_library(ut_sources OBJECT)
 
 #############################
 #     Creating Rerouted Objects
@@ -78,9 +91,7 @@ add_custom_target(ut_reroute
 #     Creating Unit tests
 #############################
 
-add_executable(${PROJECT_NAME}-ut
-    ${UNIT_TEST_TESTS}
-)
+add_executable(${PROJECT_NAME}-ut)
 
 target_link_libraries(${PROJECT_NAME}-ut
     PRIVATE
@@ -100,14 +111,13 @@ endif()
 
 add_custom_target(run_${PROJECT_NAME}-ut
     COMMAND ${RUNNER} $<TARGET_FILE:${PROJECT_NAME}-ut> --gtest_output="xml:testResult.xml"
-    DEPENDS $<$<BOOL:COVERITY>:clear_gcda> ${PROJECT_NAME}-ut
+    DEPENDS $<$<BOOL:${COVERITY}>:> ${PROJECT_NAME}-ut
     COMMENT "Running unit tests"
 )
 
 if(COVERITY)    
     get_filename_component(dep_path ${PROJECT_SOURCE_DIR}/LinxIpc ABSOLUTE)
     add_custom_target(coverity_${PROJECT_NAME}-ut
-        DEPENDS clear_gcda
         DEPENDS run_${PROJECT_NAME}-ut
         COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-8
         COMMAND lcov -e coverage.info \"${dep_path}/*\" -o coverage.info.filtered
