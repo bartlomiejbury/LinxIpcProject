@@ -9,6 +9,7 @@
 class LinxQueueImpl: public LinxQueue {
   public:
     LinxQueueImpl(int size);
+    ~LinxQueueImpl();
     int add(const std::shared_ptr<LinxMessageIpc> &msg, const std::string &from) override;
     int size() override;
     void clear() override;

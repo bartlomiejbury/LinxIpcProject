@@ -10,6 +10,11 @@ LinxQueueImpl::LinxQueueImpl(int size) {
     pthread_cond_init(&m_cv, &attr);
 }
 
+LinxQueueImpl::~LinxQueueImpl() {
+    pthread_mutex_destroy(&m_mutex);
+    pthread_cond_destroy(&m_cv);
+}
+
 int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
     pthread_mutex_lock(&m_mutex);
 

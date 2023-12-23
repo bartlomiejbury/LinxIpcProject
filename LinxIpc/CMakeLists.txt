@@ -27,6 +27,7 @@ endif()
 add_to_ut(TARGET LinxIpc 
     SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxTimeTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/LinxQueueTests.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
 )
