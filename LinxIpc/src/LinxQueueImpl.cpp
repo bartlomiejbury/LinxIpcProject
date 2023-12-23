@@ -83,17 +83,8 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initia
 
     auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
         if (!from.has_value() || msg->from == from.value()) {
-
-            if (sigsel.size() == 0) {
-                return true;
-            }
-
             uint32_t reqId = msg->message->getReqId();
-            for (uint32_t id : sigsel) {
-                if (reqId == id) {
-                    return true;
-                }
-            }
+            return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(), [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
         }
 
         return false;

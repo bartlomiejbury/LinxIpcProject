@@ -69,12 +69,12 @@ void LinxIpcEndpointImpl::registerCallback(uint32_t reqId, LinxIpcCallback callb
 };
 
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) {
-    return receive(timeoutMs, sigsel, nullptr);
+    return receive(timeoutMs, sigsel, LINX_ANY_FROM);
 }
 
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClientPtr from) {
 
-    std::optional<std::string> fromOpt = from ? std::make_optional(from->getName()) : std::nullopt;
+    std::optional<std::string> fromOpt = from != nullptr ? std::make_optional(from->getName()) : std::nullopt;
     std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, fromOpt);
     if (container == nullptr) {
         return nullptr;

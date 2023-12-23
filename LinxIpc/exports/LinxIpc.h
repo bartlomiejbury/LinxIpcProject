@@ -17,8 +17,6 @@ typedef enum {
   IMMEDIATE_TIMEOUT = 0
 } LinxTimeout;
 
-const std::initializer_list<uint32_t> LINX_ANY_SIG({});
-
 class LinxMessageIpc;
 class LinxIpcClient;
 class LinxIpcEndpoint;
@@ -27,6 +25,9 @@ using LinxMessageIpcPtr = std::shared_ptr<LinxMessageIpc>;
 using LinxIpcClientPtr = std::shared_ptr<LinxIpcClient>;
 using LinxIpcEndpointPtr = std::shared_ptr<LinxIpcEndpoint>;
 using LinxIpcCallback = std::function<int(LinxMessageIpc *msg, void *data)>;   
+
+const std::initializer_list<uint32_t> LINX_ANY_SIG({});
+const LinxIpcClientPtr LINX_ANY_FROM = nullptr;
 
 LinxIpcEndpointPtr createLinxIpcEndpoint(const std::string &endpointName, int maxSize = 100);
 
