@@ -1,4 +1,4 @@
-function(add_to_ut) 
+function(add_to_ut)
 
     set(options OPTIONAL "")
     set(oneValueArgs TARGET)
@@ -100,6 +100,7 @@ add_dependencies(${PROJECT_NAME}-ut ut_reroute)
 
 add_custom_target(clear_gcda
     COMMAND find . -name *.gcda -exec rm {} "\\;"
+    COMMAND rm -rf coverity_report
     COMMENT "Clear old gcda files"
 )
 
@@ -109,17 +110,16 @@ endif()
 
 add_custom_target(run_${PROJECT_NAME}-ut
     COMMAND ${RUNNER} $<TARGET_FILE:${PROJECT_NAME}-ut> --gtest_output="xml:testResult.xml"
-    DEPENDS $<$<BOOL:${COVERITY}>:> ${PROJECT_NAME}-ut
+    DEPENDS $<$<BOOL:${COVERITY}>:clear_gcda> ${PROJECT_NAME}-ut
     COMMENT "Running unit tests"
 )
 
 if(COVERITY)
-    get_filename_component(dep_path ${PROJECT_SOURCE_DIR}/LinxIpc ABSOLUTE)
     add_custom_target(coverity_${PROJECT_NAME}-ut
         DEPENDS run_${PROJECT_NAME}-ut
-        COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-8
-        COMMAND lcov -e coverage.info \"${dep_path}/*\" -o coverage.info.filtered
-        COMMAND lcov -r coverage.info \"${CMAKE_BINARY_DIR}/*\" -o coverage.info.filtered
+        COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-11
+        COMMAND lcov -e coverage.info \"${PROJECT_SOURCE_DIR}/LinxIpc/src*\" -o coverage.info.filtered
+        #COMMAND lcov -r coverage.info \"${CMAKE_BINARY_DIR}/*\" -o coverage.info.filtered
         COMMAND genhtml coverage.info.filtered --output-directory coverity_report
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
             "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
