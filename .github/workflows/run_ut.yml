@@ -1,0 +1,12 @@
+name: Run unit tests
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - run: cmake -B build_ut -DUNIT_TESTS=1
+      - run: cmake --build build_ut --target run_LinxIpc-ut
+      - run: echo "🍏 This job's status is ${{ job.status }}."
