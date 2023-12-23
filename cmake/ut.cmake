@@ -76,9 +76,8 @@ target_include_directories(ut_mocks
 add_library(ut_sources OBJECT)
 
 #############################
-#     Creating Rerouted Objects
+#     Rerouted Objects
 #############################
-
 add_custom_target(ut_reroute
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.py reroute --objects $<TARGET_OBJECTS:ut_sources> --mocks $<TARGET_OBJECTS:ut_mocks>
     DEPENDS ut_sources ut_mocks
@@ -86,9 +85,8 @@ add_custom_target(ut_reroute
 )
 
 #############################
-#     Creating Unit tests
+#     Create Unit tests
 #############################
-
 add_executable(${PROJECT_NAME}-ut)
 
 target_link_libraries(${PROJECT_NAME}-ut
