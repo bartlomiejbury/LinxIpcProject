@@ -3,6 +3,7 @@
 #include <syslog.h>
 #include <string.h>
 #include <unordered_map>
+#include <stdio.h>
 
 #ifdef USE_LINX_LOGGING
 static int dummyLogger = (openlog(NULL, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1), 0);

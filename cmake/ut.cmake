@@ -77,13 +77,11 @@ add_library(ut_sources OBJECT)
 
 #############################
 #     Creating Rerouted Objects
-#############################s
-set(REROUTES_SYMBOL_FILE ${CMAKE_CURRENT_BINARY_DIR}/reroute.txt)
+#############################
 
 add_custom_target(ut_reroute
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/reroute.py $<TARGET_PROPERTY:ut_mocks,SOURCES> --output ${REROUTES_SYMBOL_FILE}
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.sh -r ${REROUTES_SYMBOL_FILE} $<TARGET_OBJECTS:ut_sources>
-    DEPENDS ut_sources
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.py reroute --objects $<TARGET_OBJECTS:ut_sources> --mocks $<TARGET_OBJECTS:ut_mocks>
+    DEPENDS ut_sources ut_mocks
     COMMAND_EXPAND_LISTS
 )
 
