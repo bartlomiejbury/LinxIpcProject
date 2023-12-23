@@ -6,7 +6,7 @@
 #include "trace.h"
 
 void LinxIpcEndpointImpl::task() {
-    
+
     while (running) {
         LinxMessageIpcPtr msg{};
         std::string from;

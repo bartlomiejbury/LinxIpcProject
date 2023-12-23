@@ -27,10 +27,6 @@ std::string LinxIpcClientImpl::getName() {
 }
 
 bool LinxIpcClientImpl::connect(int timeout) {
-    if (timeout == IMMEDIATE_TIMEOUT) {
-        return true;
-    }
-
     return waitForConnect(timeout);
 }
 
