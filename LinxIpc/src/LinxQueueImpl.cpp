@@ -35,7 +35,7 @@ void LinxQueueImpl::clear() {
     pthread_mutex_unlock(&m_mutex);
 }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
     if (timeoutMs == IMMEDIATE_TIMEOUT) {
         return findMessage(sigsel, from);
     } else if (timeoutMs == INFINITE_TIMEOUT) {
@@ -45,7 +45,7 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std:
     }
 }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
     pthread_mutex_lock(&m_mutex);
 
     std::shared_ptr<LinxQueueContainer> msg = nullptr;
@@ -57,7 +57,7 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::ini
     return msg;
 };
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
     pthread_mutex_lock(&m_mutex);
 
     uint64_t currentTime = getTimeMs();
@@ -79,10 +79,10 @@ int LinxQueueImpl::size() {
     return queue.size();
 }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
 
     auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
-        if (from == nullptr || msg->from == from->getName()) {
+        if (!from.has_value() || msg->from == from.value()) {
 
             if (sigsel.size() == 0) {
                 return true;

@@ -13,7 +13,7 @@ class LinxQueueImpl: public LinxQueue {
     int add(const std::shared_ptr<LinxMessageIpc> &msg, const std::string &from) override;
     int size() override;
     void clear() override;
-    std::shared_ptr<LinxQueueContainer> get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from) override;
+    std::shared_ptr<LinxQueueContainer> get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) override;
 
   private:
 
@@ -22,7 +22,7 @@ class LinxQueueImpl: public LinxQueue {
     pthread_cond_t m_cv;
     std::list<std::shared_ptr<LinxQueueContainer>> queue;
 
-    std::shared_ptr<LinxQueueContainer> findMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from);
-    std::shared_ptr<LinxQueueContainer> waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from);
-    std::shared_ptr<LinxQueueContainer> waitForMessage(const std::initializer_list<uint32_t> &sigsel, LinxIpcClient *from);
+    std::shared_ptr<LinxQueueContainer> findMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from);
+    std::shared_ptr<LinxQueueContainer> waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &rom);
+    std::shared_ptr<LinxQueueContainer> waitForMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from);
 };

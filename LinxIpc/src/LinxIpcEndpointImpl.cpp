@@ -74,7 +74,8 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
 
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClientPtr from) {
 
-    std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, from.get());
+    std::optional<std::string> fromOpt = from ? std::make_optional(from->getName()) : std::nullopt;
+    std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, fromOpt);
     if (container == nullptr) {
         return nullptr;
     }
