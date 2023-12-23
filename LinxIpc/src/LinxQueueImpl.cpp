@@ -35,7 +35,8 @@ void LinxQueueImpl::clear() {
     pthread_mutex_unlock(&m_mutex);
 }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
+                                                       const std::optional<std::string> &from) {
     if (timeoutMs == IMMEDIATE_TIMEOUT) {
         return findMessage(sigsel, from);
     } else if (timeoutMs == INFINITE_TIMEOUT) {
@@ -45,19 +46,22 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::get(int timeoutMs, const std:
     }
 }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(const std::initializer_list<uint32_t> &sigsel,
+                                                                  const std::optional<std::string> &from) {
     pthread_mutex_lock(&m_mutex);
 
     std::shared_ptr<LinxQueueContainer> msg = nullptr;
     while ((msg = findMessage(sigsel, from)) == nullptr) {
         pthread_cond_wait(&m_cv, &m_mutex);
     }
-    
+
     pthread_mutex_unlock(&m_mutex);
     return msg;
 };
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs,
+                                                                  const std::initializer_list<uint32_t> &sigsel,
+                                                                  const std::optional<std::string> &from) {
     pthread_mutex_lock(&m_mutex);
 
     uint64_t currentTime = getTimeMs();
@@ -70,21 +74,20 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs,
             break;
         }
     }
-    
+
     pthread_mutex_unlock(&m_mutex);
     return msg;
 };
 
-int LinxQueueImpl::size() {
-    return queue.size();
-}
+int LinxQueueImpl::size() { return queue.size(); }
 
-std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel, const std::optional<std::string> &from) {
-
+std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel,
+                                                               const std::optional<std::string> &from) {
     auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
         if (!from.has_value() || msg->from == from.value()) {
             uint32_t reqId = msg->message->getReqId();
-            return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(), [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
+            return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
+                                                      [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
         }
 
         return false;

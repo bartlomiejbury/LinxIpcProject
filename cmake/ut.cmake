@@ -113,7 +113,7 @@ add_custom_target(run_${PROJECT_NAME}-ut
     COMMENT "Running unit tests"
 )
 
-if(COVERITY)    
+if(COVERITY)
     get_filename_component(dep_path ${PROJECT_SOURCE_DIR}/LinxIpc ABSOLUTE)
     add_custom_target(coverity_${PROJECT_NAME}-ut
         DEPENDS run_${PROJECT_NAME}-ut

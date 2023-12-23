@@ -4,19 +4,19 @@
 
 template<typename T>
 class CMockMocker {
-public:
-	CMockMocker() { 
+  public:
+    CMockMocker() { 
         if (instance) {
             printf("Mock object already created\n");
             abort();
         }
         instance = (T *)this;
     }
-	~CMockMocker() { instance = nullptr;}
-	static T *cmock_get_instance() { return instance; }
+    ~CMockMocker() { instance = nullptr;}
+    static T *cmock_get_instance() { return instance; }
 
-private:
-	static inline T *instance = NULL;
+  private:
+    static inline T *instance = NULL;
 };
 
 
