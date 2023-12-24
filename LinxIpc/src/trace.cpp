@@ -14,6 +14,7 @@ static const std::unordered_map<LogSeverity, int> severityMap{{LogSeverity::SEVE
                                                               {LogSeverity::SEVERITY_WARNING, LOG_WARNING},
                                                               {LogSeverity::SEVERITY_ERROR, LOG_ERR}};
 
+//LCOV_EXCL_START
 void trace(LogSeverity severity, const char *fileName, int lineNum, const char *format, ...) {
     std::va_list argptr;
 
@@ -27,5 +28,6 @@ void trace(LogSeverity severity, const char *fileName, int lineNum, const char *
 
     va_end(argptr);
 }
+//LCOV_EXCL_STOP
 
 #endif
