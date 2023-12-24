@@ -8,7 +8,54 @@ Linx IPC based on AF_UNIX sockets:
 - Filter messages by Signal ID or sender
 
 ### LinxIpcMessage
-TODO:
+Each IPC message is identified by uint32_t request Id. Two requestID are reserved for internal purposes
+```
+#define IPC_HUNT_REQ 1
+#define IPC_HUNT_RSP 2
+```
+
+LinxIpcMessage can be created in many ways:
+
+IPC message with requestID = 10 and no payload:
+```
+auto msg = LinxMessageIpc(10);
+```
+
+IPC message with payload set to user struct:
+```
+struct Data {
+    int a;
+    char b;
+} expectedMessage = {10, 5};
+auto msg = LinxMessageIpc(10, expectedMessage);
+```
+
+Message payload can be read by template method ```getPayload<T>()```. This function will payload data to T* type
+```
+struct Data *data = msg.getPayload<struct Data>();
+```
+You can use  ```getPayload()``` to get raw data as uint8_t * typr
+```
+uint8_t *data = msg.getPayload<uint8_t>();
+```
+
+IPC message can be created from raw buffer:
+```
+uint8_t expectedMessage[] = {1, 2, 3, 3};
+auto msg = LinxMessageIpc(10, expectedMessage, sizeof(expectedMessage));
+```
+
+Or by initializer list:
+```
+auto msg = LinxMessageIpc(10, {1, 2, 3});
+```
+
+Message payload length in bytes can be read by ```getPayloadSize()``` function
+
+Message requestID can be read by ```getReqId()``` function
+
+When message is received it has set sender client. It can be get by ```getCLient()``` method. This client can be used to identify sender os send back response. Locally created messages has set client to nullptr.
+
 
 ### LinxIpcEndpoint
 LinxIpcEndpoint represents local endpoint of IPC comunication. Every application must have one endpoint. <br>
@@ -82,7 +129,7 @@ if (client->connect(5000)) {
 }
 ```
 
-This function will send PING_REQ messages to client every 500 ms. When PING_RSP message is received, client is alive and connect returns true.
+This function will send HUNT_REQ messages to client every 500 ms. When HUNT_RSP message is received, client is alive and connect returns true.
 
 Passing ```IMMEDIATE_TIMEOUT``` to connect will cause one ping to be send.
 

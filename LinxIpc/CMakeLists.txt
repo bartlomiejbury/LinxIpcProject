@@ -24,10 +24,11 @@ if(DEFINED USE_LINX_LOGGING)
     target_compile_definitions(LinxIpc PRIVATE USE_LINX_LOGGING=${USE_LINX_LOGGING})
 endif()
 
-add_to_ut(TARGET LinxIpc 
+add_to_ut(TARGET LinxIpc
     SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxTimeTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxQueueTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcMessageTests.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
 )

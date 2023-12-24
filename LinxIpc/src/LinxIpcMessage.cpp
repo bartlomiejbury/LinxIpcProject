@@ -8,6 +8,10 @@ LinxMessageIpc::LinxMessageIpc(uint32_t reqId, void *buffer, uint32_t payloadSiz
     std::copy((uint8_t *)buffer, (uint8_t *)buffer + payloadSize, std::back_inserter(payload));
 }
 
+LinxMessageIpc::LinxMessageIpc(uint32_t reqId, const std::initializer_list<uint8_t> &buffer) : reqId{reqId} {
+    std::copy(buffer.begin(), buffer.end(), std::back_inserter(payload));
+}
+
 LinxMessageIpc::~LinxMessageIpc(){};
 
 LinxIpcClient *LinxMessageIpc::getClient() const {
