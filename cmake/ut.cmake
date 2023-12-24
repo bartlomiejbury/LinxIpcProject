@@ -23,7 +23,10 @@ function(add_to_ut)
     get_target_property(TARGET_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
     get_target_property(TARGET_DEFINITIONS ${ADD_TO_UT_TARGET} COMPILE_DEFINITIONS)
 
-    target_compile_definitions(ut_sources PUBLIC ${TARGET_DEFINITIONS})
+    if(TARGET_DEFINITIONS)
+        target_compile_definitions(ut_sources PUBLIC ${TARGET_DEFINITIONS})
+    endif()
+
     target_sources(ut_sources PRIVATE ${TARGET_SOURCES})
     target_include_directories(ut_sources
         PUBLIC
