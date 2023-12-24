@@ -82,7 +82,7 @@ int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int ti
         return len;
     }
 
-    if ((uint32_t)len < sizeof(uint32_t)) {
+    if ((uint32_t)len < sizeof(ipc->reqId)) {
         LOG_ERROR("IPC recv wrong size: %d for IPC: ", len, this->serviceName.c_str());
         return -1;
     }
