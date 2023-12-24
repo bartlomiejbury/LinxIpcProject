@@ -16,7 +16,7 @@ void LinxIpcEndpointImpl::task() {
 
             if (msg->getReqId() == IPC_HUNT_REQ) {
                 LinxMessageIpc rsp = LinxMessageIpc(IPC_HUNT_RSP);
-                socket->send(&rsp, from);
+                socket->send(rsp, from);
                 continue;
             }
 
@@ -110,7 +110,7 @@ int LinxIpcEndpointImpl::receive() {
     return ret;
 }
 
-int LinxIpcEndpointImpl::send(const LinxMessageIpc *message, const LinxIpcClientPtr &to) {
+int LinxIpcEndpointImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
     return this->socket->send(message, to->getName());
 }
 

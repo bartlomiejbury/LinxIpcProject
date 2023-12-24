@@ -13,8 +13,7 @@ int main() {
         printf("OK: not received any message\n");
     }
 
-
-    while(1) {
+    while (1) {
         auto msg = endpoint->receive(INFINITE_TIMEOUT, {});
         if (msg) {
             printf("OK: received msg: %d from %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
@@ -23,4 +22,3 @@ int main() {
         }
     }
 }
-

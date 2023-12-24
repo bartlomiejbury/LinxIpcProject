@@ -1,9 +1,9 @@
 #include "LinxIpc.h"
 #include "CMock2.h"
 
-class LinxIpcEndpointMock : public LinxIpcClient {
+class LinxIpcEndpointMock : public LinxIpcEndpoint {
   public:
-    MOCK_METHOD(int, send, (const LinxMessageIpc *message, const LinxIpcClientPtr &to));
+    MOCK_METHOD(int, send, (const LinxMessageIpc &message, const LinxIpcClientPtr &to));
     MOCK_METHOD(LinxMessageIpcPtr, receive, (int timeoutMs, const std::initializer_list<uint32_t> &sigsel));
     MOCK_METHOD(LinxMessageIpcPtr, receive,
                 (int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const LinxIpcClientPtr &from));

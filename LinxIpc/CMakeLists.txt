@@ -29,6 +29,7 @@ add_to_ut(TARGET LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxTimeTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxQueueTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcMessageTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcClientTests.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
 )

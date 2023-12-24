@@ -98,20 +98,20 @@ int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int ti
     return len - sizeof(ipc->reqId);
 }
 
-int LinxIpcSocketImpl::send(const LinxMessageIpc *message, const std::string &to) {
+int LinxIpcSocketImpl::send(const LinxMessageIpc &message, const std::string &to) {
 
     if (this->fd < 0) {
         LOG_ERROR("IPC send on wrong socket for IPC: %s", this->serviceName.c_str());
         return -1;
     }
 
-    uint32_t payloadSize = message->getPayloadSize();
-    uint8_t *msgData = message->getPayload<uint8_t>();
+    uint32_t payloadSize = message.getPayloadSize();
+    uint8_t *msgData = message.getPayload<uint8_t>();
 
     uint32_t sendSize = payloadSize + sizeof(uint32_t);
     uint8_t buffer[sendSize];
     IpcMessage *ipc = (IpcMessage *)buffer;
-    ipc->reqId = message->getReqId();
+    ipc->reqId = message.getReqId();
 
     memcpy(ipc->payload, msgData, payloadSize);
 

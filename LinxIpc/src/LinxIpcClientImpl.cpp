@@ -6,7 +6,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-LinxIpcClientImpl::LinxIpcClientImpl(LinxIpcEndpointPtr client, const std::string &serviceName) {
+LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcEndpointPtr &client, const std::string &serviceName) {
 
     this->client = client;
     this->serviceName = serviceName;
@@ -14,7 +14,7 @@ LinxIpcClientImpl::LinxIpcClientImpl(LinxIpcEndpointPtr client, const std::strin
     LOG_INFO("Setup IPC Client: %s", serviceName.c_str());
 }
 
-int LinxIpcClientImpl::send(const LinxMessageIpc *message) {
+int LinxIpcClientImpl::send(const LinxMessageIpc &message) {
     return client->send(message, shared_from_this());
 }
 
@@ -35,7 +35,7 @@ bool LinxIpcClientImpl::connect(int timeoutMs) {
     bool run = true;
     do {
         LinxMessageIpc message{IPC_HUNT_REQ};
-        int len = send(&message);
+        int len = send(message);
         if (len >= 0) {
             auto rsp = receive(pingTimeout, {IPC_HUNT_RSP});
             if (rsp != nullptr) {

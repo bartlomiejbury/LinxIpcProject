@@ -20,12 +20,14 @@ function(add_to_ut)
     )
 
     get_target_property(TARGET_SOURCES ${ADD_TO_UT_TARGET} SOURCES)
-    get_target_property(TARGET_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
+    get_target_property(TARGET_INCLUDES_PUBLIC ${ADD_TO_UT_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+    get_target_property(TARGET_INCLUDES_PRIVATE ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
     target_sources(ut_sources PRIVATE ${TARGET_SOURCES})
     target_include_directories(ut_sources
         PUBLIC
         ${ADD_TO_UT_INCLUDES}
-        ${TARGET_INCLUDES}
+        ${TARGET_INCLUDES_PUBLIC}
+        ${TARGET_INCLUDES_PRIVATE}
     )
 
     target_sources(${PROJECT_NAME}-ut PRIVATE ${ADD_TO_UT_SOURCES})

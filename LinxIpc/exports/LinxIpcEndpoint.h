@@ -2,10 +2,10 @@
 
 class LinxIpcEndpoint {
 
-   public:
+  public:
     virtual ~LinxIpcEndpoint(){};
 
-    virtual int send(const LinxMessageIpc *message, const LinxIpcClientPtr &to) = 0;
+    virtual int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) = 0;
 
     virtual LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) = 0;
     virtual LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
