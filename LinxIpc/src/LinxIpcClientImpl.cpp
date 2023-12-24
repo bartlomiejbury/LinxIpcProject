@@ -26,11 +26,7 @@ std::string LinxIpcClientImpl::getName() {
     return this->serviceName;
 }
 
-bool LinxIpcClientImpl::connect(int timeout) {
-    return waitForConnect(timeout);
-}
-
-bool LinxIpcClientImpl::waitForConnect(int timeoutMs) {
+bool LinxIpcClientImpl::connect(int timeoutMs) {
 
     static constexpr int pingInterval = 500;
     static constexpr int pingTimeout = 100;

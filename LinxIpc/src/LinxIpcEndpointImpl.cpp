@@ -11,7 +11,7 @@ void LinxIpcEndpointImpl::task() {
         LinxMessageIpcPtr msg{};
         std::string from;
 
-        int ret = socket->receive(&msg, &from, -1);
+        int ret = socket->receive(&msg, &from, INFINITE_TIMEOUT);
         if (ret >= 0) {
 
             if (msg->getReqId() == IPC_HUNT_REQ) {
@@ -22,7 +22,7 @@ void LinxIpcEndpointImpl::task() {
 
             if (queue->add(msg, from) != 0) {
                 LOG_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
-                    msg->getReqId(), from.c_str());
+                          msg->getReqId(), from.c_str());
             }
         }
     }
@@ -72,7 +72,8 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
     return receive(timeoutMs, sigsel, LINX_ANY_FROM);
 }
 
-LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel, LinxIpcClientPtr from) {
+LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
+                                               LinxIpcClientPtr from) {
 
     std::optional<std::string> fromOpt = from != nullptr ? std::make_optional(from->getName()) : std::nullopt;
     std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, fromOpt);
@@ -83,8 +84,8 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
     LinxMessageIpcPtr msg = container->message;
     msg->setClient(std::make_shared<LinxIpcClientImpl>(shared_from_this(), container->from));
 
-    LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(),
-        msg->getReqId(), container->from.c_str());
+    LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
+              container->from.c_str());
 
     return msg;
 }
@@ -102,8 +103,8 @@ int LinxIpcEndpointImpl::receive() {
         auto container = it->second;
         ret = container.callback(msg.get(), container.data);
     } else {
-        LOG_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(),
-            msg->getReqId(), msg->getClient()->getName().c_str());
+        LOG_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
+                 msg->getClient()->getName().c_str());
     }
 
     return ret;

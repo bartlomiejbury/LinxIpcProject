@@ -1,3 +1,4 @@
+#include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 
 LinxQueueImpl::LinxQueueImpl(int size) {
@@ -79,7 +80,9 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs,
     return msg;
 };
 
-int LinxQueueImpl::size() { return queue.size(); }
+int LinxQueueImpl::size() {
+    return queue.size();
+}
 
 std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel,
                                                                const std::optional<std::string> &from) {
