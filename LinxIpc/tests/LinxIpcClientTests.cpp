@@ -4,7 +4,7 @@
 #include "SystemMock.h"
 #include "LinxIpcEndpointMock.h"
 #include "LinxIpc.h"
-#include "LinxIpcCLientImpl.h"
+#include "LinxIpcClientImpl.h"
 
 using namespace ::testing;
 
