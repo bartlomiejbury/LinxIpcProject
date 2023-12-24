@@ -2,23 +2,25 @@
 
 typedef enum { SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_END } LogSeverity;
 
+#ifdef USE_LOGGING
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 void trace(LogSeverity severity, const char *fileName, int lineNum, const char *format, ...);
-
 #ifdef __cplusplus
 }
 #endif
 
-#ifdef USE_LINX_LOGGING
 #define LOG(SEVERITY, ...)                                                                                             \
-    if (SEVERITY >= USE_LINX_LOGGING && SEVERITY < SEVERITY_END) {                                                     \
+    if (SEVERITY >= USE_LOGGING && SEVERITY < SEVERITY_END) {                                                          \
         trace(SEVERITY, __FILE__, __LINE__, ##__VA_ARGS__);                                                            \
     }
+
 #else
+
 #define LOG(SEVERITY, ...)
+
 #endif
 
 #define LOG_INFO(...) LOG(SEVERITY_INFO, __VA_ARGS__)

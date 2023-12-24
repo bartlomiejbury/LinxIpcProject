@@ -18,7 +18,7 @@ add_link_options(
     -Wl,--gc-sections
 )
 
-if(UNIT_TESTS)
+if(DEFINED UNIT_TESTS)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ut.cmake)
 else()
     function(add_to_ut)
@@ -27,7 +27,10 @@ endif()
 
 message(STATUS "#################################")
 message(STATUS "     BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-if(UNIT_TESTS)
+if(DEFINED USE_LOGGING)
+    message(STATUS "     LOGGING_LEVEL: ${USE_LOGGING}")
+endif()
+if(DEFINED UNIT_TESTS)
     message(STATUS "     TARGET: UNIT_TESTS")
     message(STATUS "         COVERITY: ${COVERITY}")
     message(STATUS "         VALGRIND: ${VALGRIND}")

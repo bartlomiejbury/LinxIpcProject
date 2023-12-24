@@ -20,8 +20,8 @@ target_include_directories(
 
 target_link_libraries(LinxIpc pthread)
 
-if(DEFINED USE_LINX_LOGGING)
-    target_compile_definitions(LinxIpc PRIVATE USE_LINX_LOGGING=${USE_LINX_LOGGING})
+if(DEFINED USE_LOGGING)
+    target_compile_definitions(LinxIpc PRIVATE USE_LOGGING=${USE_LOGGING})
 endif()
 
 add_to_ut(TARGET LinxIpc

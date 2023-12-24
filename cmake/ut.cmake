@@ -21,6 +21,9 @@ function(add_to_ut)
 
     get_target_property(TARGET_SOURCES ${ADD_TO_UT_TARGET} SOURCES)
     get_target_property(TARGET_INCLUDES ${ADD_TO_UT_TARGET} INCLUDE_DIRECTORIES)
+    get_target_property(TARGET_DEFINITIONS ${ADD_TO_UT_TARGET} COMPILE_DEFINITIONS)
+
+    target_compile_definitions(ut_sources PUBLIC ${TARGET_DEFINITIONS})
     target_sources(ut_sources PRIVATE ${TARGET_SOURCES})
     target_include_directories(ut_sources
         PUBLIC
@@ -117,7 +120,7 @@ if(COVERITY)
         DEPENDS run_${PROJECT_NAME}-ut
         COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-11
         COMMAND lcov -e coverage.info \"${PROJECT_SOURCE_DIR}/LinxIpc/src*\" -o coverage.info.filtered
-        #COMMAND lcov -r coverage.info \"${CMAKE_BINARY_DIR}/*\" -o coverage.info.filtered
+        #COMMAND lcov -r coverage.info.filtered \"${PROJECT_SOURCE_DIR}/LinxIpc/src/trace.cpp*\" -o coverage.info.filtered
         COMMAND genhtml coverage.info.filtered --output-directory coverity_report
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
             "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
