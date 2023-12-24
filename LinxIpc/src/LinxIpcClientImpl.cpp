@@ -1,10 +1,10 @@
-#include <unistd.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <poll.h>
-#include "trace.h"
 #include "LinxIpcClientImpl.h"
 #include "LinxTime.h"
+#include "trace.h"
+#include <errno.h>
+#include <poll.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 LinxIpcClientImpl::LinxIpcClientImpl(LinxIpcEndpointPtr client, const std::string &serviceName) {
 
@@ -38,17 +38,17 @@ bool LinxIpcClientImpl::waitForConnect(int timeoutMs) {
     uint64_t startTime = getTimeMs();
     bool run = true;
     do {
-        run = timeoutMs == INFINITE_TIMEOUT || (getTimeMs() - startTime) < (uint64_t)timeoutMs;
-
         LinxMessageIpc message{IPC_HUNT_REQ};
         int len = send(&message);
         if (len >= 0) {
             auto rsp = receive(pingTimeout, {IPC_HUNT_RSP});
             if (rsp != nullptr) {
+                LOG_INFO("IPC Client: %s connected", serviceName.c_str());
                 return true;
             }
         }
         usleep(pingInterval * MILLI_SECONDS);
+        run = timeoutMs == INFINITE_TIMEOUT || (getTimeMs() - startTime) < (uint64_t)timeoutMs;
     } while (run);
 
     LOG_ERROR("IPC Client: %s connection timed out", serviceName.c_str());
