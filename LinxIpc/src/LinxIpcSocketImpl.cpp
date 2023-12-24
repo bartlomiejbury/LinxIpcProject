@@ -115,7 +115,7 @@ int LinxIpcSocketImpl::send(const LinxMessageIpc *message, const std::string &to
 
     memcpy(ipc->payload, msgData, payloadSize);
 
-    struct sockaddr_un address{};
+    struct sockaddr_un address {};
     socklen_t address_length = createAddress(&address, to);
 
     ssize_t len = sendto(this->fd, buffer, sendSize, 0, (struct sockaddr *)&address, address_length);
@@ -161,10 +161,10 @@ int LinxIpcSocketImpl::flush() {
     return bytes_available;
 }
 
-std::string LinxIpcSocketImpl::getName() {
+std::string LinxIpcSocketImpl::getName() const {
     return this->serviceName;
 }
 
-int LinxIpcSocketImpl::getFd() {
+int LinxIpcSocketImpl::getFd() const {
     return fd;
 }

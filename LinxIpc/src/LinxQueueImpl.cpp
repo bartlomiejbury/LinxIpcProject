@@ -80,7 +80,7 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::waitForMessage(int timeoutMs,
     return msg;
 };
 
-int LinxQueueImpl::size() {
+int LinxQueueImpl::size() const {
     return queue.size();
 }
 

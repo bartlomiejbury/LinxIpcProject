@@ -73,7 +73,7 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
 }
 
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
-                                               LinxIpcClientPtr from) {
+                                               const LinxIpcClientPtr &from) {
 
     std::optional<std::string> fromOpt = from != nullptr ? std::make_optional(from->getName()) : std::nullopt;
     std::shared_ptr<LinxQueueContainer> container = queue->get(timeoutMs, sigsel, fromOpt);
@@ -110,7 +110,7 @@ int LinxIpcEndpointImpl::receive() {
     return ret;
 }
 
-int LinxIpcEndpointImpl::send(const LinxMessageIpc *message, LinxIpcClientPtr to) {
+int LinxIpcEndpointImpl::send(const LinxMessageIpc *message, const LinxIpcClientPtr &to) {
     return this->socket->send(message, to->getName());
 }
 
@@ -118,10 +118,10 @@ LinxIpcClientPtr LinxIpcEndpointImpl::createClient(const std::string &serviceNam
     return std::make_shared<LinxIpcClientImpl>(shared_from_this(), serviceName);
 }
 
-int LinxIpcEndpointImpl::getQueueSize() {
+int LinxIpcEndpointImpl::getQueueSize() const {
     return queue->size();
 }
 
-int LinxIpcEndpointImpl::getFd() {
+int LinxIpcEndpointImpl::getFd() const {
     return socket->getFd();
 }

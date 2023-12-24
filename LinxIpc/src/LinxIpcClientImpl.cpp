@@ -22,7 +22,7 @@ LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::initializ
     return client->receive(timeoutMs, sigsel, shared_from_this());
 }
 
-std::string LinxIpcClientImpl::getName() {
+std::string LinxIpcClientImpl::getName() const {
     return this->serviceName;
 }
 
