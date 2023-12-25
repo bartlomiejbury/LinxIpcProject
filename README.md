@@ -66,6 +66,7 @@ Each enpoint will create internal thread to receive messages.
 ```
 #include "LinxIpc.h"
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+endpoint->start();
 ```
 
 Second parameter indicates queue size. If queue is empty new messages are dropped.
@@ -77,6 +78,7 @@ endpint->getQueueSize();
 #### Receive message:
 ```
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+endpoint->start();
 ...
 auto msg = endpoint->receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, LINX_ANY_FROM);
 ```
@@ -93,13 +95,16 @@ Signals from other sources not interrupt receive waiting.
 
 You can create client by calling createClient method on endpoint. LinxIpcClient represent remote endpoint
 ```
+auto endpoint = createLinxIpcEndpoint("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
+endpoint->start();
 ```
 
 LinxIpcClient can be also used to receive message from this client.
 ```
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
+endpoint->start();
 auto msg = client->receive(10000, {20});
 ```
 
@@ -108,6 +113,7 @@ auto msg = client->receive(10000, {20});
 ```
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
+endpoint->start();
 
 LinxMessageIpc message1{12};
 client->send(&message1);
@@ -124,6 +130,8 @@ There is no guarantee remote endpoint is alive. To check remote endpoint is aliv
 ```
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
+endpoint->start();
+
 if (client->connect(5000)) {
     // client is alive
 }
@@ -147,4 +155,5 @@ int callback(LinxMessageIpc *msg, void *data) {
 
 auto endpoint = createLinxIpcEndpoint("EndointName", 100);
 endpoint->registerCallback(13, callback, nullptr);
+endpoint->start();
 ```

@@ -4,6 +4,7 @@
 int main() {
 
     auto endpoint = createLinxIpcEndpoint("TEST1");
+    endpoint->start();
     auto client = endpoint->createClient("TEST3");
 
     auto msg = client->receive(10000, {20});

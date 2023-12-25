@@ -14,6 +14,9 @@ class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointI
     LinxIpcEndpointImpl(LinxQueue *queue, LinxIpcSocket *socket);
     ~LinxIpcEndpointImpl();
 
+    void start() override;
+    void stop() override;
+
     int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) override;
 
     LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) override;
@@ -38,7 +41,7 @@ class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointI
     LinxIpcSocket *socket;
     std::map<uint32_t, IpcContainer> handlers;
     pthread_t threadId;
-    bool running;
+    bool running = false;
 
     void task();
     static void *threadFunc(void *arg);

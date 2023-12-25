@@ -37,31 +37,42 @@ void *LinxIpcEndpointImpl::threadFunc(void *arg) {
 LinxIpcEndpointImpl::LinxIpcEndpointImpl(LinxQueue *queue, LinxIpcSocket *socket) {
     this->queue = queue;
     this->socket = socket;
+}
+
+LinxIpcEndpointImpl::~LinxIpcEndpointImpl() {
+
+    stop();
+    queue->clear();
+    delete queue;
+    delete socket;
+}
+
+void LinxIpcEndpointImpl::start() {
+
+    if (running) {
+        return;
+    }
+
     running = true;
 
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    struct sched_param param;
     pthread_attr_setschedpolicy(&attr, SCHED_OTHER);
-    param.sched_priority = 0;
 
+    struct sched_param param;
+    param.sched_priority = 0;
     pthread_attr_setschedparam(&attr, &param);
     pthread_create(&threadId, &attr, LinxIpcEndpointImpl::threadFunc, this);
     pthread_attr_destroy(&attr);
 }
 
-LinxIpcEndpointImpl::~LinxIpcEndpointImpl() {
+void LinxIpcEndpointImpl::stop() {
     if (running) {
         running = false;
         pthread_cancel(threadId);
         pthread_join(threadId, NULL);
     }
-
-    queue->clear();
-
-    delete queue;
-    delete socket;
 }
 
 void LinxIpcEndpointImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
