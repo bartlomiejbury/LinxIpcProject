@@ -14,11 +14,13 @@
 
 class LinxMessageIpc;
 class LinxIpcClient;
+class LinxIpcServer;
 class LinxIpcEndpoint;
 
+using LinxIpcEndpointPtr = std::shared_ptr<LinxIpcEndpoint>;
 using LinxMessageIpcPtr = std::shared_ptr<LinxMessageIpc>;
 using LinxIpcClientPtr = std::shared_ptr<LinxIpcClient>;
-using LinxIpcEndpointPtr = std::shared_ptr<LinxIpcEndpoint>;
+using LinxIpcServerPtr = std::shared_ptr<LinxIpcServer>;
 using LinxIpcCallback = std::function<int(LinxMessageIpc *msg, void *data)>;
 
 const int IMMEDIATE_TIMEOUT = 0;
@@ -26,8 +28,9 @@ const int INFINITE_TIMEOUT = -1;
 const std::initializer_list<uint32_t> LINX_ANY_SIG({});
 const LinxIpcClientPtr LINX_ANY_FROM = nullptr;
 
-LinxIpcEndpointPtr createLinxIpcEndpoint(const std::string &endpointName, int maxSize = 100);
+LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
 
 #include "LinxIpcMessage.h"
 #include "LinxIpcEndpoint.h"
 #include "LinxIpcClient.h"
+#include "LinxIpcServer.h"

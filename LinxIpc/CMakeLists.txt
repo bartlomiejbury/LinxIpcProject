@@ -6,6 +6,7 @@ add_library(LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcEndpointImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcClientImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcServerImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxTime.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/trace.cpp
 )
@@ -30,6 +31,8 @@ add_to_ut(TARGET LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxQueueTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcMessageTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcClientTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcEndpointTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcServerTests.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
 )

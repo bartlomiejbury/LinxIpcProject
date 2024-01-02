@@ -10,7 +10,7 @@ add_compile_options(
     $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
     $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17>
     -Wall -Wno-psabi -ffunction-sections -fdata-sections -fno-common -fstack-protector-strong -Werror
-    $<$<CONFIG:Debug>:SHELL:-Og>
+    $<$<CONFIG:Debug>:SHELL:-O0>
 )
 
 add_link_options(

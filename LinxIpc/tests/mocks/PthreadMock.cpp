@@ -15,3 +15,14 @@ CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_cond_timedwait, (pthread_cond_t *c
 CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_cond_wait, (pthread_cond_t *cond, pthread_mutex_t *mutex));
 CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_cond_signal, (pthread_cond_t *cond));
 CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_cond_broadcast, (pthread_cond_t *cond));
+
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_attr_init, (pthread_attr_t *attr));
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_attr_destroy, (pthread_attr_t *attr));
+
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_attr_setinheritsched, (pthread_attr_t *attr, int inheritsched));
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_attr_setschedpolicy, (pthread_attr_t *attr, int policy));
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_attr_setschedparam, (pthread_attr_t * attr, const struct sched_param * param));
+
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_create, (pthread_t * thread, const pthread_attr_t * attr, void *(*start_routine)(void *), void * arg));
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_cancel, (pthread_t thread));
+CMOCK_MOCK_FUNCTION(PthreadMock, int, pthread_join, (pthread_t thread, void **retval));

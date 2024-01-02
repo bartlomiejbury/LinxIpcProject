@@ -34,7 +34,7 @@ class LinxQueueTests : public testing::Test {
 TEST_F(LinxQueueTests, addToQueue_MaximumSizeReached) {
     auto queue = LinxQueueImpl(1);
 
-    LinxMessageIpcPtr msg{};
+    LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
     ASSERT_EQ(0, queue.add(msg, "from"));
     ASSERT_EQ(-1, queue.add(msg, "from"));
 }
@@ -42,7 +42,7 @@ TEST_F(LinxQueueTests, addToQueue_MaximumSizeReached) {
 TEST_F(LinxQueueTests, clearQueue) {
     auto queue = LinxQueueImpl(2);
 
-    LinxMessageIpcPtr msg{};
+    LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg, "from");
     queue.add(msg, "from");
 

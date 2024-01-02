@@ -22,9 +22,8 @@ class LinxIpcClientTests : public testing::Test {
 };
 
 TEST_F(LinxIpcClientTests, clientGetName) {
-    auto client = LinxIpcClientImpl(endpointMock, "TEST");
-
-    ASSERT_STREQ("TEST", client.getName().c_str());
+    auto client = std::make_shared<LinxIpcClientImpl>(endpointMock, "TEST");
+    ASSERT_STREQ("TEST", client->getName().c_str());
 }
 
 TEST_F(LinxIpcClientTests, send) {

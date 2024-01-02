@@ -10,13 +10,8 @@ class LinxIpcEndpoint {
 
     virtual int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) = 0;
 
-    virtual LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) = 0;
     virtual LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
-                                      const LinxIpcClientPtr &from) = 0;
-
-    virtual int receive() = 0;
-
-    virtual void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) = 0;
+                                      const LinxIpcClientPtr &from = LINX_ANY_FROM) = 0;
     virtual LinxIpcClientPtr createClient(const std::string &serviceName) = 0;
 
     virtual int getQueueSize() const = 0;

@@ -1,3 +1,4 @@
+#include <cassert>
 #include "LinxIpcClientImpl.h"
 #include "LinxTime.h"
 #include "trace.h"
@@ -7,6 +8,7 @@
 #include <unistd.h>
 
 LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcEndpointPtr &client, const std::string &serviceName) {
+    assert(client);
 
     this->client = client;
     this->serviceName = serviceName;

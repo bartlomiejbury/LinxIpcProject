@@ -19,4 +19,15 @@ class PthreadMock : public CMockMocker<PthreadMock> {
     MOCK_METHOD(int, pthread_cond_wait, (pthread_cond_t * cond, pthread_mutex_t *mutex));
     MOCK_METHOD(int, pthread_cond_signal, (pthread_cond_t * cond));
     MOCK_METHOD(int, pthread_cond_broadcast, (pthread_cond_t * cond));
+
+    MOCK_METHOD(int, pthread_attr_init, (pthread_attr_t *attr));
+    MOCK_METHOD(int, pthread_attr_destroy, (pthread_attr_t *attr));
+
+    MOCK_METHOD(int, pthread_attr_setinheritsched, (pthread_attr_t *attr, int inheritsched));
+    MOCK_METHOD(int, pthread_attr_setschedpolicy, (pthread_attr_t *attr, int policy));
+    MOCK_METHOD(int, pthread_attr_setschedparam, (pthread_attr_t * attr, const struct sched_param * param));
+
+    MOCK_METHOD(int, pthread_create, (pthread_t * thread, const pthread_attr_t * attr, void *(*start_routine)(void *), void * arg));
+    MOCK_METHOD(int, pthread_cancel, (pthread_t thread));
+    MOCK_METHOD(int, pthread_join, (pthread_t thread, void **retval));
 };

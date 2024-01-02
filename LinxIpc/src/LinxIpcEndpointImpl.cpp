@@ -1,3 +1,4 @@
+#include <cassert>
 #include "LinxIpc.h"
 #include "LinxIpcEndpointImpl.h"
 #include "LinxIpcClientImpl.h"
@@ -35,6 +36,9 @@ void *LinxIpcEndpointImpl::threadFunc(void *arg) {
 }
 
 LinxIpcEndpointImpl::LinxIpcEndpointImpl(LinxQueue *queue, LinxIpcSocket *socket) {
+    assert(queue);
+    assert(socket);
+
     this->queue = queue;
     this->socket = socket;
 }
@@ -75,14 +79,6 @@ void LinxIpcEndpointImpl::stop() {
     }
 }
 
-void LinxIpcEndpointImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
-    this->handlers.insert({reqId, {callback, data}});
-};
-
-LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) {
-    return receive(timeoutMs, sigsel, LINX_ANY_FROM);
-}
-
 LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
                                                const LinxIpcClientPtr &from) {
 
@@ -93,7 +89,7 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
     }
 
     LinxMessageIpcPtr msg = container->message;
-    msg->setClient(std::make_shared<LinxIpcClientImpl>(shared_from_this(), container->from));
+    msg->setClient(createClient(container->from));
 
     LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
               container->from.c_str());
@@ -101,27 +97,10 @@ LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::initial
     return msg;
 }
 
-int LinxIpcEndpointImpl::receive() {
-
-    LinxMessageIpcPtr msg = receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG);
-    if (msg == nullptr) {
+int LinxIpcEndpointImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
+    if (to == nullptr) {
         return -1;
     }
-
-    int ret = 0;
-    auto it = this->handlers.find(msg->getReqId());
-    if (it != this->handlers.end()) {
-        auto container = it->second;
-        ret = container.callback(msg.get(), container.data);
-    } else {
-        LOG_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
-                 msg->getClient()->getName().c_str());
-    }
-
-    return ret;
-}
-
-int LinxIpcEndpointImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
     return this->socket->send(message, to->getName());
 }
 

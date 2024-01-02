@@ -1,3 +1,4 @@
+#include <cassert>
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 
@@ -17,6 +18,8 @@ LinxQueueImpl::~LinxQueueImpl() {
 }
 
 int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
+    assert(msg);
+
     pthread_mutex_lock(&m_mutex);
 
     int result = -1;

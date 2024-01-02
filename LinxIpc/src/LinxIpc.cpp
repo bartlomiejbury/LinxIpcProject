@@ -1,12 +1,12 @@
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 #include "LinxIpcSocketImpl.h"
-#include "LinxIpcEndpointImpl.h"
+#include "LinxIpcServerImpl.h"
 
 //LCOV_EXCL_START
-LinxIpcEndpointPtr createLinxIpcEndpoint(const std::string &endpointName, int maxSize) {
+LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize) {
     LinxQueue *queue = new LinxQueueImpl(maxSize);
     LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
-    return LinxIpcEndpointPtr(new LinxIpcEndpointImpl(queue, socket));
+    return LinxIpcServerPtr(new LinxIpcServerImpl(queue, socket));
 }
 //LCOV_EXCL_STOP

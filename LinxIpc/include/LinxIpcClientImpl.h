@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LinxIpc.h"
+#include "LinxIpcEndpoint.h"
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
