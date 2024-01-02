@@ -65,7 +65,7 @@ Each enpoint will create internal thread to receive messages.
 #### Create endpoint:
 ```
 #include "LinxIpc.h"
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 endpoint->start();
 ```
 
@@ -77,7 +77,7 @@ endpint->getQueueSize();
 ```
 #### Receive message:
 ```
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 endpoint->start();
 ...
 auto msg = endpoint->receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, LINX_ANY_FROM);
@@ -95,14 +95,14 @@ Signals from other sources not interrupt receive waiting.
 
 You can create client by calling createClient method on endpoint. LinxIpcClient represent remote endpoint
 ```
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
 endpoint->start();
 ```
 
 LinxIpcClient can be also used to receive message from this client.
 ```
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
 endpoint->start();
 auto msg = client->receive(10000, {20});
@@ -111,7 +111,7 @@ auto msg = client->receive(10000, {20});
 #### Send message:
 
 ```
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
 endpoint->start();
 
@@ -128,7 +128,7 @@ endpoint->send(&message2, client);
 #### Connecting to endpoint:
 There is no guarantee remote endpoint is alive. To check remote endpoint is alive call ```connect``` function on client
 ```
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 auto client = endpoint->createClient("ClientName");
 endpoint->start();
 
@@ -153,7 +153,7 @@ int callback(LinxMessageIpc *msg, void *data) {
     return 0;
 }
 
-auto endpoint = createLinxIpcEndpoint("EndointName", 100);
+auto endpoint = createLinxIpcServer("EndointName", 100);
 endpoint->registerCallback(13, callback, nullptr);
 endpoint->start();
 ```

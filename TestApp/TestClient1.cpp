@@ -3,7 +3,7 @@
 
 int main() {
 
-    auto endpoint = createLinxIpcEndpoint("TEST1");
+    auto endpoint = createLinxIpcServer("TEST1");
     endpoint->start();
     auto client = endpoint->createClient("TEST3");
 
