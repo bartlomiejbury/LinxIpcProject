@@ -15,5 +15,5 @@ class LinxIpcEndpoint {
     virtual LinxIpcClientPtr createClient(const std::string &serviceName) = 0;
 
     virtual int getQueueSize() const = 0;
-    virtual int getFd() const = 0;
+    virtual int getPollFd() const = 0;
 };

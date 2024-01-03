@@ -145,8 +145,6 @@ Passing ```IMMEDIATE_TIMEOUT``` to connect will cause one ping to be send.
 You can register message handlers in LinxIpcEndpoint. Calling receive method without any arguments will get first message from queue and execute registered callback. This function will never block. Return value from callbeck is returned by receive() call.
 If queue is empty receive() call will return -1
 
-You can add LinxIpcENdpoint to poll by getting it file descriptor by ```getFd()``` function.
-
 ```
 int callback(LinxMessageIpc *msg, void *data) {
     printf("received message from: %s\n", msg->getClient()->getName().c_str());
@@ -156,4 +154,33 @@ int callback(LinxMessageIpc *msg, void *data) {
 auto endpoint = createLinxIpcServer("EndointName", 100);
 endpoint->registerCallback(13, callback, nullptr);
 endpoint->start();
+```
+
+You can add LinxIpcENdpoint to poll by getting it file descriptor by ```getPollFd()``` function. File descriptor can be red when there are messages in buffer.
+Note that when filter is used, messages not matched fiter are still in buffer and poll will be always pending.
+```
+#include "LinxIpc.h"
+#include <poll.h>
+
+int main() {
+
+    auto endpoint = createLinxIpcServer("TEST1");
+    endpoint->start();
+
+    struct pollfd fds[1];
+    fds[0].fd = endpoint->getPollFd();
+    fds[0].events = POLLIN;
+
+    while(1) {
+        int pollrc = poll(fds, 1, 10000);
+        if (pollrc < 0) {
+            printf("recv error, errono: %d\n", errno);
+        } else if (pollrc == 0) {
+            printf("recv timeout\n");
+        } else {
+            LinxMessageIpcPtr msg = endpoint->receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG);
+            printf("OK: received msg: %d from %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
+        }
+    }
+}
 ```

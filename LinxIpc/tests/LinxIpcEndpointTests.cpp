@@ -37,9 +37,9 @@ class LinxIpcEndpointTests : public testing::Test {
 
 TEST_F(LinxIpcEndpointTests, endpoint_getFd) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-    EXPECT_CALL(*socketMock, getFd()).WillOnce(Return(1));
+    EXPECT_CALL(*queueMock, getFd()).WillOnce(Return(1));
 
-    ASSERT_EQ(1, endpoint->getFd());
+    ASSERT_EQ(1, endpoint->getPollFd());
 }
 
 TEST_F(LinxIpcEndpointTests, endpoint_getQueueSize) {

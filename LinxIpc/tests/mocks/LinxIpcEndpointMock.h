@@ -12,5 +12,5 @@ class LinxIpcEndpointMock : public LinxIpcEndpoint {
                 (int timeoutMs, const std::initializer_list<uint32_t> &sigsel, const LinxIpcClientPtr &from));
     MOCK_METHOD(LinxIpcClientPtr, createClient, (const std::string &serviceName));
     MOCK_METHOD(int, getQueueSize, (), (const));
-    MOCK_METHOD(int, getFd, (), (const));
+    MOCK_METHOD(int, getPollFd, (), (const));
 };

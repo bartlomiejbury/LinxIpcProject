@@ -112,6 +112,6 @@ int LinxIpcEndpointImpl::getQueueSize() const {
     return queue->size();
 }
 
-int LinxIpcEndpointImpl::getFd() const {
-    return socket->getFd();
+int LinxIpcEndpointImpl::getPollFd() const {
+    return queue->getFd();
 }

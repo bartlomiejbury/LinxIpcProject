@@ -24,7 +24,7 @@ class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointI
     LinxIpcClientPtr createClient(const std::string &serviceName) override;
 
     int getQueueSize() const override;
-    int getFd() const override;
+    int getPollFd() const override;
 
   private:
     LinxQueue *queue;
