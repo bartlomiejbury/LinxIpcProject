@@ -9,7 +9,7 @@
 
 class LinxQueueImpl : public LinxQueue {
    public:
-    LinxQueueImpl(int size);
+    LinxQueueImpl(LinxQueueFd *efd, int size);
     ~LinxQueueImpl();
     int add(const std::shared_ptr<LinxMessageIpc> &msg, const std::string &from) override;
     int size() const override;
@@ -19,8 +19,8 @@ class LinxQueueImpl : public LinxQueue {
                                             const std::optional<std::string> &from) override;
 
    private:
+   LinxQueueFd *efd;
     int max_size = 0;
-    LinxQueueFd efd;
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cv;
     std::list<std::shared_ptr<LinxQueueContainer>> queue;

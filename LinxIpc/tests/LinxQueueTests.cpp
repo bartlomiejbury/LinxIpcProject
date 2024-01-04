@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "SystemMock.h"
 #include "PthreadMock.h"
+#include "LinxIpcQueueFdMock.h"
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 
@@ -12,9 +13,12 @@ class LinxQueueTests : public testing::Test {
    public:
     NiceMock<SystemMock> systemMock;
     NiceMock<PthreadMock> pthreadMock;
+    NiceMock<LinxIpcQueueFdMock> *efdMock;
     struct timespec currentTime = {};
 
     void SetUp() {
+
+        efdMock = new NiceMock<LinxIpcQueueFdMock>();
 
         ON_CALL(systemMock, clock_gettime(_, _))
             .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
@@ -33,7 +37,7 @@ class LinxQueueTests : public testing::Test {
 };
 
 TEST_F(LinxQueueTests, addToQueue_ReturnErrorWhenMaximumSizeReached) {
-    auto queue = LinxQueueImpl(1);
+    auto queue = LinxQueueImpl(efdMock, 1);
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
 
     ASSERT_EQ(queue.add(msg, "from"), 0);
@@ -41,7 +45,7 @@ TEST_F(LinxQueueTests, addToQueue_ReturnErrorWhenMaximumSizeReached) {
 }
 
 TEST_F(LinxQueueTests, clearQueue_DecrementSize) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg, "from");
@@ -54,7 +58,7 @@ TEST_F(LinxQueueTests, clearQueue_DecrementSize) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -66,7 +70,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalNrInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_NotDecretementSizeWHenELementNotFound) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -81,7 +85,7 @@ TEST_F(LinxQueueTests, get_Immediate_NotDecretementSizeWHenELementNotFound) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -96,7 +100,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_DecrementSizeWhenElementFound) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -111,7 +115,7 @@ TEST_F(LinxQueueTests, get_Immediate_DecrementSizeWhenElementFound) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -123,7 +127,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -137,7 +141,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
         .WillOnce([&queue]() { return 0; })
@@ -151,7 +155,7 @@ TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalNrInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMessageWhenSignalNrArriveInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
         .WillOnce([&queue]() { return 0; })
@@ -172,7 +176,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMessageWhenSignalNrArriveInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -186,7 +190,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
         .WillOnce([&queue]() { return 0; })
@@ -200,7 +204,7 @@ TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
         .WillOnce([&queue]() { return 0; })
@@ -221,7 +225,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -235,7 +239,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
         .WillOnce([&queue]() { return 0; })
@@ -255,7 +259,7 @@ TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
 }
 
 TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenElementInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -274,7 +278,7 @@ MATCHER_P2(TimespecMatcher, sec, nsec, "") {
 }
 
 TEST_F(LinxQueueTests, get_Timeout_CallWaitWhenNoSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
     EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, TimespecMatcher(2, 200000000)))
@@ -291,7 +295,7 @@ TEST_F(LinxQueueTests, get_Timeout_CallWaitWhenNoSignalNrInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Timeout_GetCorrectMessageSignalInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
     EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, _))
@@ -313,7 +317,7 @@ TEST_F(LinxQueueTests, get_Timeout_GetCorrectMessageSignalInQueue) {
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnNullWhenWaitTimedOut) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
     EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, _)).WillOnce([&queue]() {
@@ -324,7 +328,7 @@ TEST_F(LinxQueueTests, get_Timeout_ReturnNullWhenWaitTimedOut) {
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnMsgWhenSignalNrInQueue) {
-    auto queue = LinxQueueImpl(2);
+    auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -337,7 +341,9 @@ TEST_F(LinxQueueTests, get_Timeout_ReturnMsgWhenSignalNrInQueue) {
     ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
-TEST_F(LinxQueueTests, getFd) {
-    auto queue = LinxQueueImpl(2);
-    ASSERT_GT(queue.getFd(), 2);
+TEST_F(LinxQueueTests, getFdReturnefdFd) {
+    auto queue = LinxQueueImpl(efdMock, 2);
+
+    EXPECT_CALL(*efdMock, getFd()).WillOnce(Return(1));
+    ASSERT_EQ(queue.getFd(), 1);
 }

@@ -3,8 +3,8 @@
 #include "LinxQueueImpl.h"
 #include "trace.h"
 
-LinxQueueImpl::LinxQueueImpl(int size) {
-    max_size = size;
+LinxQueueImpl::LinxQueueImpl(LinxQueueFd *efd, int size): efd{efd}, max_size{size} {
+    assert(efd);
     pthread_mutex_init(&m_mutex, NULL);
 
     pthread_condattr_t attr{};
@@ -16,6 +16,7 @@ LinxQueueImpl::LinxQueueImpl(int size) {
 LinxQueueImpl::~LinxQueueImpl() {
     pthread_mutex_destroy(&m_mutex);
     pthread_cond_destroy(&m_cv);
+    delete efd;
 }
 
 int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
@@ -26,7 +27,7 @@ int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
     int result = -1;
     if (queue.size() < (std::size_t)max_size) {
         queue.push_back(std::make_shared<LinxQueueContainer>(msg, from));
-        efd.writeEvent();
+        efd->writeEvent();
         result = 0;
     }
 
@@ -39,7 +40,7 @@ void LinxQueueImpl::clear() {
     pthread_mutex_lock(&m_mutex);
 
     queue.clear();
-    efd.clearEvents();
+    efd->clearEvents();
 
     pthread_mutex_unlock(&m_mutex);
 }
@@ -111,7 +112,7 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initia
     if (auto it = std::find_if(queue.begin(), queue.end(), predicate); it != queue.end()) {
         std::shared_ptr<LinxQueueContainer> container = *it;
         queue.erase(it);
-        efd.readEvent();
+        efd->readEvent();
         return container;
     }
 
@@ -119,5 +120,5 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initia
 }
 
 int LinxQueueImpl::getFd() const {
-    return efd.getFd();
+    return efd->getFd();
 }

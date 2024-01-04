@@ -2,14 +2,10 @@
 
 class LinxQueueFd {
   public:
-    LinxQueueFd();
-    ~LinxQueueFd();
+    virtual ~LinxQueueFd() {};
 
-    int getFd() const;
-    void writeEvent();
-    void readEvent();
-    void clearEvents();
-
-  private:
-    int efd;
+    virtual int getFd() const = 0;
+    virtual int writeEvent() = 0;
+    virtual int readEvent() = 0;
+    virtual void clearEvents() = 0;
 };
