@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <initializer_list>
 #include "LinxQueue.h"
+#include "LinxQueueFd.h"
 #include "LinxTime.h"
 
 class LinxQueueImpl : public LinxQueue {
@@ -19,7 +20,7 @@ class LinxQueueImpl : public LinxQueue {
 
    private:
     int max_size = 0;
-    int efd = 0;
+    LinxQueueFd efd;
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cv;
     std::list<std::shared_ptr<LinxQueueContainer>> queue;

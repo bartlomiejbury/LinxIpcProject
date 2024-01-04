@@ -1,7 +1,4 @@
 #include <cassert>
-#include <sys/eventfd.h>
-#include <errno.h>
-#include <unistd.h>
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 #include "trace.h"
@@ -14,14 +11,11 @@ LinxQueueImpl::LinxQueueImpl(int size) {
     pthread_condattr_init(&attr);
     pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
     pthread_cond_init(&m_cv, &attr);
-
-    efd = eventfd(0, EFD_SEMAPHORE | EFD_NONBLOCK);
 }
 
 LinxQueueImpl::~LinxQueueImpl() {
     pthread_mutex_destroy(&m_mutex);
     pthread_cond_destroy(&m_cv);
-    close(efd);
 }
 
 int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
@@ -32,11 +26,7 @@ int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &from) {
     int result = -1;
     if (queue.size() < (std::size_t)max_size) {
         queue.push_back(std::make_shared<LinxQueueContainer>(msg, from));
-        uint64_t u = 1;
-        int s = write(efd, &u, sizeof(uint64_t));
-        if (s != sizeof(uint64_t)) {
-            LOG_ERROR("Write to EventFd failed: %d, errno: %d", s, errno);
-        }
+        efd.writeEvent();
         result = 0;
     }
 
@@ -49,9 +39,7 @@ void LinxQueueImpl::clear() {
     pthread_mutex_lock(&m_mutex);
 
     queue.clear();
-    uint64_t u = 0;
-    int s = 0;
-    while((s = read(efd, &u, sizeof(uint64_t))) != -1) {}
+    efd.clearEvents();
 
     pthread_mutex_unlock(&m_mutex);
 }
@@ -110,7 +98,7 @@ int LinxQueueImpl::size() const {
 std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel,
                                                                const std::optional<std::string> &from) {
 
-    auto it = std::find_if(queue.begin(), queue.end(), [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
+    auto predicate = [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
         if (!from.has_value() || msg->from == from.value()) {
             uint32_t reqId = msg->message->getReqId();
             return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
@@ -118,18 +106,12 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initia
         }
 
         return false;
-    });
+    };
 
-    if (it != queue.end()) {
+    if (auto it = std::find_if(queue.begin(), queue.end(), predicate); it != queue.end()) {
         std::shared_ptr<LinxQueueContainer> container = *it;
         queue.erase(it);
-
-        uint64_t u = 0;
-        int s = read(efd, &u, sizeof(uint64_t));
-        if (s != sizeof(uint64_t)) {
-            LOG_ERROR("Read from EventFd failed: %d errno: %d", s, errno);
-        }
-
+        efd.readEvent();
         return container;
     }
 
@@ -137,5 +119,5 @@ std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initia
 }
 
 int LinxQueueImpl::getFd() const {
-    return efd;
+    return efd.getFd();
 }
