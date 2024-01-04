@@ -18,8 +18,8 @@ class LinxQueueImpl : public LinxQueue {
                                             const std::optional<std::string> &from) override;
 
    private:
-    int max_size;
-    int efd;
+    int max_size = 0;
+    int efd = 0;
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cv;
     std::list<std::shared_ptr<LinxQueueContainer>> queue;

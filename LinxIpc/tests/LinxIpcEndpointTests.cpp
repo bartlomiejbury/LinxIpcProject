@@ -16,6 +16,9 @@ class LinxIpcEndpointTests : public testing::Test {
     NiceMock<LinxIpcSocketMock> *socketMock;
     NiceMock<LinxIpcQueueMock> *queueMock;
 
+    void* (*callback)(void *arg){};
+    void *data{};
+
     void SetUp() {
         socketMock = new NiceMock<LinxIpcSocketMock>();
         queueMock = new NiceMock<LinxIpcQueueMock>();
@@ -32,101 +35,124 @@ class LinxIpcEndpointTests : public testing::Test {
         ON_CALL(pthreadMock, pthread_join(_, _)).WillByDefault(Return(0));
 
         ON_CALL(pthreadMock, pthread_create(_, _, _, _)).WillByDefault(Return(0));
-    }
+        ON_CALL(*queueMock, get(_, _, _)).WillByDefault(Return(nullptr));
+
+        ON_CALL(pthreadMock, pthread_create(_, _, _, _)).WillByDefault(DoAll(
+            SaveArg<2>(&callback),
+            SaveArg<3>(&data),
+            Return(0)));
+        }
 };
 
-TEST_F(LinxIpcEndpointTests, endpoint_getFd) {
+TEST_F(LinxIpcEndpointTests, getPollFdCallQueueGetFd) {
+    auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
+    EXPECT_CALL(*queueMock, getFd());
+
+    endpoint->getPollFd();
+}
+
+TEST_F(LinxIpcEndpointTests, getPollFdReturnQueueGetFdResult) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     EXPECT_CALL(*queueMock, getFd()).WillOnce(Return(1));
 
-    ASSERT_EQ(1, endpoint->getPollFd());
+    ASSERT_EQ(endpoint->getPollFd(), 1);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_getQueueSize) {
+TEST_F(LinxIpcEndpointTests, getQueueSizeReturnQueueSize) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     EXPECT_CALL(*queueMock, size()).WillOnce(Return(1));
 
-    ASSERT_EQ(1, endpoint->getQueueSize());
+    ASSERT_EQ(endpoint->getQueueSize(), 1);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_send) {
+TEST_F(LinxIpcEndpointTests, sendCallSocketSend) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto msg = LinxMessageIpc(10);
     auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
 
-    EXPECT_CALL(*(client.get()), getName()).WillOnce(Return("TEST"));
-    EXPECT_CALL(*socketMock, send(Ref(msg), "TEST")).WillOnce(Return(1));
+    ON_CALL(*(client.get()), getName()).WillByDefault(Return("TEST"));
+    EXPECT_CALL(*socketMock, send(Ref(msg), "TEST"));
 
-    ASSERT_EQ(1, endpoint->send(msg, client));
+    endpoint->send(msg, client);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_send_noDestination) {
+TEST_F(LinxIpcEndpointTests, sendReturnSocketSendResult) {
+    auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
+    auto msg = LinxMessageIpc(10);
+    auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
+
+    ON_CALL(*(client.get()), getName()).WillByDefault(Return("TEST"));
+    EXPECT_CALL(*socketMock, send(_, _)).WillOnce(Return(1));
+
+    ASSERT_EQ(endpoint->send(msg, client), 1);
+}
+
+TEST_F(LinxIpcEndpointTests, sendWithNoDestinationReturnError) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto msg = LinxMessageIpc(10);
 
-    ASSERT_EQ(-1, endpoint->send(msg, nullptr));
+    ASSERT_EQ(endpoint->send(msg, nullptr), -1);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_receive_callQueueWithNullOpt) {
+TEST_F(LinxIpcEndpointTests, receive_callQueueWithNullOpt) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto sigsel = std::initializer_list<uint32_t>{4};
     std::optional<std::string> fromOpt = std::nullopt;
 
-    EXPECT_CALL(*queueMock, get(10000, Ref(sigsel), fromOpt)).WillOnce(Return(nullptr));
+    EXPECT_CALL(*queueMock, get(10000, Ref(sigsel), fromOpt));
 
     endpoint->receive(10000, sigsel);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_receive_callQueueWithCLient) {
+TEST_F(LinxIpcEndpointTests, receive_callQueueWithClient) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
     auto sigsel = std::initializer_list<uint32_t>{4};
     std::optional<std::string> fromOpt = std::make_optional("TEST");
 
-    EXPECT_CALL(*(client.get()), getName()).WillOnce(Return("TEST"));
-    EXPECT_CALL(*queueMock, get(10000, Ref(sigsel), fromOpt)).WillOnce(Return(nullptr));
+    ON_CALL(*(client.get()), getName()).WillByDefault(Return("TEST"));
+    EXPECT_CALL(*queueMock, get(10000, Ref(sigsel), fromOpt));
 
     endpoint->receive(10000, sigsel, client);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_receive_queueGetNullPtr) {
+TEST_F(LinxIpcEndpointTests, receive_ReturnNullWhenQueueReturnNull) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto sigsel = std::initializer_list<uint32_t>{4};
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Return(nullptr));
 
-    ASSERT_EQ(nullptr, endpoint->receive(10000, sigsel));
+    ASSERT_EQ(endpoint->receive(10000, sigsel), nullptr);
 }
 
 TEST_F(LinxIpcEndpointTests, endpoint_receiveMsg) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto sigsel = std::initializer_list<uint32_t>{4};
     auto msg = std::make_shared<LinxMessageIpc>(10);
-    std::shared_ptr<LinxQueueContainer> container = std::make_shared<LinxQueueContainer>(msg, "TEST");
 
-    EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&container]() {
-        return container;
+    EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
+        return std::make_shared<LinxQueueContainer>(msg, "TEST");
     }));
 
-    ASSERT_EQ(msg, endpoint->receive(10000, sigsel));
-    ASSERT_NE(nullptr, msg->getClient());
-    ASSERT_STREQ("TEST", msg->getClient()->getName().c_str());
+    ASSERT_EQ(endpoint->receive(10000, sigsel), msg);
+    ASSERT_NE(msg->getClient(), nullptr);
+    ASSERT_STREQ(msg->getClient()->getName().c_str(), "TEST");
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_createClient) {
+TEST_F(LinxIpcEndpointTests, endpoint_createClientHasCorrectName) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
 
     auto client = endpoint->createClient("TEST");
-    ASSERT_STREQ("TEST", client->getName().c_str());
+    ASSERT_STREQ(client->getName().c_str(), "TEST");
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_startNewThread) {
+TEST_F(LinxIpcEndpointTests, start_CallStartNewThread) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
 
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(Return(0));
+    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _));
     endpoint->start();
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_startSecondTime) {
+TEST_F(LinxIpcEndpointTests, start_DoNothingWhenAlreadyStarted) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     endpoint->start();
 
@@ -134,35 +160,25 @@ TEST_F(LinxIpcEndpointTests, endpoint_startSecondTime) {
     endpoint->start();
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_stopWhenNotStarted) {
+TEST_F(LinxIpcEndpointTests, stop_DoNothingWhenNotStarted) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
 
     EXPECT_CALL(pthreadMock, pthread_cancel(_)).Times(0);
     endpoint->stop();
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_stopKillThread) {
+TEST_F(LinxIpcEndpointTests, stop_CallThreadCancel) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     endpoint->start();
 
-    EXPECT_CALL(pthreadMock, pthread_cancel(_)).WillOnce(Return(0));
+    EXPECT_CALL(pthreadMock, pthread_cancel(_));
     endpoint->stop();
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_thread_Stopped) {
+TEST_F(LinxIpcEndpointTests, thread_DoNothingWhenStopped) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(DoAll(
-        SaveArg<2>(&callback),
-        SaveArg<3>(&data),
-        Return(0)));
-
     endpoint->start();
 
-    //EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(Return(-1));
     EXPECT_CALL(*socketMock, receive(_, _, _)).Times(0);
     EXPECT_CALL(*queueMock, add(_, _)).Times(0);
 
@@ -170,24 +186,15 @@ TEST_F(LinxIpcEndpointTests, endpoint_thread_Stopped) {
     callback(data);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_thread_NotReceived) {
+TEST_F(LinxIpcEndpointTests, thread_NotAddToQueueWhenReceiveReturnNull) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(DoAll(
-        SaveArg<2>(&callback),
-        SaveArg<3>(&data),
-        Return(0)));
-
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(DoAll(
         Invoke([&endpoint](){endpoint->stop();}),
         Return(-1)));
-    EXPECT_CALL(*queueMock, add(_, _)).Times(0);
 
+    EXPECT_CALL(*queueMock, add(_, _)).Times(0);
     callback(data);
 }
 
@@ -201,17 +208,8 @@ MATCHER_P(MessageMatcher, reqId, "") {
     return message.getReqId() == reqId;
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveHuntReq) {
+TEST_F(LinxIpcEndpointTests, thread_ReceiveHuntReqSendResponse) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(DoAll(
-        SaveArg<2>(&callback),
-        SaveArg<3>(&data),
-        Return(0)));
-
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -222,23 +220,14 @@ TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveHuntReq) {
             return 0;
         }));
 
-    EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_HUNT_RSP), ClientMatcher("TEST"))).Times(1);
+    EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_HUNT_RSP), ClientMatcher("TEST")));
     EXPECT_CALL(*queueMock, add(_, _)).Times(0);
 
     callback(data);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveMsg) {
+TEST_F(LinxIpcEndpointTests, thread_ReceiveMsgAddToQueue) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(DoAll(
-        SaveArg<2>(&callback),
-        SaveArg<3>(&data),
-        Return(0)));
-
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -254,23 +243,13 @@ TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveMsg) {
             const std::shared_ptr<LinxMessageIpc>&msg = std::get<0>(arg);
             const std::string &from = std::get<1>(arg);
             return msg->getReqId() == 10 && from == "TEST";
-        })))
-        .WillOnce(Return(0));
+        })));
 
     callback(data);
 }
 
-TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveMsgAddError) {
+TEST_F(LinxIpcEndpointTests, thread_ReceiveMsgAddToQueueError) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).WillOnce(DoAll(
-        SaveArg<2>(&callback),
-        SaveArg<3>(&data),
-        Return(0)));
-
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -281,7 +260,8 @@ TEST_F(LinxIpcEndpointTests, endpoint_thread_ReceiveMsgAddError) {
             return 0;
         }));
 
-    EXPECT_CALL(*queueMock, add(Truly([](const LinxMessageIpcPtr &msg){ return msg->getReqId() == 10;}), "TEST")).WillOnce(Return(-1));
+    EXPECT_CALL(*queueMock, add(Truly([](const LinxMessageIpcPtr &msg){ return msg->getReqId() == 10;}), "TEST"))
+        .WillOnce(Return(-1));
 
     callback(data);
 }

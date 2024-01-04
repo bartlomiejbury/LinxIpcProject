@@ -12,43 +12,43 @@ class LinxIpcMessageTests : public testing::Test {};
 TEST_F(LinxIpcMessageTests, defaultConstructor) {
     auto msg = LinxMessageIpc();
 
-    ASSERT_EQ(0, msg.getReqId());
-    ASSERT_EQ(0, msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 0);
+    ASSERT_EQ(msg.getPayloadSize(), 0);
+    ASSERT_EQ(msg.getClient(), nullptr);
 }
 
-TEST_F(LinxIpcMessageTests, emptyMessage) {
+TEST_F(LinxIpcMessageTests, createEmptyMessage) {
     auto msg = LinxMessageIpc(10);
 
-    ASSERT_EQ(10, msg.getReqId());
-    ASSERT_EQ(0, msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 10);
+    ASSERT_EQ(msg.getPayloadSize(), 0);
+    ASSERT_EQ(msg.getClient(), nullptr);
 }
 
-TEST_F(LinxIpcMessageTests, messageFromInitializerList) {
+TEST_F(LinxIpcMessageTests, createMessageFromInitializerList) {
     auto msg = LinxMessageIpc(10, {1, 2, 3});
 
-    ASSERT_EQ(10, msg.getReqId());
-    ASSERT_EQ(3, msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 10);
+    ASSERT_EQ(msg.getPayloadSize(), 3);
+    ASSERT_EQ(msg.getClient(), nullptr);
 
     uint8_t expectedMessage[] = {1, 2, 3};
     ASSERT_EQ(memcmp(expectedMessage, msg.getPayload<uint8_t *>(), sizeof(expectedMessage)), 0);
 }
 
-TEST_F(LinxIpcMessageTests, messageFromArray) {
+TEST_F(LinxIpcMessageTests, createMessageFromArray) {
 
     uint8_t expectedMessage[] = {1, 2, 3, 3};
     auto msg = LinxMessageIpc(10, expectedMessage);
 
-    ASSERT_EQ(10, msg.getReqId());
-    ASSERT_EQ(4, msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 10);
+    ASSERT_EQ(msg.getPayloadSize(), 4);
+    ASSERT_EQ(msg.getClient(), nullptr);
 
     ASSERT_EQ(memcmp(expectedMessage, msg.getPayload<uint8_t *>(), sizeof(expectedMessage)), 0);
 }
 
-TEST_F(LinxIpcMessageTests, messageFromStruct) {
+TEST_F(LinxIpcMessageTests, createMessageFromStruct) {
 
     struct Data {
         int a;
@@ -57,9 +57,9 @@ TEST_F(LinxIpcMessageTests, messageFromStruct) {
 
     auto msg = LinxMessageIpc(10, expectedMessage);
 
-    ASSERT_EQ(10, msg.getReqId());
-    ASSERT_EQ(sizeof(expectedMessage), msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 10);
+    ASSERT_EQ(msg.getPayloadSize(), sizeof(expectedMessage));
+    ASSERT_EQ(msg.getClient(), nullptr);
 
     ASSERT_EQ(memcmp((uint8_t *)(&expectedMessage), msg.getPayload(), sizeof(expectedMessage)), 0);
 
@@ -68,14 +68,14 @@ TEST_F(LinxIpcMessageTests, messageFromStruct) {
     ASSERT_EQ(data->b, expectedMessage.b);
 }
 
-TEST_F(LinxIpcMessageTests, messageFromBuffer) {
+TEST_F(LinxIpcMessageTests, createMessageFromBuffer) {
 
     uint8_t expectedMessage[] = {1, 2, 3, 3};
     auto msg = LinxMessageIpc(10, expectedMessage, sizeof(expectedMessage));
 
-    ASSERT_EQ(10, msg.getReqId());
-    ASSERT_EQ(4, msg.getPayloadSize());
-    ASSERT_EQ(nullptr, msg.getClient());
+    ASSERT_EQ(msg.getReqId(), 10);
+    ASSERT_EQ(msg.getPayloadSize(), 4);
+    ASSERT_EQ(msg.getClient(), nullptr);
 
     ASSERT_EQ(memcmp(expectedMessage, msg.getPayload(), sizeof(expectedMessage)), 0);
 }

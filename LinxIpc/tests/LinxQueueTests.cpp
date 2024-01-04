@@ -12,9 +12,10 @@ class LinxQueueTests : public testing::Test {
    public:
     NiceMock<SystemMock> systemMock;
     NiceMock<PthreadMock> pthreadMock;
+    struct timespec currentTime = {};
 
     void SetUp() {
-        struct timespec currentTime = {};
+
         ON_CALL(systemMock, clock_gettime(_, _))
             .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
 
@@ -31,25 +32,25 @@ class LinxQueueTests : public testing::Test {
     }
 };
 
-TEST_F(LinxQueueTests, addToQueue_MaximumSizeReached) {
+TEST_F(LinxQueueTests, addToQueue_ReturnErrorWhenMaximumSizeReached) {
     auto queue = LinxQueueImpl(1);
-
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
-    ASSERT_EQ(0, queue.add(msg, "from"));
-    ASSERT_EQ(-1, queue.add(msg, "from"));
+
+    ASSERT_EQ(queue.add(msg, "from"), 0);
+    ASSERT_EQ(queue.add(msg, "from"), -1);
 }
 
-TEST_F(LinxQueueTests, clearQueue) {
+TEST_F(LinxQueueTests, clearQueue_DecrementSize) {
     auto queue = LinxQueueImpl(2);
 
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg, "from");
     queue.add(msg, "from");
 
-    ASSERT_EQ(2, queue.size());
+    ASSERT_EQ(queue.size(), 2);
 
     queue.clear();
-    ASSERT_EQ(0, queue.size());
+    ASSERT_EQ(queue.size(), 0);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalNrInQueue) {
@@ -61,10 +62,10 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalNrInQueue) {
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
     queue.add(msg2, "from2");
 
-    ASSERT_EQ(nullptr, queue.get(IMMEDIATE_TIMEOUT, {3, 4}, std::nullopt));
+    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, {3, 4}, std::nullopt), nullptr);
 }
 
-TEST_F(LinxQueueTests, get_Immediate_NotGetElementFromQueue) {
+TEST_F(LinxQueueTests, get_Immediate_NotDecretementSizeWHenELementNotFound) {
     auto queue = LinxQueueImpl(2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
@@ -73,10 +74,10 @@ TEST_F(LinxQueueTests, get_Immediate_NotGetElementFromQueue) {
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
     queue.add(msg2, "from2");
 
-    ASSERT_EQ(2, queue.size());
+    ASSERT_EQ(queue.size(), 2);
 
     queue.get(IMMEDIATE_TIMEOUT, {3, 4}, std::nullopt);
-    ASSERT_EQ(2, queue.size());
+    ASSERT_EQ(queue.size(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
@@ -89,11 +90,12 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
     queue.add(msg2, "from2");
 
     auto msg = queue.get(IMMEDIATE_TIMEOUT, {3, 2}, std::nullopt);
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_NE(msg, nullptr);
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
-TEST_F(LinxQueueTests, get_Immediate_GetElementFromQueue) {
+TEST_F(LinxQueueTests, get_Immediate_DecrementSizeWhenElementFound) {
     auto queue = LinxQueueImpl(2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
@@ -102,10 +104,10 @@ TEST_F(LinxQueueTests, get_Immediate_GetElementFromQueue) {
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
     queue.add(msg2, "from2");
 
-    ASSERT_EQ(2, queue.size());
+    ASSERT_EQ(queue.size(), 2);
 
     queue.get(IMMEDIATE_TIMEOUT, {3, 2}, std::nullopt);
-    ASSERT_EQ(1, queue.size());
+    ASSERT_EQ(queue.size(), 1);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
@@ -117,7 +119,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
     queue.add(msg2, "from2");
 
-    ASSERT_EQ(nullptr, queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from3")));
+    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from3")), nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
@@ -130,11 +132,25 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
     queue.add(msg2, "from2");
 
     auto msg = queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
-TEST_F(LinxQueueTests, get_Infinite_WaitWhenNoSignalNrInQueue) {
+TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalNrInQueue) {
+    auto queue = LinxQueueImpl(2);
+
+    EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
+        .WillOnce([&queue]() { return 0; })
+        .WillOnce([&queue]() {
+            LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
+            queue.add(msg2, "from2");
+            return 0;
+        });
+
+    auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, std::nullopt);
+}
+
+TEST_F(LinxQueueTests, get_Infinite_ReturnMessageWhenSignalNrArriveInQueue) {
     auto queue = LinxQueueImpl(2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
@@ -151,8 +167,8 @@ TEST_F(LinxQueueTests, get_Infinite_WaitWhenNoSignalNrInQueue) {
         });
 
     auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, std::nullopt);
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
@@ -165,11 +181,25 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
     queue.add(msg2, "from2");
 
     auto msg = queue.get(INFINITE_TIMEOUT, {3, 2}, std::nullopt);
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
-TEST_F(LinxQueueTests, get_Infinite_WaitWhenNoSignalSenderInQueue) {
+TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
+    auto queue = LinxQueueImpl(2);
+
+    EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
+        .WillOnce([&queue]() { return 0; })
+        .WillOnce([&queue]() {
+            LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
+            queue.add(msg2, "from2");
+            return 0;
+        });
+
+    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
+}
+
+TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
     auto queue = LinxQueueImpl(2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
@@ -186,8 +216,8 @@ TEST_F(LinxQueueTests, get_Infinite_WaitWhenNoSignalSenderInQueue) {
         });
 
     auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
@@ -200,11 +230,11 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
     queue.add(msg2, "from2");
 
     auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
-TEST_F(LinxQueueTests, get_Infinite_GetElementFromQueueWhenSignalArrive) {
+TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
     auto queue = LinxQueueImpl(2);
 
     EXPECT_CALL(pthreadMock, pthread_cond_wait(_, _))
@@ -220,12 +250,11 @@ TEST_F(LinxQueueTests, get_Infinite_GetElementFromQueueWhenSignalArrive) {
             return 0;
         });
 
-    ASSERT_EQ(0, queue.size());
     queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(1, queue.size());
+    ASSERT_EQ(queue.size(), 1);
 }
 
-TEST_F(LinxQueueTests, get_Infinite_GetElementFromQueue) {
+TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenElementInQueue) {
     auto queue = LinxQueueImpl(2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
@@ -234,9 +263,9 @@ TEST_F(LinxQueueTests, get_Infinite_GetElementFromQueue) {
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
     queue.add(msg2, "from2");
 
-    ASSERT_EQ(2, queue.size());
+    ASSERT_EQ(queue.size(), 2);
     queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(1, queue.size());
+    ASSERT_EQ(queue.size(), 1);
 }
 
 MATCHER_P2(TimespecMatcher, sec, nsec, "") {
@@ -244,13 +273,10 @@ MATCHER_P2(TimespecMatcher, sec, nsec, "") {
     return currentTime->tv_sec == sec && currentTime->tv_nsec == nsec;
 }
 
-TEST_F(LinxQueueTests, get_Timeout_WaitWhenNoSignalNrInQueue) {
+TEST_F(LinxQueueTests, get_Timeout_CallWaitWhenNoSignalNrInQueue) {
     auto queue = LinxQueueImpl(2);
 
-    struct timespec currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
-    EXPECT_CALL(systemMock, clock_gettime(_, _))
-        .WillOnce(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
-
+    currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
     EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, TimespecMatcher(2, 200000000)))
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
@@ -260,30 +286,45 @@ TEST_F(LinxQueueTests, get_Timeout_WaitWhenNoSignalNrInQueue) {
         });
 
     auto msg = queue.get(500, {2, 3}, std::nullopt);
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
+}
+
+TEST_F(LinxQueueTests, get_Timeout_GetCorrectMessageSignalInQueue) {
+    auto queue = LinxQueueImpl(2);
+
+    currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
+    EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, _))
+        .WillOnce([&queue]() { return 0; })
+        .WillOnce([&queue]() {
+            LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(4);
+            queue.add(msg2, "from3");
+            return 0;
+        })
+        .WillOnce([&queue]() {
+            LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
+            queue.add(msg2, "from2");
+            return 0;
+        });
+
+    auto msg = queue.get(500, {2, 3}, std::nullopt);
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnNullWhenWaitTimedOut) {
     auto queue = LinxQueueImpl(2);
 
-    struct timespec currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
-    EXPECT_CALL(systemMock, clock_gettime(_, _))
-        .WillOnce(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
-
-    EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, TimespecMatcher(2, 200000000))).WillOnce([&queue]() {
+    currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
+    EXPECT_CALL(pthreadMock, pthread_cond_timedwait(_, _, _)).WillOnce([&queue]() {
         return ETIMEDOUT;
     });
 
-    ASSERT_EQ(nullptr, queue.get(500, {2, 3}, std::nullopt));
+    ASSERT_EQ(queue.get(500, {2, 3}, std::nullopt), nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnMsgWhenSignalNrInQueue) {
     auto queue = LinxQueueImpl(2);
-
-    struct timespec currentTime = {.tv_sec = 1, .tv_nsec = 700000000};
-    EXPECT_CALL(systemMock, clock_gettime(_, _))
-        .WillOnce(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
     queue.add(msg1, "from1");
@@ -292,6 +333,11 @@ TEST_F(LinxQueueTests, get_Timeout_ReturnMsgWhenSignalNrInQueue) {
     queue.add(msg2, "from2");
 
     auto msg = queue.get(500, {3, 2}, std::nullopt);
-    ASSERT_EQ(2, msg->message->getReqId());
-    ASSERT_STREQ("from2", msg->from.c_str());
+    ASSERT_EQ(msg->message->getReqId(), 2);
+    ASSERT_STREQ(msg->from.c_str(), "from2");
+}
+
+TEST_F(LinxQueueTests, getFd) {
+    auto queue = LinxQueueImpl(2);
+    ASSERT_GT(queue.getFd(), 2);
 }

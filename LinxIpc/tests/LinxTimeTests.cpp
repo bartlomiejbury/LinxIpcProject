@@ -13,12 +13,10 @@ TEST(LinxTimeTest, getTimeMs) {
         .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
 
     currentTime = {.tv_sec = 1, .tv_nsec = 500000000};
-    uint64_t time = getTimeMs();
-    ASSERT_EQ(time, 1500);
+    ASSERT_EQ(getTimeMs(), 1500);
 
     currentTime = {.tv_sec = 2, .tv_nsec = 1000000};
-    time = getTimeMs();
-    ASSERT_EQ(time, 2001);
+    ASSERT_EQ(getTimeMs(), 2001);
 }
 
 TEST(LinxTimeTest, timeMsToTimespec) {
