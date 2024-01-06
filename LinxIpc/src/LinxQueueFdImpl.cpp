@@ -12,7 +12,7 @@ LinxQueueFdImpl::LinxQueueFdImpl() {
 }
 
 LinxQueueFdImpl::~LinxQueueFdImpl() {
-    if (efd > 0) {
+    if (efd >= 0) {
         close(efd);
     }
 }
