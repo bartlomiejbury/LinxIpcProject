@@ -58,13 +58,6 @@ TEST_F(LinxIpcEndpointTests, getPollFdReturnQueueGetFdResult) {
     ASSERT_EQ(endpoint->getPollFd(), 1);
 }
 
-TEST_F(LinxIpcEndpointTests, getQueueSizeReturnQueueSize) {
-    auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
-    EXPECT_CALL(*queueMock, size()).WillOnce(Return(1));
-
-    ASSERT_EQ(endpoint->getQueueSize(), 1);
-}
-
 TEST_F(LinxIpcEndpointTests, sendCallSocketSend) {
     auto endpoint = std::make_shared<LinxIpcEndpointImpl>(queueMock, socketMock);
     auto msg = LinxMessageIpc(10);

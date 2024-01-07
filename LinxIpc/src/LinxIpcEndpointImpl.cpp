@@ -108,10 +108,6 @@ LinxIpcClientPtr LinxIpcEndpointImpl::createClient(const std::string &serviceNam
     return std::make_shared<LinxIpcClientImpl>(shared_from_this(), serviceName);
 }
 
-int LinxIpcEndpointImpl::getQueueSize() const {
-    return queue->size();
-}
-
 int LinxIpcEndpointImpl::getPollFd() const {
     return queue->getFd();
 }

@@ -7,11 +7,11 @@
 class LinxIpcSocket;
 class LinxQueue;
 
-class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointImpl>, virtual public LinxIpcEndpoint {
+class LinxIpcEndpointSimpleImpl : public std::enable_shared_from_this<LinxIpcEndpointSimpleImpl>, virtual public LinxIpcEndpoint {
 
   public:
-    LinxIpcEndpointImpl(LinxQueue *queue, LinxIpcSocket *socket);
-    ~LinxIpcEndpointImpl();
+    LinxIpcEndpointSimpleImpl(LinxIpcSocket *socket);
+    ~LinxIpcEndpointSimpleImpl();
 
     void start() override;
     void stop() override;
@@ -25,11 +25,5 @@ class LinxIpcEndpointImpl : public std::enable_shared_from_this<LinxIpcEndpointI
     int getPollFd() const override;
 
   private:
-    LinxQueue *queue;
     LinxIpcSocket *socket;
-    pthread_t threadId;
-    bool running = false;
-
-    void task();
-    static void *threadFunc(void *arg);
 };

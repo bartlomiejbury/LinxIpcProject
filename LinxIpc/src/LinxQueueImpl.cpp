@@ -99,7 +99,7 @@ int LinxQueueImpl::size() const {
 std::shared_ptr<LinxQueueContainer> LinxQueueImpl::findMessage(const std::initializer_list<uint32_t> &sigsel,
                                                                const std::optional<std::string> &from) {
 
-    auto predicate = [sigsel, from](std::shared_ptr<LinxQueueContainer> &msg) {
+    auto predicate = [&sigsel, &from](std::shared_ptr<LinxQueueContainer> &msg) {
         if (!from.has_value() || msg->from == from.value()) {
             uint32_t reqId = msg->message->getReqId();
             return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),

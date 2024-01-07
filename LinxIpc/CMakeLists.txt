@@ -4,6 +4,7 @@ add_library(LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcMessage.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcSocketImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcEndpointImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcEndpointSimpleImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueFdImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcClientImpl.cpp

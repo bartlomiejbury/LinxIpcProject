@@ -13,7 +13,5 @@ class LinxIpcEndpoint {
     virtual LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
                                       const LinxIpcClientPtr &from = LINX_ANY_FROM) = 0;
     virtual LinxIpcClientPtr createClient(const std::string &serviceName) = 0;
-
-    virtual int getQueueSize() const = 0;
     virtual int getPollFd() const = 0;
 };
