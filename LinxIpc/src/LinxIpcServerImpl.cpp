@@ -2,7 +2,7 @@
 #include "LinxIpcServerImpl.h"
 #include "trace.h"
 
-LinxIpcServerImpl::LinxIpcServerImpl(LinxQueue *queue, LinxIpcSocket *socket) : LinxIpcEndpointImpl(queue, socket) {}
+LinxIpcServerImpl::LinxIpcServerImpl(const LinxIpcEndpointPtr &endpoint) : endpoint(endpoint) {}
 
 void LinxIpcServerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
     this->handlers.insert({reqId, {callback, data}});
@@ -10,7 +10,7 @@ void LinxIpcServerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callbac
 
 int LinxIpcServerImpl::handleMessage(int timeoutMs) {
 
-    LinxMessageIpcPtr msg = receive(timeoutMs, LINX_ANY_SIG, LINX_ANY_FROM);
+    LinxMessageIpcPtr msg = endpoint->receive(timeoutMs, LINX_ANY_SIG, LINX_ANY_FROM);
     if (msg == nullptr) {
         return -1;
     }
