@@ -4,21 +4,49 @@
 #include "SystemMock.h"
 #include "PthreadMock.h"
 #include "LinxIpcQueueFdMock.h"
+#include "LinxIpcClientMock.h"
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 
 using namespace ::testing;
+
+class DummyClient: public LinxIpcClient {
+    public:
+      DummyClient(const std::string &name) {
+        this->name = name;
+      }
+
+      int send(const LinxMessageIpc &message) {
+          return 0;
+      }
+
+      LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) {
+          return nullptr;
+      }
+
+      std::string getName() const {
+          return name;
+      }
+
+      bool connect(int timeout) {
+        return true;
+      }
+    private:
+      std::string name;
+};
 
 class LinxQueueTests : public testing::Test {
    public:
     NiceMock<SystemMock> systemMock;
     NiceMock<PthreadMock> pthreadMock;
     NiceMock<LinxIpcQueueFdMock> *efdMock;
+    std::shared_ptr<NiceMock<LinxIpcClientMock>> clientMock;
     struct timespec currentTime = {};
 
     void SetUp() {
 
         efdMock = new NiceMock<LinxIpcQueueFdMock>();
+        clientMock = std::make_shared<NiceMock<LinxIpcClientMock>>();
 
         ON_CALL(systemMock, clock_gettime(_, _))
             .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
@@ -39,17 +67,19 @@ class LinxQueueTests : public testing::Test {
 TEST_F(LinxQueueTests, addToQueue_ReturnErrorWhenMaximumSizeReached) {
     auto queue = LinxQueueImpl(efdMock, 1);
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
+    msg->setClient(std::make_shared<DummyClient>("from"));
 
-    ASSERT_EQ(queue.add(msg, "from"), 0);
-    ASSERT_EQ(queue.add(msg, "from"), -1);
+    ASSERT_EQ(queue.add(msg), 0);
+    ASSERT_EQ(queue.add(msg), -1);
 }
 
 TEST_F(LinxQueueTests, clearQueue_DecrementSize) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg, "from");
-    queue.add(msg, "from");
+    msg->setClient(std::make_shared<DummyClient>("from"));
+    queue.add(msg);
+    queue.add(msg);
 
     ASSERT_EQ(queue.size(), 2);
 
@@ -61,26 +91,30 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalNrInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, {3, 4}, std::nullopt), nullptr);
+    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, {3, 4}, nullptr), nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_NotDecretementSizeWHenELementNotFound) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
     ASSERT_EQ(queue.size(), 2);
 
-    queue.get(IMMEDIATE_TIMEOUT, {3, 4}, std::nullopt);
+    queue.get(IMMEDIATE_TIMEOUT, {3, 4}, nullptr);
     ASSERT_EQ(queue.size(), 2);
 }
 
@@ -88,29 +122,32 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    auto msg = queue.get(IMMEDIATE_TIMEOUT, {3, 2}, std::nullopt);
+    auto msg = queue.get(IMMEDIATE_TIMEOUT, {3, 2}, nullptr);
     ASSERT_NE(msg, nullptr);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_DecrementSizeWhenElementFound) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
     ASSERT_EQ(queue.size(), 2);
 
-    queue.get(IMMEDIATE_TIMEOUT, {3, 2}, std::nullopt);
+    queue.get(IMMEDIATE_TIMEOUT, {3, 2}, nullptr);
     ASSERT_EQ(queue.size(), 1);
 }
 
@@ -118,26 +155,29 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from3")), nullptr);
+    ASSERT_EQ(queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from3")), nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    auto msg = queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from2"));
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalNrInQueue) {
@@ -147,11 +187,12 @@ TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalNrInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, std::nullopt);
+    auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMessageWhenSignalNrArriveInQueue) {
@@ -161,32 +202,34 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMessageWhenSignalNrArriveInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(4);
-            queue.add(msg2, "from3");
+            msg2->setClient(std::make_shared<DummyClient>("from3"));
+            queue.add(msg2);
             return 0;
         })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, std::nullopt);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(INFINITE_TIMEOUT, {2, 3}, nullptr);
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    auto msg = queue.get(INFINITE_TIMEOUT, {3, 2}, std::nullopt);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(INFINITE_TIMEOUT, {3, 2}, nullptr);
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
@@ -196,11 +239,12 @@ TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
+    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from2"));
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
@@ -210,32 +254,34 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from3");
+            msg2->setClient(std::make_shared<DummyClient>("from3"));
+            queue.add(msg2);
             return 0;
         })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from2"));
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from2"));
+    queue.add(msg2);
 
-    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from2"));
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
@@ -245,16 +291,18 @@ TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from3");
+            msg2->setClient(std::make_shared<DummyClient>("from3"));
+            queue.add(msg2);
             return 0;
         })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
+    queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from2"));
     ASSERT_EQ(queue.size(), 1);
 }
 
@@ -262,13 +310,15 @@ TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenElementInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from3"));
+    queue.add(msg2);
 
     ASSERT_EQ(queue.size(), 2);
-    queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_optional("from2"));
+    queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, std::make_shared<DummyClient>("from3"));
     ASSERT_EQ(queue.size(), 1);
 }
 
@@ -285,13 +335,13 @@ TEST_F(LinxQueueTests, get_Timeout_CallWaitWhenNoSignalNrInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(500, {2, 3}, std::nullopt);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(500, {2, 3}, nullptr);
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Timeout_GetCorrectMessageSignalInQueue) {
@@ -302,18 +352,19 @@ TEST_F(LinxQueueTests, get_Timeout_GetCorrectMessageSignalInQueue) {
         .WillOnce([&queue]() { return 0; })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(4);
-            queue.add(msg2, "from3");
+            msg2->setClient(std::make_shared<DummyClient>("from3"));
+            queue.add(msg2);
             return 0;
         })
         .WillOnce([&queue]() {
             LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-            queue.add(msg2, "from2");
+            msg2->setClient(std::make_shared<DummyClient>("from2"));
+            queue.add(msg2);
             return 0;
         });
 
-    auto msg = queue.get(500, {2, 3}, std::nullopt);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(500, {2, 3}, nullptr);
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnNullWhenWaitTimedOut) {
@@ -324,21 +375,22 @@ TEST_F(LinxQueueTests, get_Timeout_ReturnNullWhenWaitTimedOut) {
         return ETIMEDOUT;
     });
 
-    ASSERT_EQ(queue.get(500, {2, 3}, std::nullopt), nullptr);
+    ASSERT_EQ(queue.get(500, {2, 3}, nullptr), nullptr);
 }
 
 TEST_F(LinxQueueTests, get_Timeout_ReturnMsgWhenSignalNrInQueue) {
     auto queue = LinxQueueImpl(efdMock, 2);
 
     LinxMessageIpcPtr msg1 = std::make_shared<LinxMessageIpc>(1);
-    queue.add(msg1, "from1");
+    msg1->setClient(std::make_shared<DummyClient>("from1"));
+    queue.add(msg1);
 
     LinxMessageIpcPtr msg2 = std::make_shared<LinxMessageIpc>(2);
-    queue.add(msg2, "from2");
+    msg2->setClient(std::make_shared<DummyClient>("from3"));
+    queue.add(msg2);
 
-    auto msg = queue.get(500, {3, 2}, std::nullopt);
-    ASSERT_EQ(msg->message->getReqId(), 2);
-    ASSERT_STREQ(msg->from.c_str(), "from2");
+    auto msg = queue.get(500, {3, 2}, nullptr);
+    ASSERT_EQ(msg->getReqId(), 2);
 }
 
 TEST_F(LinxQueueTests, getFdReturnefdFd) {

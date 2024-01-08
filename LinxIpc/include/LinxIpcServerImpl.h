@@ -27,6 +27,15 @@ class LinxIpcServerImpl : public LinxIpcServer {
         return endpoint->getPollFd();
     }
 
+    int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
+        return endpoint->send(message, to);
+    }
+
+    LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
+                                      const LinxIpcClientPtr &from = LINX_ANY_FROM) {
+        return endpoint->receive(timeoutMs, sigsel, from);
+    }
+
   private:
     struct IpcContainer {
         LinxIpcCallback callback;

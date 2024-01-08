@@ -33,7 +33,7 @@ LinxMessageIpcPtr LinxIpcEndpointSimpleImpl::receive(int timeoutMs, const std::i
 
         msg->setClient(createClient(from));
         LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
-                container->from.c_str());
+                msg->getClient()->getName().c_str());
 
         auto predicate = [&sigsel, &from, &client](std::shared_ptr<LinxMessageIpc> &msg) {
             if (!client || from == client->getName()) {
