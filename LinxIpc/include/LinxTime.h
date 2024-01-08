@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 #include <time.h>
 
 constexpr uint64_t NANO_SECONDS = 1000000000;

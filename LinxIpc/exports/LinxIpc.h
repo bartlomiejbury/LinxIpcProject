@@ -2,22 +2,17 @@
 
 #include <memory>
 #include <functional>
-#include <stdint.h>
+#include <cstdint>
 #include <string>
+#include <initializer_list>
 
-#define IPC_STATUS_MSG 1
-#define IPC_STATUS_OK_MSG 1
-#define IPC_STATUS_NOK_MSG 0
-#define IPC_TIMEOUT 100
 #define IPC_HUNT_REQ 1
 #define IPC_HUNT_RSP 2
 
 class LinxMessageIpc;
 class LinxIpcClient;
 class LinxIpcServer;
-class LinxIpcEndpoint;
 
-using LinxIpcEndpointPtr = std::shared_ptr<LinxIpcEndpoint>;
 using LinxMessageIpcPtr = std::shared_ptr<LinxMessageIpc>;
 using LinxIpcClientPtr = std::shared_ptr<LinxIpcClient>;
 using LinxIpcServerPtr = std::shared_ptr<LinxIpcServer>;
@@ -28,9 +23,8 @@ const int INFINITE_TIMEOUT = -1;
 const std::initializer_list<uint32_t> LINX_ANY_SIG({});
 const LinxIpcClientPtr LINX_ANY_FROM = nullptr;
 
-LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
-
 #include "LinxIpcMessage.h"
-#include "LinxIpcEndpoint.h"
 #include "LinxIpcClient.h"
 #include "LinxIpcServer.h"
+
+LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);

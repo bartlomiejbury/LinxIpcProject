@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <initializer_list>
 
 class LinxMessageIpc {
   public:
@@ -15,7 +14,7 @@ class LinxMessageIpc {
 
     LinxMessageIpc(uint32_t reqId);
     LinxMessageIpc(uint32_t reqId, void *buffer, uint32_t payloadSize);
-    LinxMessageIpc(uint32_t reqId, const std::initializer_list<uint8_t> &buffer);
+    LinxMessageIpc(uint32_t reqId, const std::vector<uint8_t> &buffer);
     LinxMessageIpc();
 
     ~LinxMessageIpc();
@@ -29,3 +28,5 @@ class LinxMessageIpc {
     std::vector<uint8_t> payload{};
     LinxIpcClientPtr client = nullptr;
 };
+
+using LinxMessageIpcPtr = std::shared_ptr<LinxMessageIpc>;

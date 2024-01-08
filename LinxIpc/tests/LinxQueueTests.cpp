@@ -20,7 +20,7 @@ class DummyClient: public LinxIpcClient {
           return 0;
       }
 
-      LinxMessageIpcPtr receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) {
+      LinxMessageIpcPtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
           return nullptr;
       }
 

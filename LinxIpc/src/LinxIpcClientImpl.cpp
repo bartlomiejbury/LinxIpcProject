@@ -20,7 +20,7 @@ int LinxIpcClientImpl::send(const LinxMessageIpc &message) {
     return client->send(message, shared_from_this());
 }
 
-LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel) {
+LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
     return client->receive(timeoutMs, sigsel, shared_from_this());
 }
 

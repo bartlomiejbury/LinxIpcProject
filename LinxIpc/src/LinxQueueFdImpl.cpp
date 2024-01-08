@@ -1,7 +1,7 @@
 #include <sys/eventfd.h>
 #include <errno.h>
 #include <unistd.h>
-#include <stdint.h>
+#include <cstdint>
 #include "LinxQueueFdImpl.h"
 #include "trace.h"
 

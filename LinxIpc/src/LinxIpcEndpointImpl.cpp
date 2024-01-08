@@ -1,28 +1,21 @@
 #include <cassert>
 #include "LinxIpc.h"
-#include "LinxIpcEndpointSimpleImpl.h"
+#include "LinxIpcEndpointImpl.h"
 #include "LinxIpcClientImpl.h"
 #include "LinxIpcSocket.h"
 #include "LinxQueue.h"
 #include "trace.h"
 
-LinxIpcEndpointSimpleImpl::LinxIpcEndpointSimpleImpl(LinxIpcSocket *socket) {
+LinxIpcEndpointImpl::LinxIpcEndpointImpl(LinxIpcSocket *socket) {
     assert(socket);;
     this->socket = socket;
 }
 
-LinxIpcEndpointSimpleImpl::~LinxIpcEndpointSimpleImpl() {
-    stop();
+LinxIpcEndpointImpl::~LinxIpcEndpointImpl() {
     delete socket;
 }
 
-void LinxIpcEndpointSimpleImpl::start() {
-}
-
-void LinxIpcEndpointSimpleImpl::stop() {
-}
-
-LinxMessageIpcPtr LinxIpcEndpointSimpleImpl::receive(int timeoutMs, const std::initializer_list<uint32_t> &sigsel,
+LinxMessageIpcPtr LinxIpcEndpointImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel,
                                                const LinxIpcClientPtr &client) {
 
     LinxMessageIpcPtr msg{};
@@ -51,17 +44,17 @@ LinxMessageIpcPtr LinxIpcEndpointSimpleImpl::receive(int timeoutMs, const std::i
     return nullptr;
 }
 
-int LinxIpcEndpointSimpleImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
+int LinxIpcEndpointImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
     if (to == nullptr) {
         return -1;
     }
     return this->socket->send(message, to->getName());
 }
 
-LinxIpcClientPtr LinxIpcEndpointSimpleImpl::createClient(const std::string &serviceName) {
+LinxIpcClientPtr LinxIpcEndpointImpl::createClient(const std::string &serviceName) {
     return std::make_shared<LinxIpcClientImpl>(shared_from_this(), serviceName);
 }
 
-int LinxIpcEndpointSimpleImpl::getPollFd() const {
+int LinxIpcEndpointImpl::getPollFd() const {
     return socket->getFd();
 }
