@@ -3,18 +3,17 @@
 #include "LinxQueueFdImpl.h"
 #include "LinxIpcSocketImpl.h"
 #include "LinxIpcServerImpl.h"
-#include "LinxIpcEndpointImpl.h"
 
 //LCOV_EXCL_START
-static LinxIpcEndpointPtr createLinxIpEndpoint(const std::string &endpointName) {
+LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName) {
     LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
-    return std::make_shared<LinxIpcEndpointImpl>(socket);
+    return std::make_shared<LinxIpcSimpleServerImpl>(socket);
 }
 
-LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize) {
+LinxIpcExtendedServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize) {
     LinxQueueFdImpl *efd = new LinxQueueFdImpl();
     LinxQueue *queue = new LinxQueueImpl(efd, maxSize);
-    auto endpoint = createLinxIpEndpoint(endpointName);
-    return std::make_shared<LinxIpcServerImpl>(endpoint, queue);
+    LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
+    return std::make_shared<LinxIpcExtendedServerImpl>(socket, queue);
 }
 //LCOV_EXCL_STOP

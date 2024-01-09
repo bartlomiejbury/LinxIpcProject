@@ -7,21 +7,21 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcEndpointPtr &client, const std::string &serviceName) {
-    assert(client);
+LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcServerPtr &server, const std::string &serviceName) {
+    assert(server);
 
-    this->client = client;
+    this->server = server;
     this->serviceName = serviceName;
 
     LOG_INFO("Setup IPC Client: %s", serviceName.c_str());
 }
 
 int LinxIpcClientImpl::send(const LinxMessageIpc &message) {
-    return client->send(message, shared_from_this());
+    return server->send(message, shared_from_this());
 }
 
 LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
-    return client->receive(timeoutMs, sigsel, shared_from_this());
+    return server->receive(timeoutMs, sigsel, shared_from_this());
 }
 
 std::string LinxIpcClientImpl::getName() const {
