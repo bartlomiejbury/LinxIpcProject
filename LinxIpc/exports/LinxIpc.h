@@ -4,6 +4,7 @@
 #include <functional>
 #include <cstdint>
 #include <string>
+#include <vector>
 #include <initializer_list>
 
 #define IPC_HUNT_REQ 1

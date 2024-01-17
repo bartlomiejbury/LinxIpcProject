@@ -14,7 +14,7 @@ class LinxIpcServer {
     virtual int getPollFd() const = 0;
 };
 
-class LinxIpcExtendedServer: public virtual LinxIpcServer {
+class LinxIpcExtendedServer : public virtual LinxIpcServer {
 
   public:
     virtual ~LinxIpcExtendedServer(){};
