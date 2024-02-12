@@ -124,7 +124,7 @@ if(COVERITY)
         COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-11 --rc lcov_branch_coverage=1
         COMMAND lcov -e coverage.info \"${PROJECT_SOURCE_DIR}/LinxIpc/src*\" -o coverage.info.filtered --rc lcov_branch_coverage=1
         #COMMAND lcov -r coverage.info.filtered \"${PROJECT_SOURCE_DIR}/LinxIpc/src/trace.cpp*\" -o coverage.info.filtered
-        COMMAND genhtml coverage.info.filtered --branch-coverage --highlight --legend --output-directory coverity_report
+        COMMAND genhtml coverage.info.filtered --branch-coverage --no-function-coverage --highlight --legend --output-directory coverity_report
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
             "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
         COMMENT "Running coverity"
