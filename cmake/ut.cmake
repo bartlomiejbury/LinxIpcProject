@@ -53,8 +53,8 @@ add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
 add_compile_definitions(UNIT_TEST)
 
 if(COVERITY)
-    add_compile_options(-fprofile-arcs -ftest-coverage --coverage)
-    add_link_options(-lgcov -fprofile-arcs -ftest-coverage --coverage)
+    add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline)
+    add_link_options(-lgcov -fprofile-arcs)
 endif()
 
 #############################
@@ -134,7 +134,7 @@ if(COVERITY)
         DEPENDS run_${PROJECT_NAME}-ut
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/coverity_report
-        COMMAND gcovr -s -b --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-nested ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html
+        COMMAND gcovr -s -b --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-details ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html
         COMMENT "Running coverity"
     )
 endif()

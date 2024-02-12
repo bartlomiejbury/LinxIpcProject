@@ -46,11 +46,17 @@ TEST_F(LinxIpcClientTests, send_ReturnEndpointSendResult) {
     ASSERT_EQ(client->send(msg), 2);
 }
 
+MATCHER_P(SigselMatcher, signals, "") {
+    const std::vector<uint32_t> &sigsel = arg;
+    const std::vector<uint32_t> expected = signals;
+    return sigsel == expected;
+}
+
 TEST_F(LinxIpcClientTests, receive_CallEndpointReceive) {
     auto client = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
     std::initializer_list<uint32_t> sigsel = {2, 3};
 
-    EXPECT_CALL(*serverMock.get(), receive(1000, Ref(sigsel), _));
+    EXPECT_CALL(*serverMock.get(), receive(1000, SigselMatcher(sigsel), _));
     client->receive(1000, sigsel);
 }
 

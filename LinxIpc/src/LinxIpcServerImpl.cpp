@@ -24,6 +24,7 @@ int LinxIpcSimpleServerImpl::send(const LinxMessageIpc &message, const LinxIpcCl
     if (to == nullptr) {
         return -1;
     }
+        printf("!!!!!%p\n", socket);
     return socket->send(message, to->getName());
 }
 

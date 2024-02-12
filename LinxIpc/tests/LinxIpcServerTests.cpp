@@ -13,10 +13,7 @@ using namespace ::testing;
 class LinxIpcSimpleServerTests : public testing::Test {
   public:
     NiceMock<LinxIpcSocketMock> *socketMock;
-
-    void* (*callback)(void *arg){};
-    void *data{};
-
+    
     void SetUp() {
         socketMock = new NiceMock<LinxIpcSocketMock>();
 
@@ -234,6 +231,26 @@ TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnCallbackResult) {
     ASSERT_EQ(server->handleMessage(10000), 5);
 }
 
+MATCHER_P(MessageMatcher, reqId, "") {
+    const LinxMessageIpc &message = arg;
+    return message.getReqId() == reqId;
+}
+
+TEST_F(LinxIpcSimpleServerTests, handleMessage_ReceiveHuntReqSendResponse) {
+
+    auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
+
+    EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
+        Invoke([](LinxMessageIpcPtr *msg, std::string *from, int timeout){
+            *msg = std::make_shared<LinxMessageIpc>(IPC_HUNT_REQ);
+            *from = "TEST";
+            return 0;
+        }));
+
+    EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_HUNT_RSP), "TEST"));
+    ASSERT_EQ(server->handleMessage(10000), 0);
+}
+
 class LinxIpcExtendedServerTests : public testing::Test {
   public:
     NiceMock<PthreadMock> pthreadMock;
@@ -316,8 +333,7 @@ TEST_F(LinxIpcExtendedServerTests, receive_callQueueWithNullOpt) {
     auto sigsel = std::initializer_list<uint32_t>{4};
     std::optional<std::string> fromOpt = std::nullopt;
 
-    EXPECT_CALL(*queueMock, get(10000, Ref(sigsel), fromOpt));
-
+    EXPECT_CALL(*queueMock, get(10000, SigselMatcher(sigsel), fromOpt));
     endpoint->receive(10000, sigsel);
 }
 
@@ -394,11 +410,6 @@ TEST_F(LinxIpcExtendedServerTests, thread_NotAddToQueueWhenReceiveReturnError) {
 
     EXPECT_CALL(*queueMock, add(_, _)).Times(0);
     callback(data);
-}
-
-MATCHER_P(MessageMatcher, reqId, "") {
-    const LinxMessageIpc &message = arg;
-    return message.getReqId() == reqId;
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_ReceiveHuntReqSendResponse) {
