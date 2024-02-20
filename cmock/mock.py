@@ -2,13 +2,15 @@ import argparse
 import subprocess
 import os
 
+prefix = "proxy_"
+
 def getFunctionsFromMockFile(file):
-    prefix = "proxy_"
+
     output = subprocess.check_output(f"nm --defined-only {file} | tr -s ' ' | awk '{{ if ($2 == \"T\") {{ print $3 }}}}'", shell=True, text=True)
     return set([text.removeprefix(prefix) for text in output.split() if text.startswith(prefix)])
 
 
-def getUndefinedSYmbolsFromObj(file):
+def getUndefinedSymbolsFromObj(file):
     output = subprocess.check_output(f"nm --undefined-only {file} | tr -s ' ' | cut -d ' ' -f 3", shell=True, text=True)
     return set(output.split())
 
@@ -17,7 +19,7 @@ def createReroutedTxt(usedMocks):
     reroutedFile = "rerouted.txt"
     with open(reroutedFile, "w") as file:
         for function in usedMocks:
-            file.write(f"{function} proxy_{function}\n")
+            file.write(f"{function} {prefix}{function}\n")
     return reroutedFile
 
 
@@ -35,7 +37,7 @@ def handleRerouteCommand(args):
         mockedFunctions.update(getFunctionsFromMockFile(file))
 
     for file in args.objects:
-        undefinedSymbols = getUndefinedSYmbolsFromObj(file)
+        undefinedSymbols = getUndefinedSymbolsFromObj(file)
         usedMocks = undefinedSymbols.intersection(mockedFunctions)
         redirectSymbols(file, usedMocks)
 
@@ -60,4 +62,4 @@ if __name__ == "__main__":
     if args.command == 'reroute':
         handleRerouteCommand(args)
     elif args.command == 'generate':
-        handleGenerateCOmmand(args)
+        handleGenerateCommand(args)
