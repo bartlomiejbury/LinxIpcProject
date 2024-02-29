@@ -100,13 +100,13 @@ target_link_libraries(${PROJECT_NAME}-ut
     gtest gmock_main ut_mocks ut_sources
 )
 
-add_dependencies(${PROJECT_NAME}-ut ut_reroute)
-
 add_custom_target(clear_gcda
     COMMAND find . -name *.gcda -exec rm {} "\\;"
     COMMAND rm -rf coverity_report
     COMMENT "Clear old gcda files"
 )
+
+add_dependencies(${PROJECT_NAME}-ut ut_reroute clear_gcda)
 
 if(VALGRIND)
     set(RUNNER valgrind --leak-check=full)
@@ -138,3 +138,6 @@ if(COVERITY)
         COMMENT "Running coverity"
     )
 endif()
+
+enable_testing()
+add_test(NAME ${PROJECT_NAME} COMMAND cmake --build . --target run_LinxIpc-ut)
