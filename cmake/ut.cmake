@@ -106,15 +106,15 @@ add_custom_target(clear_gcda
     COMMENT "Clear old gcda files"
 )
 
-add_dependencies(${PROJECT_NAME}-ut ut_reroute clear_gcda)
+add_dependencies(${PROJECT_NAME}-ut ut_reroute)
 
 if(VALGRIND)
     set(RUNNER valgrind --leak-check=full)
 endif()
 
 add_custom_target(run_${PROJECT_NAME}-ut
-    COMMAND ${RUNNER} $<TARGET_FILE:${PROJECT_NAME}-ut> --gtest_output="xml:testResult.xml"
-    DEPENDS $<$<BOOL:${COVERITY}>:clear_gcda> ${PROJECT_NAME}-ut
+    COMMAND ${RUNNER} ${PROJECT_NAME}-ut --gtest_output="xml:testResult.xml"
+    DEPENDS $<$<BOOL:${COVERITY}>:clear_gcda>
     COMMENT "Running unit tests"
 )
 
@@ -125,16 +125,15 @@ if(COVERITY)
         COMMAND lcov -e coverage.info \"${PROJECT_SOURCE_DIR}/LinxIpc/src*\" -o coverage.info.filtered --rc lcov_branch_coverage=1
         #COMMAND lcov -r coverage.info.filtered \"${PROJECT_SOURCE_DIR}/LinxIpc/src/trace.cpp*\" -o coverage.info.filtered
         COMMAND genhtml coverage.info.filtered --branch-coverage --no-function-coverage --highlight --legend --output-directory coverity_report
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan
-            "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
         COMMENT "Running coverity"
     )
 
     add_custom_target(gcovr_${PROJECT_NAME}-ut
         DEPENDS run_${PROJECT_NAME}-ut
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/coverity_report
         COMMAND gcovr -s -b --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-details ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
         COMMENT "Running coverity"
     )
 endif()
