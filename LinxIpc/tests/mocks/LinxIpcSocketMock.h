@@ -1,6 +1,6 @@
+#include <gmock/gmock.h>
 #include "LinxIpc.h"
 #include "LinxIpcSocket.h"
-#include "CMock2.h"
 
 class LinxIpcSocketMock : public LinxIpcSocket {
   public:

@@ -1,4 +1,6 @@
 #include <time.h>
+#include <sys/eventfd.h>
+
 #include "CMock2.h"
 
 class SystemMock : public CMockMocker<SystemMock> {

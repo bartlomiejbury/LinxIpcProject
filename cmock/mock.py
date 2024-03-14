@@ -7,8 +7,8 @@ prefix = "proxy_"
 
 class MethodContainer:
     def __init__(self, signature):
+        self.isConst = "(const)" in signature
         self.signature = signature
-        self.isConst = False
 
     def getProxy(self, className):
         if self.isConst:

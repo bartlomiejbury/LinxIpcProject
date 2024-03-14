@@ -45,7 +45,7 @@ class CMockMocker {
     }
 
 #define CMOCK_MOCK_FUNCTION(_ClassName,  _Ret, _FunctionName, _Args) \
-    CMOCK_INTERNAL_FUNCTION(_ClassName, _FunctionName, GMOCK_PP_NARG0 _Args, (GMOCK_INTERNAL_SIGNATURE(_Ret, _Args)));
+    CMOCK_INTERNAL_FUNCTION(_ClassName, _FunctionName, GMOCK_PP_NARG0 _Args, (GMOCK_INTERNAL_SIGNATURE(_Ret, _Args)))
 
-#define CMOCK_MOCK_CONST_FUNCTION(_ClassName,  _Ret, _FunctionName, _Args) \
-    CMOCK_INTERNAL_CONST_FUNCTION(_ClassName, _FunctionName, GMOCK_PP_NARG0 _Args, (GMOCK_INTERNAL_SIGNATURE(_Ret, _Args)));
+#define CMOCK_MOCK_CONST_FUNCTION(_ClassName,  _Ret, _FunctionName, _Args, _dummy) \
+    CMOCK_INTERNAL_CONST_FUNCTION(_ClassName, _FunctionName, GMOCK_PP_NARG0 _Args, (GMOCK_INTERNAL_SIGNATURE(_Ret, _Args)))

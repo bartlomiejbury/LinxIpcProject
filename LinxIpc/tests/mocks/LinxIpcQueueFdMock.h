@@ -1,6 +1,6 @@
+#include <gmock/gmock.h>
 #include "LinxIpc.h"
 #include "LinxQueueFd.h"
-#include "CMock2.h"
 
 class LinxIpcQueueFdMock : public LinxQueueFd {
   public:

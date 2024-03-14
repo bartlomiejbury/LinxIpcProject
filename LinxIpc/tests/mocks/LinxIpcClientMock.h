@@ -1,5 +1,5 @@
+#include <gmock/gmock.h>
 #include "LinxIpc.h"
-#include "CMock2.h"
 
 class LinxIpcClientMock : public LinxIpcClient {
   public:
