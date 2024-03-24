@@ -6,4 +6,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/top.cmake)
 add_subdirectory(LinxIpc)
 add_subdirectory(TestApp)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/bottom.cmake)
+if(UNIT_TESTS)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ut.cmake)
+endif()

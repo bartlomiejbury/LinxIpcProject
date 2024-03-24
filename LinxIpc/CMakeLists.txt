@@ -36,13 +36,3 @@ add_to_ut(TARGET LinxIpc
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
 )
-
-#  Shared library
-add_library(LinxIpcShared EXCLUDE_FROM_ALL SHARED $<TARGET_PROPERTY:LinxIpc,SOURCES>)
-target_compile_definitions(LinxIpcShared PRIVATE $<TARGET_PROPERTY:LinxIpc,COMPILE_DEFINITIONS>)
-target_link_libraries(LinxIpcShared $<TARGET_PROPERTY:LinxIpc,LINK_LIBRARIES>)
-set_target_properties(LinxIpcShared PROPERTIES OUTPUT_NAME LinxIpc)
-target_include_directories(LinxIpcShared PRIVATE $<TARGET_PROPERTY:LinxIpc,INCLUDE_DIRECTORIES>)
-install(TARGETS LinxIpcShared DESTINATION lib)
-file(GLOB_RECURSE PUBLIC_HEADERS "${CMAKE_CURRENT_LIST_DIR}/exports/*.h")
-install(FILES ${PUBLIC_HEADERS} DESTINATION include)
