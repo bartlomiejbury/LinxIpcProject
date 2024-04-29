@@ -18,6 +18,48 @@ function(add_to_ut)
 
 endfunction()
 
+macro(choice)
+    set(options "")
+    set(oneValueArgs VAR DESC)
+    set(multivalueArgs VALUES)
+    cmake_parse_arguments(MY_CHOICE "${options}" "${oneValueArgs}" "${multivalueArgs}" ${ARGN})
+
+    if(NOT ${MY_CHOCE_VAR} IN_LIST MY_CHOICE_VALUES)
+        message(FATAL_ERROR "Invalid value ${MY_CHOICE_VAR}: ${${MY_CHOICE_VAR}}. Please select one of ${MY_CHOICE_VALUES}")
+    endif()
+    
+    set(${MY_CHOICE_VAR} ${${MY_CHOICE_VAR}} CACHE STRING ${MY_CHOICE_DESC})
+    set_property(CACHE ${MY_CHOICE_VAR} PROPERTY STRINGS ${MY_CHOICE_VALUES})
+
+    smessage(STATUS "${MY_CHOICE_VAR}=${${MY_CHOICE_VAR}}")
+endmacro()
+
+macro(add_option)
+    set(options REQUIRED)
+    set(oneValueArgs VAR DEFAULT)
+    set(multivalueArgs "")
+    cmake_parse_arguments(MY_CHOICE "${options}" "${oneValueArgs}" "${multivalueArgs}" ${ARGN})
+
+    if(NOT DEFINED ${MY_CHOICE_VAR} AND DEFINED MY_CHOICE_DEFAULT)
+        set(${MY_CHOICE_VAR} ${MY_CHOICE_DEFAULT})
+    endif()
+    
+    if(NOT DEFINED ${MY_CHOICE_VAR})
+        if(MY_CHOICE_REQUIRED)
+            message(FATAL_ERROR "${MY_CHOICE_VAR} is required")
+        endif()
+    else()
+        message(STATUS "${MY_CHOICE_VAR}=${${MY_CHOICE_VAR}}")
+        if(${MY_CHOICE_VAR} STREQUAL ON)
+            add_compile_definitions(${MY_CHOICE_VAR})
+        endif()
+
+        if(NOT ${MY_CHOICE_VAR} STREQUAL ON AND NOT ${MY_CHOICE_VAR} STREQUAL OFF)
+            add_compile_definitions(${MY_CHOICE_VAR}=${${MY_CHOICE_VAR}})
+        endif()
+    endif()
+endmacro()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
