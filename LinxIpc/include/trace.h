@@ -1,9 +1,9 @@
 #pragma once
 
-typedef enum { SEVERITY_DEBUG, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_END } LogSeverity;
+typedef enum { SEVERITY_DEBUG=1, SEVERITY_INFO, SEVERITY_WARNING, SEVERITY_ERROR, SEVERITY_END } LogSeverity;
 
 
-#if defined USE_LOGGING && USE_LOGGING >= SEVERITY_DEBUG && USE_LOGGING < SEVERITY_END
+#if defined USE_LOGGING && USE_LOGGING > 0 && USE_LOGGING < 5
 
     #ifdef __cplusplus
     extern "C" {
