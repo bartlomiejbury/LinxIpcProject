@@ -24,7 +24,7 @@ endforeach()
 add_compile_definitions(UNIT_TEST)
 
 if(COVERITY)
-    add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline)
+    add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -O0)
     add_link_options(--coverage)
 endif()
 

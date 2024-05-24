@@ -7,8 +7,7 @@ function(add_to_ut)
     set(options OPTIONAL "")
     set(oneValueArgs TARGET)
     set(multiValueArgs SOURCES MOCKS)
-    cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}"
-                        "${multiValueArgs}" ${ARGN} )
+    cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_SOURCES ${ADD_TO_UT_SOURCES})
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_MOCKS_DIR ${ADD_TO_UT_MOCKS})
@@ -19,6 +18,7 @@ function(add_to_ut)
 endfunction()
 
 macro(choice)
+
     set(options "")
     set(oneValueArgs VAR DESC)
     set(multivalueArgs VALUES)
@@ -31,10 +31,11 @@ macro(choice)
     set(${MY_CHOICE_VAR} ${${MY_CHOICE_VAR}} CACHE STRING ${MY_CHOICE_DESC})
     set_property(CACHE ${MY_CHOICE_VAR} PROPERTY STRINGS ${MY_CHOICE_VALUES})
 
-    smessage(STATUS "${MY_CHOICE_VAR}=${${MY_CHOICE_VAR}}")
+    message(STATUS "${MY_CHOICE_VAR}=${${MY_CHOICE_VAR}}")
 endmacro()
 
 macro(add_option)
+
     set(options REQUIRED)
     set(oneValueArgs VAR DEFAULT)
     set(multivalueArgs "")
