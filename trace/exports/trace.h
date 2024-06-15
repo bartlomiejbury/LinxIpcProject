@@ -1,65 +1,9 @@
 #pragma once
 
-typedef enum { SEVERITY_ERROR=1, SEVERITY_WARNING, SEVERITY_INFO, SEVERITY_DEBUG  } LogSeverity;
-
-#define TRACE_INIT()
-#define TRACE_RAW(SEVERITY, file, line, format, va_args)
-#define TRACE_INFO(...)
-#define TRACE_DEBUG(...)
-#define TRACE_WARNING(...)
-#define TRACE_ERROR(...)
-#define TRACE_ENTER()
-#define TRACE_EXIT()
-
-#if USE_LOGGING >= 1
-    #ifdef __cplusplus
-    extern "C" {
-    #endif
-
-    #include <stdarg.h>
-
-    void traceInit();
-    void vtrace(LogSeverity severity, const char *fileName, int lineNum, const char *format, va_list argptr);
-    void trace(LogSeverity severity, const char *fileName, int lineNum, const char *format, ...);
-
-    #ifdef __cplusplus
-    }
-    #endif
-
-    #undef TRACE_INIT
-    #define TRACE_INIT() traceInit()
-
-    #undef TRACE_RAW
-    #define TRACE_RAW(SEVERITY, file, line, format, va_args) vtrace(SEVERITY, file, line, format, va_args)
-
-    #undef TRACE_ERROR
-    #define TRACE_ERROR(...) trace(SEVERITY_ERROR, __FILE__, __LINE__, ##__VA_ARGS__)
-
-    #if USE_LOGGING >= 2
-        #undef TRACE_WARNING
-        #define TRACE_WARNING(...) trace(SEVERITY_WARNING, __FILE__, __LINE__, ##__VA_ARGS__)
-    #endif
-
-    #if USE_LOGGING >= 3
-        #undef TRACE_INFO
-        #define TRACE_INFO(...) trace(SEVERITY_INFO, __FILE__, __LINE__, ##__VA_ARGS__)
-    #endif
-
-    #if USE_LOGGING >= 4
-        #undef TRACE_DEBUG
-        #define TRACE_DEBUG(...) trace(SEVERITY_DEBUG, __FILE__, __LINE__, ##__VA_ARGS__)
-
-        #undef TRACE_ENTER
-        #define TRACE_ENTER() trace(SEVERITY_DEBUG, "%s enter", __func__)
-
-        #undef TRACE_EXIT
-        #define TRACE_EXIT() trace(SEVERITY_DEBUG, "%s exit", __func__)
-    #endif
-
-    #if USE_LOGGING >= 5
-        #error "Cannot set log level > 4"
-    #endif
-#endif
+#define SEVERITY_ERROR 1
+#define SEVERITY_WARNING 2
+#define SEVERITY_INFO 3
+#define SEVERITY_DEBUG 4
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,4 +16,39 @@ void trace_error(const char *fileName, int lineNum, const char *format, ...);
 
 #ifdef __cplusplus
 }
+#endif
+
+#if USE_LOGGING >= SEVERITY_ERROR
+    extern "C" void trace_init();
+    #define TRACE_INIT() trace_init()
+    #define TRACE_ERROR(...) trace_error(__FILE__, __LINE__, ##__VA_ARGS__)
+#else
+    #define TRACE_INIT()
+    #define TRACE_ERROR(...)
+#endif
+
+#if USE_LOGGING >= SEVERITY_WARNING
+    #define TRACE_WARNING(...) trace_warning(__FILE__, __LINE__, ##__VA_ARGS__)
+#else
+    #define TRACE_WARNING(...)
+#endif
+
+#if USE_LOGGING >= SEVERITY_INFO
+    #define TRACE_INFO(...) trace_info(__FILE__, __LINE__, ##__VA_ARGS__)
+#else
+    #define TRACE_INFO(...)
+#endif
+
+#if USE_LOGGING >= SEVERITY_DEBUG
+    #define TRACE_DEBUG(...) trace_debug(__FILE__, __LINE__, ##__VA_ARGS__)
+    #define TRACE_ENTER() trace_debug(__FILE__, __LINE__, "%s enter", __func__)
+    #define TRACE_EXIT() trace_debug(__FILE__, __LINE__, "%s exit", __func__)
+#else
+    #define TRACE_DEBUG(...)
+    #define TRACE_ENTER()
+    #define TRACE_EXIT()
+#endif
+
+#if USE_LOGGING > SEVERITY_DEBUG
+    #error "Cannot set log level > SEVERITY_DEBUG"
 #endif

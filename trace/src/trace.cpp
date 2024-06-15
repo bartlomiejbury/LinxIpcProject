@@ -4,35 +4,17 @@
 #include <unordered_map>
 #include <stdio.h>
 #include <cstdlib>
-#include <cstring>
-
-#if USE_LOGGING >= 1
-
-static const std::unordered_map<LogSeverity, int> severityMap{{LogSeverity::SEVERITY_DEBUG, LOG_DEBUG},
-                                                              {LogSeverity::SEVERITY_INFO, LOG_INFO},
-                                                              {LogSeverity::SEVERITY_WARNING, LOG_WARNING},
-                                                              {LogSeverity::SEVERITY_ERROR, LOG_ERR}};
+#include <stdarg.h>
 
 //LCOV_EXCL_START
-void traceInit() {
+#if USE_LOGGING >= SEVERITY_ERROR
 
-    LogSeverity defaultSeverity = static_cast<LogSeverity>(USE_LOGGING);
-    openlog( NULL, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1 );
+static const std::unordered_map<int, int> severityMap{{SEVERITY_DEBUG, LOG_DEBUG},
+                                                      {SEVERITY_INFO, LOG_INFO},
+                                                      {SEVERITY_WARNING, LOG_WARNING},
+                                                      {SEVERITY_ERROR, LOG_ERR}};
 
-    if (const char* env_severity = std::getenv( "LOG_LEVEL" )) {
-        int num = atoi( env_severity );
-
-        if (num >= LogSeverity::SEVERITY_DEBUG && num <= LogSeverity::SEVERITY_ERROR) {
-            defaultSeverity = static_cast<LogSeverity>(num);
-        }
-    }
-
-    setlogmask( LOG_UPTO( severityMap.at( defaultSeverity ) ) );
-    TRACE_INFO( "Set LOG_LEVEL: %d", defaultSeverity );
-}
-
-void vtrace(LogSeverity severity, const char *fileName, int lineNum, const char *format, va_list argptr) {
-
+static void vtrace(int severity, const char *fileName, int lineNum, const char *format, va_list argptr) {
     char formatBuffer[1000];
     const char *file = strrchr(fileName, '/');
     file = file ? file + 1 : fileName;
@@ -41,47 +23,57 @@ void vtrace(LogSeverity severity, const char *fileName, int lineNum, const char 
     vsyslog(severityMap.at(severity), formatBuffer, argptr);
 }
 
-void trace(LogSeverity severity, const char *fileName, int lineNum, const char *format, ...) {
-    va_list argptr;
-    va_start(argptr, format);
-    vtrace(severity, fileName, lineNum, format, argptr);
-    va_end(argptr);
+void trace_init() {
+    int defaultSeverity = USE_LOGGING;
+    openlog( NULL, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1 );
+
+    if (const char* env_severity = std::getenv( "LOG_LEVEL" )) {
+        int num = atoi( env_severity );
+
+        if (severityMap.find(num) != severityMap.end()) {
+            defaultSeverity = num;
+        }
+    }
+
+    setlogmask( LOG_UPTO( severityMap.at( defaultSeverity ) ) );
+    TRACE_INFO( "Set LOG_LEVEL: %d", defaultSeverity );
 }
-//LCOV_EXCL_STOP
 #endif
 
 void trace_error(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= 1
+#if USE_LOGGING >= SEVERITY_ERROR
     va_list argptr;
     va_start(argptr, format);
-    TRACE_RAW(SEVERITY_ERROR, fileName, lineNum, format, argptr);
+    vtrace(SEVERITY_ERROR, fileName, lineNum, format, argptr);
     va_end(argptr);
 #endif
 }
 
 void trace_warning(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= 2
+#if USE_LOGGING >= SEVERITY_WARNING
     va_list argptr;
     va_start(argptr, format);
-    TRACE_RAW(SEVERITY_WARNING, fileName, lineNum, format, argptr);
+    vtrace(SEVERITY_WARNING, fileName, lineNum, format, argptr);
     va_end(argptr);
 #endif
 }
 
 void trace_info(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= 3
+#if USE_LOGGING >= SEVERITY_INFO
     va_list argptr;
     va_start(argptr, format);
-    TRACE_RAW(SEVERITY_INFO, fileName, lineNum, format, argptr);
+    vtrace(SEVERITY_INFO, fileName, lineNum, format, argptr);
     va_end(argptr);
 #endif
 }
 
 void trace_debug(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= 4
+#if USE_LOGGING >= SEVERITY_DEBUG
     va_list argptr;
     va_start(argptr, format);
-    TRACE_RAW(SEVERITY_DEBUG, fileName, lineNum, format, argptr);
+    vtrace(SEVERITY_DEBUG, fileName, lineNum, format, argptr);
     va_end(argptr);
 #endif
 }
+
+//LCOV_EXCL_STOP
