@@ -8,9 +8,10 @@ FetchContent_Declare(
 
 FetchContent_Populate(googletest)
 message(STATUS "fetched googletest into ${googletest_SOURCE_DIR}")
-add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 
 get_property(UNIT_TEST_TARGET_DEFINES GLOBAL PROPERTY UNIT_TEST_TARGET_DEFINES)
+get_property(UNIT_TEST_TARGET_LIBS GLOBAL PROPERTY UNIT_TEST_TARGET_LIBS)
 get_property(UNIT_TEST_TARGET_SOURCES GLOBAL PROPERTY UNIT_TEST_TARGET_SOURCES)
 get_property(UNIT_TEST_TARGET_INCLUDES GLOBAL PROPERTY UNIT_TEST_TARGET_INCLUDES)
 get_property(UNIT_TEST_SOURCES GLOBAL PROPERTY UNIT_TEST_SOURCES)
@@ -20,8 +21,6 @@ foreach(file ${UNIT_TEST_MOCKS_DIR})
     file(GLOB mocks "${file}/*Mock.h")
     list(APPEND UNIT_TEST_MOCKS ${mocks})
 endforeach()
-
-add_compile_definitions(UNIT_TEST)
 
 if(COVERITY)
     add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -O0)
@@ -42,7 +41,7 @@ execute_process(
 )
 
 if(NOT GENERATED_MOCKS)
-    message(STATUS "No mocks were generate create dumy file")
+    message(FATAL_ERROR "No mocks were generate create dumy file")
     file(WRITE ${GENERATED_SOURCE_DIR}/dummy.cpp "")
     set(GENERATED_MOCKS ${GENERATED_SOURCE_DIR}/dummy.cpp)
 endif()
@@ -54,7 +53,7 @@ add_custom_command(
     COMMENT "Generate mocks"
 )
 
-add_library(ut_mocks OBJECT ${GENERATED_MOCKS})
+add_library(ut_mocks OBJECT EXCLUDE_FROM_ALL ${GENERATED_MOCKS})
 
 target_link_libraries(ut_mocks
     PUBLIC
@@ -71,9 +70,10 @@ target_include_directories(ut_mocks
 #############################
 #     Compile sources
 #############################
-add_library(ut_sources OBJECT ${UNIT_TEST_TARGET_SOURCES})
+add_library(ut_sources OBJECT EXCLUDE_FROM_ALL ${UNIT_TEST_TARGET_SOURCES})
 target_include_directories(ut_sources PUBLIC ${UNIT_TEST_TARGET_INCLUDES})
 target_compile_definitions(ut_sources PUBLIC ${UNIT_TEST_TARGET_DEFINES})
+target_link_libraries(ut_sources PUBLIC ${UNIT_TEST_TARGET_LIBS})
 
 #############################
 #     Rerouted Objects
@@ -88,11 +88,12 @@ add_custom_target(ut_reroute
 #############################
 #     Compile Unit tests
 #############################
-add_executable(${PROJECT_NAME}-ut ${UNIT_TEST_SOURCES})
+add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}-ut
     PRIVATE
     gtest gmock_main ut_mocks ut_sources
+    ${UNIT_TEST_TARGET_LIBS}
 )
 
 
@@ -116,6 +117,7 @@ add_custom_target(run_${PROJECT_NAME}-ut
     COMMAND ${RUNNER} ${PROJECT_NAME}-ut --gtest_output="xml:testResult.xml"
     DEPENDS $<$<BOOL:${COVERITY}>:clear_gcda>
     COMMENT "Running unit tests"
+    COMMAND_EXPAND_LISTS
 )
 
 #############################

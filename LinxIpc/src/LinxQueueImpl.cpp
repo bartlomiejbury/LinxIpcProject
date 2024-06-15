@@ -1,7 +1,6 @@
 #include <cassert>
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
-#include "trace.h"
 
 LinxQueueImpl::LinxQueueImpl(LinxQueueFd *efd, int size): efd{efd}, max_size{size} {
     assert(efd);

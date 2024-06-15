@@ -1,0 +1,40 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "linux",
+            "generator": "Unix Makefiles",
+            "hidden": true
+        },
+        {
+            "name": "default",
+            "inherits": "linux",
+            "displayName": "Default Config",
+            "description": "Default build",
+            "binaryDir": "${sourceDir}/build/"
+        },
+        {
+            "name": "ut",
+            "inherits": "linux",
+            "displayName": "Unit tests",
+            "description": "Build and run unit tests",
+            "binaryDir": "${sourceDir}/build_ut/",
+            "cacheVariables": {
+                "UNIT_TESTS": "1"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "ut",
+            "configurePreset": "ut",
+            "targets": [
+                "run_LinxIpc-ut"
+            ]
+        }
+    ]
+}

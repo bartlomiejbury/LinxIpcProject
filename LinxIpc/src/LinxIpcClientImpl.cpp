@@ -1,7 +1,7 @@
 #include <cassert>
 #include "LinxIpcClientImpl.h"
 #include "LinxTime.h"
-#include "trace.h"
+#include "LinxTrace.h"
 #include <errno.h>
 #include <poll.h>
 #include <sys/ioctl.h>
@@ -13,7 +13,7 @@ LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcServerPtr &server, const std::
     this->server = server;
     this->serviceName = serviceName;
 
-    LOG_INFO("Setup IPC Client: %s", serviceName.c_str());
+    LINX_INFO("Setup IPC Client: %s", serviceName.c_str());
 }
 
 int LinxIpcClientImpl::send(const LinxMessageIpc &message) {
@@ -41,7 +41,7 @@ bool LinxIpcClientImpl::connect(int timeoutMs) {
         if (len >= 0) {
             auto rsp = receive(pingTimeout, {IPC_HUNT_RSP});
             if (rsp != nullptr) {
-                LOG_INFO("IPC Client: %s connected", serviceName.c_str());
+                LINX_INFO("IPC Client: %s connected", serviceName.c_str());
                 return true;
             }
         }
@@ -49,6 +49,6 @@ bool LinxIpcClientImpl::connect(int timeoutMs) {
         run = timeoutMs == INFINITE_TIMEOUT || (getTimeMs() - startTime) < (uint64_t)timeoutMs;
     } while (run);
 
-    LOG_ERROR("IPC Client: %s connection timed out", serviceName.c_str());
+    LINX_ERROR("IPC Client: %s connection timed out", serviceName.c_str());
     return false;
 }

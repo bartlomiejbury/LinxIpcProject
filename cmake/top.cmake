@@ -1,6 +1,3 @@
-option(UNIT_TESTS "build unit tests" FALSE)
-option(COVERITY "enable coverity" FALSE)
-option(VALGRIND "enable valgrind" FALSE)
 
 function(add_to_ut)
 
@@ -14,6 +11,7 @@ function(add_to_ut)
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TARGET_SOURCES $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},SOURCES>)
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TARGET_INCLUDES $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},INCLUDE_DIRECTORIES>)
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TARGET_DEFINES $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},COMPILE_DEFINITIONS>)
+    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TARGET_LIBS $<TARGET_PROPERTY:${ADD_TO_UT_TARGET},LINK_LIBRARIES>)
 
 endfunction()
 
@@ -27,7 +25,7 @@ macro(choice)
     if(NOT ${MY_CHOCE_VAR} IN_LIST MY_CHOICE_VALUES)
         message(FATAL_ERROR "Invalid value ${MY_CHOICE_VAR}: ${${MY_CHOICE_VAR}}. Please select one of ${MY_CHOICE_VALUES}")
     endif()
-    
+
     set(${MY_CHOICE_VAR} ${${MY_CHOICE_VAR}} CACHE STRING ${MY_CHOICE_DESC})
     set_property(CACHE ${MY_CHOICE_VAR} PROPERTY STRINGS ${MY_CHOICE_VALUES})
 
@@ -44,7 +42,7 @@ macro(add_option)
     if(NOT DEFINED ${MY_CHOICE_VAR} AND DEFINED MY_CHOICE_DEFAULT)
         set(${MY_CHOICE_VAR} ${MY_CHOICE_DEFAULT})
     endif()
-    
+
     if(NOT DEFINED ${MY_CHOICE_VAR})
         if(MY_CHOICE_REQUIRED)
             message(FATAL_ERROR "${MY_CHOICE_VAR} is required")
@@ -61,21 +59,27 @@ macro(add_option)
     endif()
 endmacro()
 
+option(COVERITY "enable coverity" FALSE)
+option(VALGRIND "enable valgrind" FALSE)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/bin)
 
 add_compile_options(
     $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
     $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17>
     -Wall -Wno-psabi -ffunction-sections -fdata-sections -fno-common -fstack-protector-strong -Werror
-    $<$<CONFIG:Debug>:SHELL:-O0>
+    "$<$<CONFIG:Debug>:SHELL:-Og>"
 )
 
 add_link_options(
     -Wl,-Map=output.map
-    -Wl,--gc-sections
-)
+    -Wl,--gc-sections)
 
 message(STATUS "#################################")
 message(STATUS "     BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
@@ -90,3 +94,6 @@ else()
     message(STATUS "     TARGET: PROD")
 endif()
 message(STATUS "#################################")
+
+add_option(VAR USE_LOGGING)
+add_option(VAR UNIT_TESTS)

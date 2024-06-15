@@ -5,7 +5,7 @@
 #include <poll.h>
 #include "LinxIpc.h"
 #include "LinxIpcSocketImpl.h"
-#include "trace.h"
+#include "LinxTrace.h"
 
 typedef struct {
     uint32_t reqId;
@@ -18,7 +18,7 @@ LinxIpcSocketImpl::LinxIpcSocketImpl(const std::string &serviceName) {
 
     if ((this->fd = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0) {
         this->fd = -1;
-        LOG_ERROR("Cannot open IPC socket for %s", serviceName.c_str());
+        LINX_ERROR("Cannot open IPC socket for %s", serviceName.c_str());
         return;
     }
 
@@ -27,16 +27,16 @@ LinxIpcSocketImpl::LinxIpcSocketImpl(const std::string &serviceName) {
     if (bind(this->fd, (const struct sockaddr *)&this->address, address_length) < 0) {
         close(this->fd);
         this->fd = -1;
-        LOG_ERROR("Cannot bind IPC socket for %s", serviceName.c_str());
+        LINX_ERROR("Cannot bind IPC socket for %s", serviceName.c_str());
         return;
     }
 
-    LOG_INFO("Setup IPC: %s, fd: %d", serviceName.c_str(), this->fd);
+    LINX_INFO("Setup IPC: %s, fd: %d", serviceName.c_str(), this->fd);
 }
 
 LinxIpcSocketImpl::~LinxIpcSocketImpl() {
     if (this->fd) {
-        LOG_DEBUG("closing fd: %d for IPC: %s", this->fd, this->serviceName.c_str());
+        LINX_DEBUG("closing fd: %d for IPC: %s", this->fd, this->serviceName.c_str());
         close(this->fd);
     }
 }
@@ -44,7 +44,7 @@ LinxIpcSocketImpl::~LinxIpcSocketImpl() {
 int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int timeoutMs) {
 
     if (this->fd < 0) {
-        LOG_ERROR("IPC recv on wrong socket for IPC: %s", this->serviceName.c_str());
+        LINX_ERROR("IPC recv on wrong socket for IPC: %s", this->serviceName.c_str());
         return -1;
     }
 
@@ -58,10 +58,10 @@ int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int ti
 
         int pollrc = poll(fds, 1, timeoutMs);
         if (pollrc < 0) {
-            LOG_ERROR("IPC recv error IPC: %s, errono: %d", this->serviceName.c_str(), errno);
+            LINX_ERROR("IPC recv error IPC: %s, errono: %d", this->serviceName.c_str(), errno);
             return pollrc;
         } else if (pollrc == 0) {
-            LOG_ERROR("IPC recv timeout IPC: %s", this->serviceName.c_str());
+            LINX_ERROR("IPC recv timeout IPC: %s", this->serviceName.c_str());
             return -1;
         }
 
@@ -78,12 +78,12 @@ int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int ti
     ssize_t len =
         recvfrom(this->fd, buffer.data(), bytes_available, 0, (struct sockaddr *)&client_address, &address_length);
     if (len < 0) {
-        LOG_ERROR("IPC recv error IPC: %s, errono: %d", this->serviceName.c_str(), errno);
+        LINX_ERROR("IPC recv error IPC: %s, errono: %d", this->serviceName.c_str(), errno);
         return len;
     }
 
     if ((uint32_t)len < sizeof(ipc->reqId)) {
-        LOG_ERROR("IPC recv wrong size: %d for IPC: ", len, this->serviceName.c_str());
+        LINX_ERROR("IPC recv wrong size: %d for IPC: ", len, this->serviceName.c_str());
         return -1;
     }
 
@@ -101,7 +101,7 @@ int LinxIpcSocketImpl::receive(LinxMessageIpcPtr *msg, std::string *from, int ti
 int LinxIpcSocketImpl::send(const LinxMessageIpc &message, const std::string &to) {
 
     if (this->fd < 0) {
-        LOG_ERROR("IPC send on wrong socket for IPC: %s", this->serviceName.c_str());
+        LINX_ERROR("IPC send on wrong socket for IPC: %s", this->serviceName.c_str());
         return -1;
     }
 
@@ -121,12 +121,12 @@ int LinxIpcSocketImpl::send(const LinxMessageIpc &message, const std::string &to
     ssize_t len = sendto(this->fd, buffer, sendSize, 0, (struct sockaddr *)&address, address_length);
 
     if (len < 0) {
-        LOG_ERROR("IPC send error IPC: %s(%d), errono: %d", this->serviceName.c_str(), ipc->reqId, errno);
+        LINX_ERROR("IPC send error IPC: %s(%d), errono: %d", this->serviceName.c_str(), ipc->reqId, errno);
         return -1;
     }
 
     if ((uint32_t)len != sendSize) {
-        LOG_ERROR("IPC send wrong size: %d for IPC: ", len, this->serviceName.c_str());
+        LINX_ERROR("IPC send wrong size: %d for IPC: ", len, this->serviceName.c_str());
         return -1;
     }
 
@@ -142,7 +142,7 @@ socklen_t LinxIpcSocketImpl::createAddress(struct sockaddr_un *address, const st
 
 int LinxIpcSocketImpl::flush() {
     if (this->fd < 0) {
-        LOG_ERROR("IPC recv on wrong socket for IPC: %s", this->serviceName.c_str());
+        LINX_ERROR("IPC recv on wrong socket for IPC: %s", this->serviceName.c_str());
         return -1;
     }
 

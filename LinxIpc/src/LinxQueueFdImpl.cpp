@@ -3,11 +3,11 @@
 #include <unistd.h>
 #include <cstdint>
 #include "LinxQueueFdImpl.h"
-#include "trace.h"
+#include "LinxTrace.h"
 
 LinxQueueFdImpl::LinxQueueFdImpl() {
     if ((efd = eventfd(0, EFD_SEMAPHORE | EFD_NONBLOCK)) < 0) {
-        LOG_ERROR("Cannot open EventFD");
+        LINX_ERROR("Cannot open EventFD");
     }
 }
 
@@ -19,13 +19,13 @@ LinxQueueFdImpl::~LinxQueueFdImpl() {
 
 int LinxQueueFdImpl::writeEvent() {
     if (efd < 0) {
-        LOG_ERROR("EventFD not opened");
+        LINX_ERROR("EventFD not opened");
         return -1;
     }
 
     uint64_t u = 1;
     if (int s = ::write(efd, &u, sizeof(uint64_t)); s != sizeof(uint64_t)) {
-        LOG_ERROR("Write to EventFd failed: %d, errno: %d", s, errno);
+        LINX_ERROR("Write to EventFd failed: %d, errno: %d", s, errno);
         return -2;
     }
 
@@ -34,7 +34,7 @@ int LinxQueueFdImpl::writeEvent() {
 
 void LinxQueueFdImpl::clearEvents() {
     if (efd < 0) {
-        LOG_ERROR("EventFD not opened");
+        LINX_ERROR("EventFD not opened");
         return;
     }
 
@@ -45,13 +45,13 @@ void LinxQueueFdImpl::clearEvents() {
 
 int LinxQueueFdImpl::readEvent() {
     if (efd < 0) {
-        LOG_ERROR("EventFD not opened");
+        LINX_ERROR("EventFD not opened");
         return -1;
     }
 
     uint64_t u = 0;
     if (int s = ::read(efd, &u, sizeof(uint64_t)); s != sizeof(uint64_t)) {
-        LOG_ERROR("Read from EventFd failed: %d errno: %d", s, errno);
+        LINX_ERROR("Read from EventFd failed: %d errno: %d", s, errno);
         return -2;
     }
 

@@ -4,7 +4,7 @@
 #include "LinxIpcClientImpl.h"
 #include "LinxIpcSocket.h"
 #include "LinxQueue.h"
-#include "trace.h"
+#include "LinxTrace.h"
 
 LinxIpcSimpleServerImpl::LinxIpcSimpleServerImpl(LinxIpcSocket *socket) {
     assert(socket);
@@ -47,7 +47,7 @@ int LinxIpcSimpleServerImpl::handleMessage(int timeoutMs) {
         auto container = it->second;
         ret = container.callback(msg.get(), container.data);
     } else {
-        LOG_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
+        LINX_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
                  msg->getClient()->getName().c_str());
     }
 
@@ -102,7 +102,7 @@ void LinxIpcExtendedServerImpl::task() {
             }
 
             if (queue->add(msg, from) != 0) {
-                LOG_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
+                LINX_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
                           msg->getReqId(), from.c_str());
             }
         }
@@ -164,7 +164,7 @@ LinxMessageIpcPtr LinxIpcExtendedServerImpl::receive(int timeoutMs, const std::v
         auto client = std::get<std::string>(*container);
 
         msg->setClient(createClient(client));
-        LOG_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
+        LINX_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
                 msg->getClient()->getName().c_str());
         return msg;
     }

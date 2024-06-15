@@ -1,4 +1,6 @@
 
+add_option(VAR LINX_LOG_PREFIX)
+
 add_library(LinxIpc STATIC
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcMessage.cpp
@@ -8,7 +10,6 @@ add_library(LinxIpc STATIC
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueFdImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcClientImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxTime.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/trace.cpp
 )
 
 target_include_directories(
@@ -19,11 +20,10 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
-target_link_libraries(LinxIpc pthread)
-
-if(DEFINED USE_LOGGING)
-    target_compile_definitions(LinxIpc PRIVATE USE_LOGGING=${USE_LOGGING})
-endif()
+target_link_libraries(LinxIpc
+    PUBLIC
+    pthread
+)
 
 add_to_ut(TARGET LinxIpc
     SOURCES
