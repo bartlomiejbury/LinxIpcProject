@@ -27,4 +27,5 @@ class LinxQueueImpl : public LinxQueue {
     LinxQueueElement findMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
     LinxQueueElement waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
     LinxQueueElement waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
+    LinxQueueElement getMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
 };

@@ -1,6 +1,7 @@
 #include <cassert>
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
+#include "trace.h"
 
 LinxQueueImpl::LinxQueueImpl(LinxQueueFd *efd, int size): efd{efd}, max_size{size} {
     assert(efd);
@@ -46,10 +47,7 @@ void LinxQueueImpl::clear() {
 
 LinxQueueElement LinxQueueImpl::get(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
     if (timeoutMs == IMMEDIATE_TIMEOUT) {
-        pthread_mutex_lock(&m_mutex);
-        LinxQueueElement msg = findMessage(sigsel, from);
-        pthread_mutex_unlock(&m_mutex);
-        return msg;
+        return getMessage(sigsel, from);
     } else if (timeoutMs == INFINITE_TIMEOUT) {
         return waitForMessage(sigsel, from);
     } else {
@@ -57,10 +55,19 @@ LinxQueueElement LinxQueueImpl::get(int timeoutMs, const std::vector<uint32_t> &
     }
 }
 
-LinxQueueElement LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
+LinxQueueElement LinxQueueImpl::getMessage(const std::vector<uint32_t> &sigsel,
+                                           const std::optional<std::string> &from) {
     pthread_mutex_lock(&m_mutex);
+    LinxQueueElement msg = findMessage(sigsel, from);
+    pthread_mutex_unlock(&m_mutex);
+    return msg;
+}
+
+LinxQueueElement LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
 
     LinxQueueElement msg = nullptr;
+    pthread_mutex_lock(&m_mutex);
+
     while ((msg = findMessage(sigsel, from)) == nullptr) {
         pthread_cond_wait(&m_cv, &m_mutex);
     }
@@ -71,12 +78,13 @@ LinxQueueElement LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigs
 
 LinxQueueElement LinxQueueImpl::waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel,
                                                               const std::optional<std::string> &from) {
-    pthread_mutex_lock(&m_mutex);
-
+    
+    LinxQueueElement msg = nullptr;
     uint64_t currentTime = getTimeMs();
     timespec ts = timeMsToTimespec(currentTime + timeoutMs);
 
-    LinxQueueElement msg = nullptr;
+    pthread_mutex_lock(&m_mutex);
+
     while ((msg = findMessage(sigsel, from)) == nullptr) {
         int ret = pthread_cond_timedwait(&m_cv, &m_mutex, &ts);
         if (ret == ETIMEDOUT) {
@@ -87,10 +95,6 @@ LinxQueueElement LinxQueueImpl::waitForMessage(int timeoutMs, const std::vector<
     pthread_mutex_unlock(&m_mutex);
     return msg;
 };
-
-int LinxQueueImpl::size() const {
-    return queue.size();
-}
 
 LinxQueueElement LinxQueueImpl::findMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
 
@@ -112,6 +116,10 @@ LinxQueueElement LinxQueueImpl::findMessage(const std::vector<uint32_t> &sigsel,
     }
 
     return nullptr;
+}
+
+int LinxQueueImpl::size() const {
+    return queue.size();
 }
 
 int LinxQueueImpl::getFd() const {
