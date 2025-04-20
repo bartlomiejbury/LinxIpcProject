@@ -6,83 +6,41 @@ FetchContent_Declare(
     GIT_TAG           release-1.11.0
 )
 
+FetchContent_Declare(
+    cmock
+    SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmock/"
+)
+
 FetchContent_Populate(googletest)
+FetchContent_Populate(cmock)
 message(STATUS "fetched googletest into ${googletest_SOURCE_DIR}")
+message(STATUS "fetched cmock into ${cmock_SOURCE_DIR}")
+
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+include(${cmock_SOURCE_DIR}/mock.cmake)
 
 get_property(UNIT_TEST_TARGET_DEFINES GLOBAL PROPERTY UNIT_TEST_TARGET_DEFINES)
-get_property(UNIT_TEST_TARGET_LIBS GLOBAL PROPERTY UNIT_TEST_TARGET_LIBS)
 get_property(UNIT_TEST_TARGET_SOURCES GLOBAL PROPERTY UNIT_TEST_TARGET_SOURCES)
 get_property(UNIT_TEST_TARGET_INCLUDES GLOBAL PROPERTY UNIT_TEST_TARGET_INCLUDES)
-get_property(UNIT_TEST_SOURCES GLOBAL PROPERTY UNIT_TEST_SOURCES)
 get_property(UNIT_TEST_MOCKS_DIR GLOBAL PROPERTY UNIT_TEST_MOCKS_DIR)
-
-foreach(file ${UNIT_TEST_MOCKS_DIR})
-    file(GLOB mocks "${file}/*Mock.h")
-    list(APPEND UNIT_TEST_MOCKS ${mocks})
-endforeach()
+get_property(UNIT_TEST_SOURCES GLOBAL PROPERTY UNIT_TEST_SOURCES)
 
 if(COVERITY)
     add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -O0)
     add_link_options(--coverage)
 endif()
 
+
 #############################
 #     Generate Mocks
 #############################
-
-set(GENERATED_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/proxy)
-file(REMOVE_RECURSE ${GENERATED_SOURCE_DIR})
-file(MAKE_DIRECTORY ${GENERATED_SOURCE_DIR})
-
-execute_process(
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.py checkHeaders --headers ${UNIT_TEST_MOCKS} --output ${GENERATED_SOURCE_DIR}
-    OUTPUT_VARIABLE GENERATED_MOCKS
-)
-
-if(NOT GENERATED_MOCKS)
-    message(FATAL_ERROR "No mocks were generate create dumy file")
-    file(WRITE ${GENERATED_SOURCE_DIR}/dummy.cpp "")
-    set(GENERATED_MOCKS ${GENERATED_SOURCE_DIR}/dummy.cpp)
-endif()
-
-add_custom_command(
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.py generate --headers ${UNIT_TEST_MOCKS} --output ${GENERATED_SOURCE_DIR}
-    OUTPUT ${GENERATED_MOCKS}
-    DEPENDS ${UNIT_TEST_MOCKS}
-    COMMENT "Generate mocks"
-)
-
-add_library(ut_mocks OBJECT EXCLUDE_FROM_ALL ${GENERATED_MOCKS})
-
-target_link_libraries(ut_mocks
-    PUBLIC
-    gmock
-)
-
-target_include_directories(ut_mocks
-    PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmock
-    ${UNIT_TEST_MOCKS_DIR}
-    ${UNIT_TEST_TARGET_INCLUDES}
-)
-
-#############################
-#     Compile sources
-#############################
-add_library(ut_sources OBJECT EXCLUDE_FROM_ALL ${UNIT_TEST_TARGET_SOURCES})
-target_include_directories(ut_sources PUBLIC ${UNIT_TEST_TARGET_INCLUDES})
-target_compile_definitions(ut_sources PUBLIC ${UNIT_TEST_TARGET_DEFINES})
-target_link_libraries(ut_sources PUBLIC ${UNIT_TEST_TARGET_LIBS})
-
-#############################
-#     Rerouted Objects
-#############################
-add_custom_target(ut_reroute
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/cmock/mock.py reroute --objects $<TARGET_OBJECTS:ut_sources> --mocks $<TARGET_OBJECTS:ut_mocks>
-    DEPENDS ut_sources ut_mocks
-    COMMAND_EXPAND_LISTS
-    COMMENT "Reroute objects"
+generate_cmock(
+    TARGET ut_mocks
+    PROXY_DIR proxy
+    MOCKS_DIR ${UNIT_TEST_MOCKS_DIR}
+    TARGET_INCLUDES ${UNIT_TEST_TARGET_INCLUDES}
+    TARGET_SOURCES ${UNIT_TEST_TARGET_SOURCES}
+    TARGET_DEFINES ${UNIT_TEST_TARGET_DEFINES}
 )
 
 #############################
@@ -92,14 +50,12 @@ add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}-ut
     PRIVATE
-    gtest gmock_main ut_mocks ut_sources
-    ${UNIT_TEST_TARGET_LIBS}
+    gmock_main
+    gtest
+    ut_mocks
 )
 
-
-add_dependencies(${PROJECT_NAME}-ut ut_reroute)
-
-#############################
+#############################s
 #     UT Runner
 #############################
 
@@ -113,7 +69,7 @@ if(VALGRIND)
     set(RUNNER valgrind --leak-check=full)
 endif()
 
-add_custom_target(run_${PROJECT_NAME}-ut
+add_custom_target(run_${PROJECT_NAME}-ut ALL
     COMMAND ${RUNNER} ${PROJECT_NAME}-ut --gtest_output="xml:testResult.xml"
     DEPENDS $<$<BOOL:${COVERITY}>:clear_gcda>
     COMMENT "Running unit tests"

@@ -23,6 +23,7 @@ target_include_directories(
 target_link_libraries(LinxIpc
     PUBLIC
     pthread
+    trace
 )
 
 add_to_ut(TARGET LinxIpc

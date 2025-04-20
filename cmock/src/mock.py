@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import os
 import re
+import tempfile
 
 prefix = "proxy_"
 
@@ -15,7 +16,7 @@ class MethodContainer:
             return f"CMOCK_MOCK_CONST_FUNCTION({className}, {self.signature});"
         else:
             return f"CMOCK_MOCK_FUNCTION({className}, {self.signature});"
-        
+
 
 class ClassContainer:
     def __init__(self, className, classBody):
@@ -42,13 +43,12 @@ class ClassContainer:
                 if diffCounter == 0:
                     func = re.sub("\n *", ' ', text[start:pos])
                     self.methods.append(MethodContainer(func))
-                    return pos+1               
+                    return pos + 1
         return -1
-
 
     def getProxy(self):
         return "\n".join([m.getProxy(self.className) for m in self.methods])
-    
+
 def find_classes(text):
     result = []
     className = ''
@@ -86,42 +86,59 @@ def getUndefinedSymbolsFromObj(file):
     return set(output.split())
 
 
-def createReroutedTxt(usedMocks):
-    reroutedFile = "rerouted.txt"
+def createReroutedTxt(file, usedMocks, tmpDirName):
+    file = os.path.basename(file).replace(".h", "-rerouted.txt")
+    reroutedFile = os.path.join(tmpDirName, file)
     with open(reroutedFile, "w") as file:
         for function in usedMocks:
             file.write(f"{function} {prefix}{function}\n")
     return reroutedFile
 
 
-def redirectSymbols(file, usedMocks):
-    if len(usedMocks) != 0:
-        reroutedFile = createReroutedTxt(usedMocks)
-        subprocess.run(f"objcopy --redefine-syms={reroutedFile} {file}", shell=True)
-        os.remove(reroutedFile)
+def redirectSymbols(file, outputFile, reroutedFile):
+    subprocess.run(f"objcopy --redefine-syms={reroutedFile} {file} {outputFile}", shell=True)
+    print(f"Redirected object file: {file} to: {outputFile}")
 
-        print(f"Redirected object file: {file}")
 
 def handleRerouteCommand(args):
-    mockedFunctions = set()
 
-    for file in args.mocks:
-        mockedFunctions.update(getFunctionsFromMockFile(file))
+    with tempfile.TemporaryDirectory() as tmpdirname:
 
-    for file in args.objects:
-        undefinedSymbols = getUndefinedSymbolsFromObj(file)
-        usedMocks = undefinedSymbols.intersection(mockedFunctions)
-        redirectSymbols(file, usedMocks)
+        mockedFunctions = set()
+
+        for file in args.mocks:
+            mockedFunctions.update(getFunctionsFromMockFile(file))
+
+        for file in args.objects:
+            undefinedSymbols = getUndefinedSymbolsFromObj(file)
+            usedMocks = undefinedSymbols.intersection(mockedFunctions)
+
+            if len(usedMocks) != 0:
+                reroutedFile = createReroutedTxt(file, usedMocks, tmpdirname)
+
+                if args.output:
+                    outputFile = os.path.basename(file).replace(".o", "-rerouted.o")
+                    outputFile = os.path.join(args.output, outputFile)
+                else:
+                    outputFile = file
+
+                redirectSymbols(file, outputFile, reroutedFile)
+
+
+def _get_output_file(outputDir, filePath):
+    fileName = os.path.basename(filePath)
+    fileWithoutExt = os.path.splitext(fileName)[0]
+    fileOutput = os.path.join(outputDir, fileWithoutExt + ".cpp")
+    return fileOutput
 
 
 def handleGenerateCommand(args):
 
-    found = False
+    result = []
     for filePath in args.headers:
 
         fileName = os.path.basename(filePath)
-        fileWithoutExt = os.path.splitext(fileName)[0]
-        fileOutput = os.path.join(args.output,  fileWithoutExt + ".cpp")
+        fileOutput = _get_output_file(args.output, filePath)
 
         with open(filePath, "r") as f:
             fileContent = f.read()
@@ -132,27 +149,25 @@ def handleGenerateCommand(args):
                 for classContainer in classes:
                     cmock += classContainer.getProxy()
 
-                found = True
                 print(f"Create proxy for {fileName}")
+                result.append(fileOutput)
                 with open(fileOutput, 'w') as f2:
                     f2.write(cmock)
 
+    return result
 
-def handleCheckHeadersCommand(args):
+def handleListCommand(args):
 
     result = []
     for filePath in args.headers:
-
-        fileName = os.path.basename(filePath)
-        fileWithoutExt = os.path.splitext(fileName)[0]
-        fileOutput = os.path.join(args.output,  fileWithoutExt + ".cpp")
+        fileOutput = _get_output_file(args.output, filePath)
 
         with open(filePath, "r") as f:
             fileContent = f.read()
             classes = find_classes(fileContent)
             if len(classes) > 0:
-                result.append(f"{fileOutput}")
-    
+                result.append(fileOutput)
+
     print(";".join(result), end='')
 
 
@@ -162,21 +177,22 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest='command')
 
     reroute = subparsers.add_parser('reroute', help='reroute objcts')
-    reroute.add_argument('--mocks', metavar='N', type=str, nargs='+', help='mock object files', required=True)
-    reroute.add_argument('--objects', metavar='N', type=str, nargs='+', help='source object files', required=True)
+    reroute.add_argument('--mocks', type=str, nargs='+', help='mock object files', required=True)
+    reroute.add_argument('--objects', type=str, nargs='+', help='source object files', required=True)
+    reroute.add_argument('--output', type=str, help='rerouted objects output directory')
 
     generate = subparsers.add_parser('generate', help='generate mocks sources')
-    generate.add_argument('--headers', metavar='N', type=str, nargs='+', help='mock header files', required=True)
-    generate.add_argument('--output', metavar='N', type=str, help='mock output directory', required=True)
+    generate.add_argument('--headers', type=str, nargs='+', help='mock header files', required=True)
+    generate.add_argument('--output', type=str, help='mock output directory', required=True)
 
-    generate = subparsers.add_parser('checkHeaders', help='generate mocks sources')
-    generate.add_argument('--headers', metavar='N', type=str, nargs='+', help='mock header files', required=True)
-    generate.add_argument('--output', metavar='N', type=str, help='mock output directory', required=True)
+    list = subparsers.add_parser('list', help='list generated mocks')
+    list.add_argument('--headers', type=str, nargs='+', help='mock header files', required=True)
+    list.add_argument('--output', type=str, help='mock output directory')
 
     args = parser.parse_args()
     if args.command == 'reroute':
         handleRerouteCommand(args)
     elif args.command == 'generate':
         handleGenerateCommand(args)
-    elif args.command == 'checkHeaders':
-        handleCheckHeadersCommand(args)
+    elif args.command == 'list':
+        handleListCommand(args)
