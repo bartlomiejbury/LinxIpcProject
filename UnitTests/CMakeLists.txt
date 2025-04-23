@@ -8,7 +8,8 @@ FetchContent_Declare(
 
 FetchContent_Declare(
     cmock
-    SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmock/"
+    GIT_REPOSITORY    https://github.com/bartlomiejbury/cmock.git
+    GIT_TAG           v1.0.0
 )
 
 FetchContent_Populate(googletest)
