@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY    https://github.com/google/googletest.git
-    GIT_TAG           release-1.11.0
+    GIT_TAG           v1.16.0
 )
 
 FetchContent_Declare(
@@ -12,12 +12,11 @@ FetchContent_Declare(
     GIT_TAG           v1.0.0
 )
 
-FetchContent_Populate(googletest)
-FetchContent_Populate(cmock)
+FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(cmock)
 message(STATUS "fetched googletest into ${googletest_SOURCE_DIR}")
 message(STATUS "fetched cmock into ${cmock_SOURCE_DIR}")
 
-add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
 include(${cmock_SOURCE_DIR}/mock.cmake)
 
 get_property(UNIT_TEST_TARGET_DEFINES GLOBAL PROPERTY UNIT_TEST_TARGET_DEFINES)
