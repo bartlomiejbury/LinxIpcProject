@@ -15,9 +15,9 @@ add_library(LinxIpc STATIC
 target_include_directories(
     LinxIpc
     PUBLIC
-    ${CMAKE_CURRENT_LIST_DIR}/exports
-    PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/include
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
 target_link_libraries(LinxIpc
