@@ -7,8 +7,11 @@ function(add_to_ut)
     cmake_parse_arguments(ADD_TO_UT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
     set_property(GLOBAL APPEND PROPERTY UNIT_TEST_TARGETS ${ADD_TO_UT_TARGET})
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_SOURCES ${ADD_TO_UT_SOURCES})
-    set_property(GLOBAL APPEND PROPERTY UNIT_TEST_MOCKS_DIR ${ADD_TO_UT_MOCKS})
+    set_target_properties(${ADD_TO_UT_TARGET}
+        PROPERTIES
+        UNIT_TEST_SOURCES "${ADD_TO_UT_SOURCES}"
+        UNIT_TEST_MOCKS_DIR "${ADD_TO_UT_MOCKS}"
+   )
 
 endfunction()
 

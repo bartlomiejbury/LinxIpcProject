@@ -19,25 +19,20 @@ message(STATUS "fetched cmock into ${cmock_SOURCE_DIR}")
 
 include(${cmock_SOURCE_DIR}/mock.cmake)
 
-get_property(UNIT_TEST_TARGETS GLOBAL PROPERTY UNIT_TEST_TARGETS)
-get_property(UNIT_TEST_MOCKS_DIR GLOBAL PROPERTY UNIT_TEST_MOCKS_DIR)
-get_property(UNIT_TEST_SOURCES GLOBAL PROPERTY UNIT_TEST_SOURCES)
-
 if(COVERITY)
     add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -O0)
     add_link_options(--coverage)
 endif()
 
 #############################
-#     Compile Unit tests
+#     Generate mocks and reroute targets
 #############################
-add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
-target_link_libraries(${PROJECT_NAME}-ut
-    PRIVATE
-    gmock_main
-    gtest
-    ut_mocks
-)
+get_property(UNIT_TEST_TARGETS GLOBAL PROPERTY UNIT_TEST_TARGETS)
+
+foreach(TARGET ${UNIT_TEST_TARGETS})
+    get_target_property(mocks ${TARGET} UNIT_TEST_MOCKS_DIR)
+    list(APPEND UNIT_TEST_MOCKS_DIR ${mocks})
+endforeach()
 
 generate_cmock(
     TARGET ut_mocks
@@ -51,20 +46,30 @@ foreach(TARGET ${UNIT_TEST_TARGETS})
         CMOCK_TARGET ut_mocks
     )
 
-    list(APPEND UNIT_TEST_LINKED_LIBS ${TARGET}-rerouted)
+    get_target_property(ut_sources ${TARGET} UNIT_TEST_SOURCES)
+    list(APPEND UNIT_TEST_SOURCES ${ut_sources})
+
     get_target_property(libs ${TARGET} LINK_LIBRARIES)
     list(APPEND UNIT_TEST_LINKED_LIBS ${libs})
+
+    list(APPEND UNIT_TEST_LINKED_LIBS ${TARGET}-rerouted)
 
 endforeach()
 
 list(REMOVE_ITEM UNIT_TEST_LINKED_LIBS ${UNIT_TEST_TARGETS} libs-NOTFOUND)
 list(REMOVE_DUPLICATES UNIT_TEST_LINKED_LIBS)
 
+#############################s
+#     Compile Unit tests
+#############################
+add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
 target_link_libraries(${PROJECT_NAME}-ut
     PRIVATE
+    gmock_main
+    gtest
+    ut_mocks
     ${UNIT_TEST_LINKED_LIBS}
 )
-
 
 #############################s
 #     UT Runner
