@@ -39,9 +39,6 @@ target_link_libraries(${PROJECT_NAME}-ut
     ut_mocks
 )
 
-#############################
-#     Generate Mocks
-#############################
 generate_cmock(
     TARGET ut_mocks
     PROXY_DIR proxy
@@ -53,11 +50,21 @@ foreach(TARGET ${UNIT_TEST_TARGETS})
         TARGET ${TARGET}
         CMOCK_TARGET ut_mocks
     )
-    target_link_libraries(${PROJECT_NAME}-ut
-        PRIVATE
-        ${TARGET}-rerouted
-    )
+
+    list(APPEND UNIT_TEST_LINKED_LIBS ${TARGET}-rerouted)
+    get_target_property(libs ${TARGET} LINK_LIBRARIES)
+    list(APPEND UNIT_TEST_LINKED_LIBS ${libs})
+
 endforeach()
+
+list(REMOVE_ITEM UNIT_TEST_LINKED_LIBS ${UNIT_TEST_TARGETS} libs-NOTFOUND)
+list(REMOVE_DUPLICATES UNIT_TEST_LINKED_LIBS)
+
+target_link_libraries(${PROJECT_NAME}-ut
+    PRIVATE
+    ${UNIT_TEST_LINKED_LIBS}
+)
+
 
 #############################s
 #     UT Runner
