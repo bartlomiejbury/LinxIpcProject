@@ -9,7 +9,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     cmock
     GIT_REPOSITORY    https://github.com/bartlomiejbury/cmock.git
-    GIT_TAG           v2.0.0
+    GIT_TAG           v2.0.1
 )
 
 FetchContent_MakeAvailable(googletest)
@@ -25,10 +25,22 @@ if(COVERITY)
 endif()
 
 #############################
+#     get unittest targets
+#############################
+set(INCLUDE_TARGETS "" CACHE STRING "Include targets in UNIT_TEST_TARGETS")
+set(EXCLUDE_TARGETS "" CACHE STRING "Exclude targets from UNIT_TEST_TARGETS")
+get_property(UNIT_TEST_TARGETS GLOBAL PROPERTY UNIT_TEST_TARGETS)
+if (EXCLUDE_TARGETS)
+    list(FILTER UNIT_TEST_TARGETS EXCLUDE REGEX ${EXCLUDE_TARGETS})
+endif()
+if (INCLUDE_TARGETS)
+    list(FILTER UNIT_TEST_TARGETS INCLUDE REGEX ${INCLUDE_TARGETS})
+endif()
+message(STATUS "Running unit tests for targets: ${UNIT_TEST_TARGETS}")
+
+#############################
 #     Generate mocks and reroute targets
 #############################
-get_property(UNIT_TEST_TARGETS GLOBAL PROPERTY UNIT_TEST_TARGETS)
-
 foreach(TARGET ${UNIT_TEST_TARGETS})
     get_target_property(mocks ${TARGET} UNIT_TEST_MOCKS_DIR)
     list(APPEND UNIT_TEST_MOCKS_DIR ${mocks})
