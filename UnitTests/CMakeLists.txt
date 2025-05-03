@@ -9,7 +9,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     cmock
     GIT_REPOSITORY    https://github.com/bartlomiejbury/cmock.git
-    GIT_TAG           v1.0.0
+    GIT_TAG           v2.0.0
 )
 
 FetchContent_MakeAvailable(googletest)
@@ -19,9 +19,7 @@ message(STATUS "fetched cmock into ${cmock_SOURCE_DIR}")
 
 include(${cmock_SOURCE_DIR}/mock.cmake)
 
-get_property(UNIT_TEST_TARGET_DEFINES GLOBAL PROPERTY UNIT_TEST_TARGET_DEFINES)
-get_property(UNIT_TEST_TARGET_SOURCES GLOBAL PROPERTY UNIT_TEST_TARGET_SOURCES)
-get_property(UNIT_TEST_TARGET_INCLUDES GLOBAL PROPERTY UNIT_TEST_TARGET_INCLUDES)
+get_property(UNIT_TEST_TARGETS GLOBAL PROPERTY UNIT_TEST_TARGETS)
 get_property(UNIT_TEST_MOCKS_DIR GLOBAL PROPERTY UNIT_TEST_MOCKS_DIR)
 get_property(UNIT_TEST_SOURCES GLOBAL PROPERTY UNIT_TEST_SOURCES)
 
@@ -30,6 +28,16 @@ if(COVERITY)
     add_link_options(--coverage)
 endif()
 
+#############################
+#     Compile Unit tests
+#############################
+add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
+target_link_libraries(${PROJECT_NAME}-ut
+    PRIVATE
+    gmock_main
+    gtest
+    ut_mocks
+)
 
 #############################
 #     Generate Mocks
@@ -38,22 +46,18 @@ generate_cmock(
     TARGET ut_mocks
     PROXY_DIR proxy
     MOCKS_DIR ${UNIT_TEST_MOCKS_DIR}
-    TARGET_INCLUDES ${UNIT_TEST_TARGET_INCLUDES}
-    TARGET_SOURCES ${UNIT_TEST_TARGET_SOURCES}
-    TARGET_DEFINES ${UNIT_TEST_TARGET_DEFINES}
 )
 
-#############################
-#     Compile Unit tests
-#############################
-add_executable(${PROJECT_NAME}-ut EXCLUDE_FROM_ALL ${UNIT_TEST_SOURCES})
-
-target_link_libraries(${PROJECT_NAME}-ut
-    PRIVATE
-    gmock_main
-    gtest
-    ut_mocks
-)
+foreach(TARGET ${UNIT_TEST_TARGETS})
+    reroute_target(
+        TARGET ${TARGET}
+        CMOCK_TARGET ut_mocks
+    )
+    target_link_libraries(${PROJECT_NAME}-ut
+        PRIVATE
+        ${TARGET}-rerouted
+    )
+endforeach()
 
 #############################s
 #     UT Runner
