@@ -18,9 +18,6 @@ class LinxIpcSimpleServerImpl : public std::enable_shared_from_this<LinxIpcSimpl
     LinxIpcSimpleServerImpl(LinxIpcSocket *socket);
     ~LinxIpcSimpleServerImpl();
 
-    int handleMessage(int timeoutMs) override;
-    void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) override;
-
     int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) override;
 
     LinxMessageIpcPtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel,
@@ -30,19 +27,16 @@ class LinxIpcSimpleServerImpl : public std::enable_shared_from_this<LinxIpcSimpl
 
   protected:
     LinxIpcSocket *socket;
-
-  private:
-    std::map<uint32_t, IpcContainer> handlers;
 };
 
-class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl, virtual public LinxIpcExtendedServer {
+class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl, public LinxIpcExtendedServer {
 
   public:
     LinxIpcExtendedServerImpl(LinxIpcSocket *socket, LinxQueue *queue);
     ~LinxIpcExtendedServerImpl();
 
-    void start() override;
-    void stop() override;
+    void start();
+    void stop();
 
     LinxMessageIpcPtr receive(int timeoutMs = INFINITE_TIMEOUT, 
                               const std::vector<uint32_t> &sigsel = LINX_ANY_SIG,
@@ -57,3 +51,18 @@ class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl, virtua
     void task();
     static void *threadFunc(void *arg);
 };
+
+class LinxIpcHandlerImpl : public LinxIpcHandler {
+  public:
+    LinxIpcHandlerImpl(LinxIpcServerPtr server);
+    ~LinxIpcHandlerImpl(){};
+
+    int handleMessage(int timeoutMs) override;
+    void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) override;
+
+  private:
+    LinxIpcServerPtr server;
+    std::map<uint32_t, IpcContainer> handlers;
+};
+
+    

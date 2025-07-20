@@ -76,7 +76,7 @@ MATCHER_P(signalMatcher, reqid, "") {
 TEST_F(LinxIpcClientTests, connect_SendHuntReq) {
     auto client = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
 
-    EXPECT_CALL(*serverMock.get(), send(signalMatcher(IPC_HUNT_REQ), _)).Times(1);
+    EXPECT_CALL(*serverMock.get(), send(signalMatcher(IPC_PING_REQ), _)).Times(1);
     client->connect(0);
 }
 
@@ -104,7 +104,7 @@ TEST_F(LinxIpcClientTests, connect_SendAgainWhenNoReponseReceived) {
     auto client = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
     auto msg = std::make_shared<LinxMessageIpc>(10);
 
-    EXPECT_CALL(*serverMock.get(), send(signalMatcher(IPC_HUNT_REQ), _)).Times(2);
+    EXPECT_CALL(*serverMock.get(), send(signalMatcher(IPC_PING_REQ), _)).Times(2);
     EXPECT_CALL(*serverMock.get(), receive(100, _, _))
         .WillOnce(Return(nullptr))
         .WillOnce(Return(msg));

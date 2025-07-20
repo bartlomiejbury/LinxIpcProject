@@ -9,12 +9,8 @@
 LinxIpcSimpleServerImpl::LinxIpcSimpleServerImpl(LinxIpcSocket *socket) {
     assert(socket);
     this->socket = socket;
-
-    registerCallback(IPC_HUNT_REQ, [](LinxMessageIpc *msg, void *data){
-        LinxMessageIpc rsp = LinxMessageIpc(IPC_HUNT_RSP);
-        return msg->getClient()->send(rsp);
-    }, nullptr);
 }
+
 
 LinxIpcSimpleServerImpl::~LinxIpcSimpleServerImpl() {
     delete socket;
@@ -33,29 +29,6 @@ int LinxIpcSimpleServerImpl::getPollFd() const {
 
 LinxIpcClientPtr LinxIpcSimpleServerImpl::createClient(const std::string &serviceName) {
     return std::make_shared<LinxIpcClientImpl>(shared_from_this(), serviceName);
-}
-
-int LinxIpcSimpleServerImpl::handleMessage(int timeoutMs) {
-    LinxMessageIpcPtr msg = receive(timeoutMs, LINX_ANY_SIG, LINX_ANY_FROM);
-    if (msg == nullptr) {
-        return -1;
-    }
-
-    int ret = 0;
-    auto it = this->handlers.find(msg->getReqId());
-    if (it != this->handlers.end()) {
-        auto container = it->second;
-        ret = container.callback(msg.get(), container.data);
-    } else {
-        LINX_INFO("Received unknown request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
-                 msg->getClient()->getName().c_str());
-    }
-
-    return ret;
-}
-
-void LinxIpcSimpleServerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
-        this->handlers.insert({reqId, {callback, data}});
 }
 
 LinxMessageIpcPtr LinxIpcSimpleServerImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel, const LinxIpcClientPtr &client) {
@@ -95,8 +68,8 @@ void LinxIpcExtendedServerImpl::task() {
         int ret = socket->receive(&msg, &from, INFINITE_TIMEOUT);
         if (ret >= 0) {
 
-            if (msg->getReqId() == IPC_HUNT_REQ) {
-                LinxMessageIpc rsp = LinxMessageIpc(IPC_HUNT_RSP);
+            if (msg->getReqId() == IPC_PING_REQ) {
+                LinxMessageIpc rsp = LinxMessageIpc(IPC_PING_RSP);
                 socket->send(rsp, from);
                 continue;
             }
@@ -171,4 +144,40 @@ LinxMessageIpcPtr LinxIpcExtendedServerImpl::receive(int timeoutMs, const std::v
 
 int LinxIpcExtendedServerImpl::getPollFd() const {
     return queue->getFd();
+}
+
+/*
+* IPC handler
+*/
+LinxIpcHandlerImpl::LinxIpcHandlerImpl(LinxIpcServerPtr server) {
+    assert(server);
+    this->server = server;
+
+    registerCallback(IPC_PING_REQ, [](LinxMessageIpc *msg, void *data){
+        LinxMessageIpc rsp = LinxMessageIpc(IPC_PING_RSP);
+        return msg->getClient()->send(rsp);
+    }, nullptr);
+}
+
+int LinxIpcHandlerImpl::handleMessage(int timeoutMs) {
+    LinxMessageIpcPtr msg = server->receive(timeoutMs, LINX_ANY_SIG, LINX_ANY_FROM);
+    if (msg == nullptr) {
+        return -1;
+    }
+
+    int ret = 0;
+    auto it = this->handlers.find(msg->getReqId());
+    if (it != this->handlers.end()) {
+        auto container = it->second;
+        ret = container.callback(msg.get(), container.data);
+    } else {
+        LINX_INFO("Received unknown IPC request: %d from: %s", msg->getReqId(),
+                 msg->getClient()->getName().c_str());
+    }
+
+    return ret;
+}
+
+void LinxIpcHandlerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
+        this->handlers.insert({reqId, {callback, data}});
 }

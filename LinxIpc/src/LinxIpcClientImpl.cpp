@@ -36,10 +36,10 @@ bool LinxIpcClientImpl::connect(int timeoutMs) {
     uint64_t startTime = getTimeMs();
     bool run = true;
     do {
-        LinxMessageIpc message{IPC_HUNT_REQ};
+        LinxMessageIpc message{IPC_PING_REQ};
         int len = send(message);
         if (len >= 0) {
-            auto rsp = receive(pingTimeout, {IPC_HUNT_RSP});
+            auto rsp = receive(pingTimeout, {IPC_PING_RSP});
             if (rsp != nullptr) {
                 LINX_INFO("IPC Client: %s connected", serviceName.c_str());
                 return true;

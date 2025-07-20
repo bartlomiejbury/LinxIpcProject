@@ -12,21 +12,6 @@ class LinxIpcServer {
     virtual ~LinxIpcServer(){};
 
     /**
-     * @brief Handles incoming messages and dispatches them to registered callbacks.
-     * @param timeoutMs Timeout in milliseconds to wait for a message. Use INFINITE_TIMEOUT for no timeout.
-     * @return Status code indicating success or failure.
-     */
-    virtual int handleMessage(int timeoutMs = INFINITE_TIMEOUT) = 0;
-
-    /**
-     * @brief Registers a callback function for a specific request ID.
-     * @param reqId The request ID to associate with the callback.
-     * @param callback The callback function to invoke when a message with reqId is received.
-     * @param data User-defined data to pass to the callback.
-     */
-    virtual void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) = 0;
-
-    /**
      * @brief Sends a message to a specified IPC client.
      * @param message The message to send.
      * @param to The target client to send the message to.
@@ -80,3 +65,30 @@ class LinxIpcExtendedServer : public virtual LinxIpcServer {
      */
     virtual void stop() = 0;
 };
+
+class LinxIpcHandler {
+  public:
+    virtual ~LinxIpcHandler(){};
+    /**
+     * @brief Registers a callback function for a specific request ID.
+     * @param reqId The request ID to associate with the callback.
+     * @param callback The callback function to invoke when a message with reqId is received.
+     * @param data User-defined data to pass to the callback.
+     */
+    virtual void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) = 0;
+    /**
+     * @brief Handles incoming messages and dispatches them to registered callbacks.
+     * @param timeoutMs Timeout in milliseconds to wait for a message. Use INFINITE_TIMEOUT for no timeout.
+     * @return Status code indicating success or failure.
+     */
+    virtual int handleMessage(int timeoutMs = INFINITE_TIMEOUT) = 0;
+};
+
+
+using LinxIpcServerPtr = std::shared_ptr<LinxIpcServer>;
+using LinxIpcExtendedServerPtr = std::shared_ptr<LinxIpcExtendedServer>;
+using LinxIpcHandlerPtr = std::shared_ptr<LinxIpcHandler>;
+
+LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName);
+LinxIpcExtendedServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
+LinxIpcHandlerPtr createLinxIpcHandler(const LinxIpcServerPtr &server);

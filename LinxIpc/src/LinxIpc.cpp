@@ -4,6 +4,7 @@
 #include "LinxIpcSocketImpl.h"
 #include "LinxIpcServerImpl.h"
 
+
 //LCOV_EXCL_START
 LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName) {
     LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
@@ -16,4 +17,9 @@ LinxIpcExtendedServerPtr createLinxIpcServer(const std::string &endpointName, in
     LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
     return std::make_shared<LinxIpcExtendedServerImpl>(socket, queue);
 }
+
+LinxIpcHandlerPtr createLinxIpcHandler(const LinxIpcServerPtr &server) {
+    return std::make_shared<LinxIpcHandlerImpl>(server);
+}
+
 //LCOV_EXCL_STOP
