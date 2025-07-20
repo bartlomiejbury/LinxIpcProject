@@ -7,7 +7,7 @@ add_library(LinxIpc STATIC
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcSocketImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcServerImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueImpl.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/LinxQueueFdImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcEventFdImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxIpcClientImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/LinxTime.cpp
 )

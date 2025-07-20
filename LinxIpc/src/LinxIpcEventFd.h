@@ -1,8 +1,8 @@
 #pragma once
 
-class LinxQueueFd {
+class LinxIpcEventFd {
   public:
-    virtual ~LinxQueueFd() {};
+    virtual ~LinxIpcEventFd() {};
 
     virtual int getFd() const = 0;
     virtual int writeEvent() = 0;

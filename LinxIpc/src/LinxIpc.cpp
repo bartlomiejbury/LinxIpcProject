@@ -1,6 +1,6 @@
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
-#include "LinxQueueFdImpl.h"
+#include "LinxIpcEventFdImpl.h"
 #include "LinxIpcSocketImpl.h"
 #include "LinxIpcServerImpl.h"
 
@@ -11,7 +11,7 @@ LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName) {
 }
 
 LinxIpcExtendedServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize) {
-    LinxQueueFdImpl *efd = new LinxQueueFdImpl();
+    LinxIpcEventFdImpl *efd = new LinxIpcEventFdImpl();
     LinxQueue *queue = new LinxQueueImpl(efd, maxSize);
     LinxIpcSocket *socket = new LinxIpcSocketImpl(endpointName);
     return std::make_shared<LinxIpcExtendedServerImpl>(socket, queue);

@@ -3,7 +3,7 @@
 #include "LinxQueueImpl.h"
 #include "trace.h"
 
-LinxQueueImpl::LinxQueueImpl(LinxQueueFd *efd, int size): efd{efd}, max_size{size} {
+LinxQueueImpl::LinxQueueImpl(LinxIpcEventFd *efd, int size): efd{efd}, max_size{size} {
     assert(efd);
     pthread_mutex_init(&m_mutex, NULL);
 

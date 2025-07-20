@@ -1,11 +1,11 @@
 #pragma once
 
-#include "LinxQueueFd.h"
+#include "LinxIpcEventFd.h"
 
-class LinxQueueFdImpl : public LinxQueueFd {
+class LinxIpcEventFdImpl : public LinxIpcEventFd {
   public:
-    LinxQueueFdImpl();
-    ~LinxQueueFdImpl();
+    LinxIpcEventFdImpl();
+    ~LinxIpcEventFdImpl();
 
     int getFd() const override;
     int writeEvent() override;

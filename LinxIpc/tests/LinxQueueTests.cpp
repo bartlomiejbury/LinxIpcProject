@@ -3,7 +3,7 @@
 #include "gtest/gtest.h"
 #include "SystemMock.h"
 #include "PthreadMock.h"
-#include "LinxIpcQueueFdMock.h"
+#include "LinxIpcEventFdMock.h"
 #include "LinxIpc.h"
 #include "LinxQueueImpl.h"
 
@@ -13,12 +13,12 @@ class LinxQueueTests : public testing::Test {
    public:
     NiceMock<SystemMock> systemMock;
     NiceMock<PthreadMock> pthreadMock;
-    NiceMock<LinxIpcQueueFdMock> *efdMock;
+    NiceMock<LinxIpcEventFdMock> *efdMock;
     struct timespec currentTime = {};
 
     void SetUp() {
 
-        efdMock = new NiceMock<LinxIpcQueueFdMock>();
+        efdMock = new NiceMock<LinxIpcEventFdMock>();
 
         ON_CALL(systemMock, clock_gettime(_, _))
             .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));

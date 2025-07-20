@@ -1,8 +1,8 @@
 #include <gmock/gmock.h>
 #include "LinxIpc.h"
-#include "LinxQueueFd.h"
+#include "LinxIpcEventFd.h"
 
-class LinxIpcQueueFdMock : public LinxQueueFd {
+class LinxIpcEventFdMock : public LinxIpcEventFd {
   public:
     MOCK_METHOD(int, getFd, (), (const));
     MOCK_METHOD(int, writeEvent, ());
