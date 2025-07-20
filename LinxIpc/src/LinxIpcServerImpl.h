@@ -44,7 +44,8 @@ class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl, virtua
     void start() override;
     void stop() override;
 
-    LinxMessageIpcPtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel,
+    LinxMessageIpcPtr receive(int timeoutMs = INFINITE_TIMEOUT, 
+                              const std::vector<uint32_t> &sigsel = LINX_ANY_SIG,
                               const LinxIpcClientPtr &from = LINX_ANY_FROM) override;
     int getPollFd() const override;
 
