@@ -348,7 +348,12 @@ TEST_F(LinxIpcExtendedServerTests, receive_ReturnNullWhenQueueReturnNull) {
 TEST_F(LinxIpcExtendedServerTests, endpoint_receiveMsg) {
     auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
     auto sigsel = std::initializer_list<uint32_t>{4};
+
+    auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*client, getName()).WillByDefault(Return("TEST"));
+
     auto msg = std::make_shared<LinxMessageIpc>(10);
+    msg->setClient(client);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
         return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
@@ -445,8 +450,10 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueue) {
             return 0;
         }));
 
-    EXPECT_CALL(*queueMock, add(msg, "TEST"));
+    EXPECT_CALL(*queueMock, add(std::move(msg), "TEST"));
+    
     callback(data);
+    testing::Mock::VerifyAndClearExpectations(queueMock);
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueueError) {
@@ -479,7 +486,12 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnZeroWhenReceiveNotRegiste
     auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
     server->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
 
+    auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*client, getName()).WillByDefault(Return("TEST"));
+
     auto msg = std::make_shared<LinxMessageIpc>(10);
+    msg->setClient(client);
+
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
         return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
     }));
@@ -504,7 +516,12 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnCallbackResult) {
     MockFunction<LinxIpcCallback> mockCallback;
     server->registerCallback(10, mockCallback.AsStdFunction(), nullptr);
 
+    auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*client, getName()).WillByDefault(Return("TEST"));
+
     auto msg = std::make_shared<LinxMessageIpc>(10);
+    msg->setClient(client);
+
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
         return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
     }));

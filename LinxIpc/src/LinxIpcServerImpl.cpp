@@ -67,14 +67,14 @@ LinxMessageIpcPtr LinxIpcSimpleServerImpl::receive(int timeoutMs, const std::vec
 
         msg->setClient(createClient(from));
         auto predicate = [&sigsel, &client](LinxMessageIpcPtr &msg) {
-        if (!client || msg->getClient()->getName() == client->getName()) {
-            uint32_t reqId = msg->getReqId();
-            return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
-                                                      [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
-        }
+            if (!client || msg->getClient()->getName() == client->getName()) {
+                uint32_t reqId = msg->getReqId();
+                return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
+                                                        [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
+            }
 
-        return false;
-    };
+            return false;
+        };
 
         return predicate(msg) ? msg : nullptr;
     }
@@ -101,6 +101,7 @@ void LinxIpcExtendedServerImpl::task() {
                 continue;
             }
 
+            msg->setClient(createClient(from));
             if (queue->add(msg, from) != 0) {
                 LINX_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
                           msg->getReqId(), from.c_str());
@@ -163,7 +164,6 @@ LinxMessageIpcPtr LinxIpcExtendedServerImpl::receive(int timeoutMs, const std::v
         auto msg = std::get<LinxMessageIpcPtr>(*container);
         auto client = std::get<std::string>(*container);
 
-        msg->setClient(createClient(client));
         LINX_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
                 msg->getClient()->getName().c_str());
         return msg;
