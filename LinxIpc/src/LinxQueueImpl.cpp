@@ -19,14 +19,14 @@ LinxQueueImpl::~LinxQueueImpl() {
     delete efd;
 }
 
-int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &clientName) {
+int LinxQueueImpl::add(const LinxMessageIpcPtr &msg) {
     assert(msg);
 
     pthread_mutex_lock(&m_mutex);
 
     int result = -1;
     if (queue.size() < (std::size_t)max_size) {
-        queue.push_back(LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, clientName)));
+        queue.push_back(msg);
         efd->writeEvent();
         result = 0;
     }
@@ -45,7 +45,7 @@ void LinxQueueImpl::clear() {
     pthread_mutex_unlock(&m_mutex);
 }
 
-LinxQueueElement LinxQueueImpl::get(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
+LinxMessageIpcPtr LinxQueueImpl::get(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from) {
     if (timeoutMs == IMMEDIATE_TIMEOUT) {
         return getMessage(sigsel, from);
     } else if (timeoutMs == INFINITE_TIMEOUT) {
@@ -55,17 +55,17 @@ LinxQueueElement LinxQueueImpl::get(int timeoutMs, const std::vector<uint32_t> &
     }
 }
 
-LinxQueueElement LinxQueueImpl::getMessage(const std::vector<uint32_t> &sigsel,
-                                           const std::optional<std::string> &from) {
+LinxMessageIpcPtr LinxQueueImpl::getMessage(const std::vector<uint32_t> &sigsel,
+                                           const std::optional<LinxIpcClientPtr> &from) {
     pthread_mutex_lock(&m_mutex);
-    LinxQueueElement msg = findMessage(sigsel, from);
+    LinxMessageIpcPtr msg = findMessage(sigsel, from);
     pthread_mutex_unlock(&m_mutex);
     return msg;
 }
 
-LinxQueueElement LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
+LinxMessageIpcPtr LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from) {
 
-    LinxQueueElement msg = nullptr;
+    LinxMessageIpcPtr msg = nullptr;
     pthread_mutex_lock(&m_mutex);
 
     while ((msg = findMessage(sigsel, from)) == nullptr) {
@@ -76,10 +76,10 @@ LinxQueueElement LinxQueueImpl::waitForMessage(const std::vector<uint32_t> &sigs
     return msg;
 };
 
-LinxQueueElement LinxQueueImpl::waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel,
-                                                              const std::optional<std::string> &from) {
+LinxMessageIpcPtr LinxQueueImpl::waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel,
+                                                              const std::optional<LinxIpcClientPtr> &from) {
     
-    LinxQueueElement msg = nullptr;
+    LinxMessageIpcPtr msg = nullptr;
     uint64_t currentTime = getTimeMs();
     timespec ts = timeMsToTimespec(currentTime + timeoutMs);
 
@@ -96,20 +96,22 @@ LinxQueueElement LinxQueueImpl::waitForMessage(int timeoutMs, const std::vector<
     return msg;
 };
 
-LinxQueueElement LinxQueueImpl::findMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from) {
+LinxMessageIpcPtr LinxQueueImpl::findMessage(const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from) {
 
-    auto predicate = [&sigsel, &from](LinxQueueElement &msg) {
-        if (!from.has_value() || std::get<std::string>(*msg) == from.value()) {
-            uint32_t reqId = std::get<LinxMessageIpcPtr>(*msg)->getReqId();
-            return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
-                                                      [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
+    auto predicate = [&sigsel, &from](LinxMessageIpcPtr &msg) {
+        if (from.has_value()) {
+            if (*msg->getClient() != *from.value()) {
+                return false;
+            }
         }
-
-        return false;
+        
+        uint32_t reqId = msg->getReqId();
+        return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
+                                                      [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
     };
 
     if (auto it = std::find_if(queue.begin(), queue.end(), predicate); it != queue.end()) {
-        LinxQueueElement container = *it;
+        LinxMessageIpcPtr container = *it;
         queue.erase(it);
         efd->readEvent();
         return container;

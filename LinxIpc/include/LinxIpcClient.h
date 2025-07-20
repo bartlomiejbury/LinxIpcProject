@@ -9,4 +9,7 @@ class LinxIpcClient {
     virtual std::string getName() const = 0;
 
     virtual bool connect(int timeout) = 0;
+
+    virtual bool operator==(const LinxIpcClient &to) const = 0;
+    virtual bool operator!=(const LinxIpcClient &to) const = 0;
 };

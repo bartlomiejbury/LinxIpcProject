@@ -13,6 +13,8 @@ class LinxIpcClientImpl : public std::enable_shared_from_this<LinxIpcClient>, pu
     LinxMessageIpcPtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel) override;
     std::string getName() const override;
     bool connect(int timeout) override;
+    bool operator==(const LinxIpcClient &to) const override;
+    bool operator!=(const LinxIpcClient &to) const override;
 
   protected:
     LinxIpcServerPtr server;

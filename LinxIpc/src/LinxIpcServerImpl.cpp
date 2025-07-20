@@ -102,7 +102,7 @@ void LinxIpcExtendedServerImpl::task() {
             }
 
             msg->setClient(createClient(from));
-            if (queue->add(msg, from) != 0) {
+            if (queue->add(msg) != 0) {
                 LINX_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", socket->getName().c_str(),
                           msg->getReqId(), from.c_str());
             }
@@ -158,12 +158,9 @@ void LinxIpcExtendedServerImpl::stop() {
 LinxMessageIpcPtr LinxIpcExtendedServerImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel,
                                                const LinxIpcClientPtr &from) {
 
-    std::optional<std::string> fromOpt = from != nullptr ? std::make_optional(from->getName()) : std::nullopt;
-    LinxQueueElement container = queue->get(timeoutMs, sigsel, fromOpt);
-    if (container != nullptr) {
-        auto msg = std::get<LinxMessageIpcPtr>(*container);
-        auto client = std::get<std::string>(*container);
-
+    std::optional<LinxIpcClientPtr> fromOpt = from != nullptr ? std::make_optional(from) : std::nullopt;
+    auto msg = queue->get(timeoutMs, sigsel, fromOpt);
+    if (msg != nullptr) {
         LINX_DEBUG("Received request on IPC: %s: %d from: %s", socket->getName().c_str(), msg->getReqId(),
                 msg->getClient()->getName().c_str());
         return msg;

@@ -52,3 +52,12 @@ bool LinxIpcClientImpl::connect(int timeoutMs) {
     LINX_ERROR("IPC Client: %s connection timed out", serviceName.c_str());
     return false;
 }
+
+bool LinxIpcClientImpl::operator==(const LinxIpcClient &to) const {
+    printf("opmpare: %s, %s\n", this->getName().c_str(), to.getName().c_str());
+    return this->getName() == to.getName();
+}
+
+bool LinxIpcClientImpl::operator!=(const LinxIpcClient &to) const {
+    return ! (*this == to);
+}

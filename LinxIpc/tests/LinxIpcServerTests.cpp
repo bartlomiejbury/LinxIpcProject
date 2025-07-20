@@ -320,10 +320,11 @@ MATCHER_P(SigselMatcher, signals, "") {
 TEST_F(LinxIpcExtendedServerTests, receive_callQueueWithClient) {
     auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
     auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
-    auto sigsel = std::initializer_list<uint32_t>{4};
-    std::optional<std::string> fromOpt = std::make_optional("TEST");
+    ON_CALL(*(client.get()), getName()).WillByDefault(Return("TEST"));
 
-    EXPECT_CALL(*(client.get()), getName()).WillOnce(Return("TEST"));
+    auto sigsel = std::initializer_list<uint32_t>{4};
+    std::optional<LinxIpcClientPtr> fromOpt = std::make_optional(client);
+
     EXPECT_CALL(*queueMock, get(10000, SigselMatcher(sigsel), fromOpt));
     endpoint->receive(10000, sigsel, client);
 }
@@ -331,7 +332,7 @@ TEST_F(LinxIpcExtendedServerTests, receive_callQueueWithClient) {
 TEST_F(LinxIpcExtendedServerTests, receive_callQueueWithNullOpt) {
     auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
     auto sigsel = std::initializer_list<uint32_t>{4};
-    std::optional<std::string> fromOpt = std::nullopt;
+    std::optional<LinxIpcClientPtr> fromOpt = std::nullopt;
 
     EXPECT_CALL(*queueMock, get(10000, SigselMatcher(sigsel), fromOpt));
     endpoint->receive(10000, sigsel);
@@ -356,7 +357,7 @@ TEST_F(LinxIpcExtendedServerTests, endpoint_receiveMsg) {
     msg->setClient(client);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
+        return msg;
     }));
 
     ASSERT_EQ(endpoint->receive(10000, sigsel), msg);
@@ -399,7 +400,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_DoNothingWhenStopped) {
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).Times(0);
-    EXPECT_CALL(*queueMock, add(_, _)).Times(0);
+    EXPECT_CALL(*queueMock, add(_)).Times(0);
 
     endpoint->stop();
     callback(data);
@@ -413,7 +414,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_NotAddToQueueWhenReceiveReturnError) {
         Invoke([&endpoint](){endpoint->stop();}),
         Return(-1)));
 
-    EXPECT_CALL(*queueMock, add(_, _)).Times(0);
+    EXPECT_CALL(*queueMock, add(_)).Times(0);
     callback(data);
 }
 
@@ -431,7 +432,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveHuntReqSendResponse) {
         }));
 
     EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_HUNT_RSP), "TEST"));
-    EXPECT_CALL(*queueMock, add(_, _)).Times(0);
+    EXPECT_CALL(*queueMock, add(_)).Times(0);
 
     callback(data);
 }
@@ -450,7 +451,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueue) {
             return 0;
         }));
 
-    EXPECT_CALL(*queueMock, add(std::move(msg), "TEST"));
+    EXPECT_CALL(*queueMock, add(std::move(msg)));
     
     callback(data);
     testing::Mock::VerifyAndClearExpectations(queueMock);
@@ -470,7 +471,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueueError) {
             return 0;
         }));
 
-    EXPECT_CALL(*queueMock, add(_, _)).WillOnce(Return(-1));
+    EXPECT_CALL(*queueMock, add(_)).WillOnce(Return(-1));
     callback(data);
 }
 
@@ -493,7 +494,7 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnZeroWhenReceiveNotRegiste
     msg->setClient(client);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
+        return msg;
     }));
 
     ASSERT_EQ(server->handleMessage(10000), 0);
@@ -523,7 +524,7 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnCallbackResult) {
     msg->setClient(client);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
+        return msg;
     }));
 
     EXPECT_CALL(mockCallback, Call(msg.get(), nullptr)).WillOnce(Return(5));

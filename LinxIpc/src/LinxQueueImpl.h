@@ -10,22 +10,22 @@ class LinxQueueImpl : public LinxQueue {
    public:
     LinxQueueImpl(LinxIpcEventFd *efd, int size);
     ~LinxQueueImpl();
-    int add(const std::shared_ptr<LinxMessageIpc> &msg, const std::string &clientName) override;
+    int add(const std::shared_ptr<LinxMessageIpc> &msg) override;
     int size() const override;
     int getFd() const override;
     void clear() override;
-    LinxQueueElement get(int timeoutMs, const std::vector<uint32_t> &sigsel,
-                                        const std::optional<std::string> &from) override;
+    LinxMessageIpcPtr get(int timeoutMs, const std::vector<uint32_t> &sigsel,
+                                        const std::optional<LinxIpcClientPtr> &from) override;
 
    private:
     LinxIpcEventFd *efd;
     int max_size = 0;
     pthread_mutex_t m_mutex;
     pthread_cond_t m_cv;
-    std::list<LinxQueueElement> queue;
+    std::list<LinxMessageIpcPtr> queue;
 
-    LinxQueueElement findMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
-    LinxQueueElement waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
-    LinxQueueElement waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
-    LinxQueueElement getMessage(const std::vector<uint32_t> &sigsel, const std::optional<std::string> &from);
+    LinxMessageIpcPtr findMessage(const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from);
+    LinxMessageIpcPtr waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from);
+    LinxMessageIpcPtr waitForMessage(const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from);
+    LinxMessageIpcPtr getMessage(const std::vector<uint32_t> &sigsel, const std::optional<LinxIpcClientPtr> &from);
 };
