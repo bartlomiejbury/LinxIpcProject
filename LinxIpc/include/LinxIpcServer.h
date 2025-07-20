@@ -44,24 +44,16 @@ class LinxIpcServer {
      * @return The poll file descriptor.
      */
     virtual int getPollFd() const = 0;
-};
-
-/**
- * @brief Extended interface for a LINX IPC server with start/stop control. Adding thread which receives message and store them in queue.
- * During receive message is searched in queue and removed from queue if found.
- */
-class LinxIpcExtendedServer : public virtual LinxIpcServer {
-
-  public:
-    virtual ~LinxIpcExtendedServer(){};
 
     /**
-     * @brief Starts the IPC internal thread.
+     * @brief Starts the IPC server.
+     * This method should be called to initialize and start the server's operations.
      */
     virtual void start() = 0;
 
     /**
-     * @brief Stops the IPC internal thread.
+     * @brief Stops the IPC server.
+     * This method should be called to gracefully stop the server's operations.
      */
     virtual void stop() = 0;
 };
@@ -82,13 +74,29 @@ class LinxIpcHandler {
      * @return Status code indicating success or failure.
      */
     virtual int handleMessage(int timeoutMs = INFINITE_TIMEOUT) = 0;
+
+    /**
+     * @brief Returns the server associated with this handler.
+     * @return Pointer to the associated IPC server.
+     */
+    virtual LinxIpcServer* getServer() const = 0;
 };
 
 
 using LinxIpcServerPtr = std::shared_ptr<LinxIpcServer>;
-using LinxIpcExtendedServerPtr = std::shared_ptr<LinxIpcExtendedServer>;
 using LinxIpcHandlerPtr = std::shared_ptr<LinxIpcHandler>;
 
 LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName);
-LinxIpcExtendedServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
-LinxIpcHandlerPtr createLinxIpcHandler(const LinxIpcServerPtr &server);
+LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
+
+class LinxIpcHandlerBuilder {
+  public:
+    LinxIpcHandlerBuilder(const std::string &serverName);
+    LinxIpcHandlerBuilder &setSimpleServer();
+    LinxIpcHandlerBuilder &setExtendedServer(int maxSize = 100);
+    LinxIpcHandlerPtr build();
+
+  private:
+    LinxIpcServerPtr server;
+    std::string serverName;
+};

@@ -16,6 +16,9 @@ LinxIpcSimpleServerImpl::~LinxIpcSimpleServerImpl() {
     delete socket;
 }
 
+void LinxIpcSimpleServerImpl::start() {};
+void LinxIpcSimpleServerImpl::stop() {};
+
 int LinxIpcSimpleServerImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
     if (to == nullptr) {
         return -1;
@@ -180,4 +183,8 @@ int LinxIpcHandlerImpl::handleMessage(int timeoutMs) {
 
 void LinxIpcHandlerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
         this->handlers.insert({reqId, {callback, data}});
+}
+
+LinxIpcServer* LinxIpcHandlerImpl::getServer() const {
+    return this->server.get();
 }

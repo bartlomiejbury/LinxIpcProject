@@ -3,10 +3,8 @@
 
 int main() {
 
-    auto endpoint = createLinxIpcServer("TEST1");
-    auto handler = createLinxIpcHandler(endpoint);
-
-    endpoint->start();
+    LinxIpcHandlerBuilder builder("TEST1");
+    auto handler = builder.setExtendedServer(100).build();
 
     handler->registerCallback(20, [](LinxMessageIpc *msg, void *data) {
             printf("Received request: %d from: %s\n", msg->getReqId(), msg->getClient()->getName().c_str());

@@ -12,4 +12,7 @@ class LinxIpcServerMock : public LinxIpcServer {
     MOCK_METHOD(LinxIpcClientPtr, createClient, (const std::string &serviceName));
     MOCK_METHOD(int, handleMessage, (int timeoutMs));
     MOCK_METHOD(void, registerCallback, (uint32_t reqId, LinxIpcCallback callback, void *data));
+
+    MOCK_METHOD(void, start, ());
+    MOCK_METHOD(void, stop, ());
 };

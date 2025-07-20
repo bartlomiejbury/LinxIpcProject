@@ -25,23 +25,26 @@ class LinxIpcSimpleServerImpl : public std::enable_shared_from_this<LinxIpcSimpl
     LinxIpcClientPtr createClient(const std::string &serviceName) override;
     int getPollFd() const override;
 
+    void start() override;
+    void stop() override;
+
   protected:
     LinxIpcSocket *socket;
 };
 
-class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl, public LinxIpcExtendedServer {
+class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl {
 
   public:
     LinxIpcExtendedServerImpl(LinxIpcSocket *socket, LinxQueue *queue);
     ~LinxIpcExtendedServerImpl();
 
-    void start();
-    void stop();
-
     LinxMessageIpcPtr receive(int timeoutMs = INFINITE_TIMEOUT, 
                               const std::vector<uint32_t> &sigsel = LINX_ANY_SIG,
                               const LinxIpcClientPtr &from = LINX_ANY_FROM) override;
     int getPollFd() const override;
+
+    void start() override;
+    void stop() override;
 
   private:
     LinxQueue *queue;
@@ -59,6 +62,8 @@ class LinxIpcHandlerImpl : public LinxIpcHandler {
 
     int handleMessage(int timeoutMs) override;
     void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) override;
+
+    LinxIpcServer* getServer() const override;
 
   private:
     LinxIpcServerPtr server;
