@@ -67,7 +67,7 @@ LinxMessageIpcPtr LinxIpcSimpleServerImpl::receive(int timeoutMs, const std::vec
 
         msg->setClient(createClient(from));
         auto predicate = [&sigsel, &client](LinxMessageIpcPtr &msg) {
-            if (!client || msg->getClient()->getName() == client->getName()) {
+            if (!client || *msg->getClient() == *client) {
                 uint32_t reqId = msg->getReqId();
                 return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
                                                         [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();

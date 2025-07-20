@@ -128,3 +128,15 @@ TEST_F(LinxIpcClientTests, connect_ReturnFalseWhenTimeOutTimeout) {
 
     ASSERT_EQ(client->connect(10000), false);
 }
+
+TEST_F(LinxIpcClientTests, operaorEquality) {
+    auto client1 = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
+    auto client2 = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
+    auto client3 = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST2");
+
+    ASSERT_TRUE(*client1 ==*client2);
+    ASSERT_FALSE(*client1 ==*client3);
+
+    ASSERT_FALSE(*client1 !=*client2);
+    ASSERT_TRUE(*client1 !=*client3);
+}

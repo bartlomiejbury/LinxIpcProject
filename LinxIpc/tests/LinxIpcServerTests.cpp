@@ -132,6 +132,8 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnNullWhenClientNotMatch) {
     auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
 
     auto clientMock = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*(clientMock.get()), getName()).WillByDefault(Return("TEST2"));
+
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
         Invoke([](LinxMessageIpcPtr *msg, std::string *from, int timeout){
             *msg = std::make_shared<LinxMessageIpc>(10);
@@ -139,7 +141,6 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnNullWhenClientNotMatch) {
             return 0;
         }));
 
-    EXPECT_CALL(*(clientMock.get()), getName()).WillOnce(Return("TEST2"));
     ASSERT_EQ(server->receive(10000, LINX_ANY_SIG, clientMock), nullptr);
 }
 
@@ -148,6 +149,8 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnMsgWhenClientMatch) {
     auto message = std::make_shared<LinxMessageIpc>(10);
 
     auto clientMock = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*(clientMock.get()), getName()).WillByDefault(Return("TEST"));
+
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
         Invoke([&message](LinxMessageIpcPtr *msg, std::string *from, int timeout){
             *msg = message;
@@ -155,7 +158,6 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnMsgWhenClientMatch) {
             return 0;
         }));
 
-    EXPECT_CALL(*(clientMock.get()), getName()).WillOnce(Return("TEST"));
     ASSERT_EQ(server->receive(10000, LINX_ANY_SIG, clientMock), message);
 }
 
@@ -164,6 +166,7 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnMsgWhenSignalClientMatch) {
     auto message = std::make_shared<LinxMessageIpc>(10);
     auto sigsel = std::initializer_list<uint32_t>{10};
     auto clientMock = std::make_shared<NiceMock<LinxIpcClientMock>>();
+    ON_CALL(*(clientMock.get()), getName()).WillByDefault(Return("TEST"));
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
         Invoke([&message](LinxMessageIpcPtr *msg, std::string *from, int timeout){
@@ -172,7 +175,6 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnMsgWhenSignalClientMatch) {
             return 0;
         }));
 
-    EXPECT_CALL(*(clientMock.get()), getName()).WillOnce(Return("TEST"));
     ASSERT_EQ(server->receive(10000, sigsel, clientMock), message);
     ASSERT_NE(message->getClient(), nullptr);
     ASSERT_STREQ(message->getClient()->getName().c_str(), "TEST");
