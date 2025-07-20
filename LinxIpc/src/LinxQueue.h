@@ -4,8 +4,7 @@
 #include <optional>
 #include <utility>
 
-using LinxQueuePair = std::pair<LinxMessageIpcPtr, std::string>;
-using LinxQueueElement = std::shared_ptr<LinxQueuePair>;
+using LinxQueueElement = std::shared_ptr<std::pair<LinxMessageIpcPtr, std::string>>;
 
 class LinxQueue {
    public:

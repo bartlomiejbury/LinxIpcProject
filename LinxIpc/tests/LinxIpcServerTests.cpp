@@ -351,7 +351,7 @@ TEST_F(LinxIpcExtendedServerTests, endpoint_receiveMsg) {
     auto msg = std::make_shared<LinxMessageIpc>(10);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new LinxQueuePair(msg, "TEST"));
+        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
     }));
 
     ASSERT_EQ(endpoint->receive(10000, sigsel), msg);
@@ -481,7 +481,7 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnZeroWhenReceiveNotRegiste
 
     auto msg = std::make_shared<LinxMessageIpc>(10);
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new LinxQueuePair(msg, "TEST"));
+        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
     }));
 
     ASSERT_EQ(server->handleMessage(10000), 0);
@@ -506,7 +506,7 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnCallbackResult) {
 
     auto msg = std::make_shared<LinxMessageIpc>(10);
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([&msg]() {
-        return LinxQueueElement(new LinxQueuePair(msg, "TEST"));
+        return LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, "TEST"));
     }));
 
     EXPECT_CALL(mockCallback, Call(msg.get(), nullptr)).WillOnce(Return(5));

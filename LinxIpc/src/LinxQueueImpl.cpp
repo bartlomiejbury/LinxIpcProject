@@ -26,7 +26,7 @@ int LinxQueueImpl::add(const LinxMessageIpcPtr &msg, const std::string &clientNa
 
     int result = -1;
     if (queue.size() < (std::size_t)max_size) {
-        queue.push_back(LinxQueueElement(new LinxQueuePair(msg, clientName)));
+        queue.push_back(LinxQueueElement(new std::pair<LinxMessageIpcPtr, std::string>(msg, clientName)));
         efd->writeEvent();
         result = 0;
     }
