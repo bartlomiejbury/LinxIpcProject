@@ -3,9 +3,9 @@
 
 int main() {
 
-    auto endpoint = createLinxIpcServer("TEST1");
-    endpoint->start();
-    auto client = endpoint->createClient("TEST3");
+    auto handler = LinxIpcHandlerBuilder::Simple("TEST1").build();
+    auto client = handler->createClient("TEST3");
+    auto server = handler->getServer();
 
     auto msg = client->receive(10000, {20});
     if (msg) {
@@ -15,7 +15,7 @@ int main() {
     }
 
     while (1) {
-        auto msg = endpoint->receive(INFINITE_TIMEOUT, {});
+        auto msg = server->receive(INFINITE_TIMEOUT, {});
         if (msg) {
             printf("OK: received msg: %d from %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
         } else {

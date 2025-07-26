@@ -11,10 +11,9 @@ int main(int argc, char *argv[]) {
     std::string serverName = argv[1];
     uint32_t messageValue = std::atoi(argv[2]);
 
-    auto endpoint = createLinxIpcServer("ipcSender");
-    endpoint->start();
+    auto handler = LinxIpcHandlerBuilder::Simple("ipcSender").build();
 
-    auto client = endpoint->createClient(serverName);
+    auto client = handler->createClient(serverName);
     if (!client->connect(5000)) {
         printf("Failed to connect client to server\n");
         return -1;

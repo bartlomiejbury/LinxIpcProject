@@ -60,11 +60,14 @@ class LinxIpcServer {
     virtual void stop() = 0;
 };
 
+typedef std::shared_ptr<LinxIpcServer> LinxIpcServerPtr;
+
 class LinxIpcHandler {
   public:
     virtual ~LinxIpcHandler(){};
     virtual int handleMessage(int timeoutMs = INFINITE_TIMEOUT) = 0;
     virtual LinxIpcClientPtr createClient(const std::string &serviceName) = 0;
+    virtual LinxIpcServerPtr getServer() const = 0;
 };
 
 struct IpcContainer {
@@ -73,7 +76,6 @@ struct IpcContainer {
 };
 
 typedef std::shared_ptr<LinxIpcHandler> LinxIpcHandlerPtr;
-typedef std::shared_ptr<LinxIpcServer> LinxIpcServerPtr;
 
 class LinxIpcHandlerBuilder {
   public:

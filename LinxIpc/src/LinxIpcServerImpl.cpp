@@ -164,3 +164,7 @@ int LinxIpcHandlerImpl::handleMessage(int timeoutMs) {
 LinxIpcClientPtr LinxIpcHandlerImpl::createClient(const std::string &serviceName) {
     return server->createClient(serviceName);
 }
+
+LinxIpcServerPtr LinxIpcHandlerImpl::getServer() const {
+    return server;
+}

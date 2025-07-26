@@ -57,6 +57,7 @@ class LinxIpcHandlerImpl : public LinxIpcHandler {
 
     int handleMessage(int timeoutMs) override;
     LinxIpcClientPtr createClient(const std::string &serviceName) override;
+    LinxIpcServerPtr getServer() const override;
 
   private:
     LinxIpcServerPtr server;
