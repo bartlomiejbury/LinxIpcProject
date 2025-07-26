@@ -5,6 +5,7 @@
 #include "LinxIpcServerMock.h"
 #include "LinxIpc.h"
 #include "LinxIpcClientImpl.h"
+#include "LinxIpcPrivate.h"
 
 using namespace ::testing;
 

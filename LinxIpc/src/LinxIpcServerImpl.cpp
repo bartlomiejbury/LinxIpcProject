@@ -5,6 +5,7 @@
 #include "LinxIpcSocket.h"
 #include "LinxQueue.h"
 #include "LinxTrace.h"
+#include "LinxIpcPrivate.h"
 
 LinxIpcSimpleServerImpl::LinxIpcSimpleServerImpl(LinxIpcSocket *socket) {
     assert(socket);
@@ -135,14 +136,10 @@ int LinxIpcExtendedServerImpl::getPollFd() const {
 /*
 * IPC handler
 */
-LinxIpcHandlerImpl::LinxIpcHandlerImpl(LinxIpcServerPtr server) {
+LinxIpcHandlerImpl::LinxIpcHandlerImpl(LinxIpcServerPtr server, std::map<uint32_t, IpcContainer> &handlers) {
     assert(server);
     this->server = server;
-
-    registerCallback(IPC_PING_REQ, [](LinxMessageIpc *msg, void *data){
-        LinxMessageIpc rsp = LinxMessageIpc(IPC_PING_RSP);
-        return msg->getClient()->send(rsp);
-    }, nullptr);
+    this->handlers = handlers;
 }
 
 int LinxIpcHandlerImpl::handleMessage(int timeoutMs) {
@@ -164,10 +161,6 @@ int LinxIpcHandlerImpl::handleMessage(int timeoutMs) {
     return ret;
 }
 
-void LinxIpcHandlerImpl::registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) {
-        this->handlers.insert({reqId, {callback, data}});
-}
-
-LinxIpcServer* LinxIpcHandlerImpl::getServer() const {
-    return this->server.get();
+LinxIpcClientPtr LinxIpcHandlerImpl::createClient(const std::string &serviceName) {
+    return server->createClient(serviceName);
 }

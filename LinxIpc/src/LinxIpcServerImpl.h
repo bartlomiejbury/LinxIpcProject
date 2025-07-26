@@ -7,11 +7,6 @@
 
 class LinxQueue;
 
-struct IpcContainer {
-    LinxIpcCallback callback;
-    void *data;
-};
-
 class LinxIpcSimpleServerImpl : public std::enable_shared_from_this<LinxIpcSimpleServerImpl>, virtual public LinxIpcServer {
 
   public:
@@ -57,13 +52,11 @@ class LinxIpcExtendedServerImpl : public LinxIpcSimpleServerImpl {
 
 class LinxIpcHandlerImpl : public LinxIpcHandler {
   public:
-    LinxIpcHandlerImpl(LinxIpcServerPtr server);
+    LinxIpcHandlerImpl(LinxIpcServerPtr server, std::map<uint32_t, IpcContainer> &handlers);
     ~LinxIpcHandlerImpl(){};
 
     int handleMessage(int timeoutMs) override;
-    void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) override;
-
-    LinxIpcServer* getServer() const override;
+    LinxIpcClientPtr createClient(const std::string &serviceName) override;
 
   private:
     LinxIpcServerPtr server;

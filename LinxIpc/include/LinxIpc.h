@@ -7,8 +7,7 @@
 #include <vector>
 #include <initializer_list>
 
-#define IPC_PING_REQ 1
-#define IPC_PING_RSP 2
+#define IPC_SIG_BASE 100
 
 class LinxMessageIpc;
 class LinxIpcClient;

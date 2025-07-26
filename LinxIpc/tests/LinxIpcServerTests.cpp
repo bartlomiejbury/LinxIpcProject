@@ -6,6 +6,7 @@
 #include "LinxIpcSocketMock.h"
 #include "LinxIpc.h"
 #include "LinxIpcServerImpl.h"
+#include "LinxIpcPrivate.h"
 
 using namespace ::testing;
 
@@ -198,18 +199,23 @@ TEST_F(LinxIpcSimpleServerTests, receive_ReturnMsgWhenSignalClientMatch) {
 }
 
 TEST_F(LinxIpcSimpleServerTests, handleMessage_CallSocketReceive) {
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
     auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     EXPECT_CALL(*socketMock, receive(_, _, 10000));
     handler->handleMessage(10000);
 }
 
 TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnZeroWhenReceiveNotRegisteredMessage) {
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
+
     auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     auto message = std::make_shared<LinxMessageIpc>(10);
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -223,9 +229,12 @@ TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnZeroWhenReceiveNotRegistere
 }
 
 TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnErrorWhenNotReceiveMessage) {
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
+
     auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
         Invoke([](LinxMessageIpcPtr *msg, std::string *from, int timeout){
@@ -236,11 +245,13 @@ TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnErrorWhenNotReceiveMessage)
 }
 
 TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnCallbackResult) {
-    auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-
     MockFunction<LinxIpcCallback> mockCallback;
-    handler->registerCallback(10, mockCallback.AsStdFunction(), (void*)5);
+    std::map<uint32_t, IpcContainer> handlers {
+        {10, {mockCallback.AsStdFunction(), (void*)5}}
+    };
+
+    auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     auto message = std::make_shared<LinxMessageIpc>(10);
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -257,21 +268,6 @@ TEST_F(LinxIpcSimpleServerTests, handleMessage_ReturnCallbackResult) {
 MATCHER_P(MessageMatcher, reqId, "") {
     const LinxMessageIpc &message = arg;
     return message.getReqId() == reqId;
-}
-
-TEST_F(LinxIpcSimpleServerTests, handleMessage_ReceiveHuntReqSendResponse) {
-    auto server = std::make_shared<LinxIpcSimpleServerImpl>(socketMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-
-    EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
-        Invoke([](LinxMessageIpcPtr *msg, std::string *from, int timeout){
-            *msg = std::make_shared<LinxMessageIpc>(IPC_PING_REQ);
-            *from = "TEST";
-            return 0;
-        }));
-
-    EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_PING_RSP), "TEST"));
-    ASSERT_EQ(handler->handleMessage(10000), 0);
 }
 
 class LinxIpcExtendedServerTests : public testing::Test {
@@ -454,20 +450,24 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueueError) {
 }
 
 TEST_F(LinxIpcExtendedServerTests, handleMessage_CallQueueGet) {
-    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
 
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     EXPECT_CALL(*queueMock, get(10000, _, _));
     handler->handleMessage(10000);
 }
 
 TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnZeroWhenReceiveNotRegisteredMessage) {
-    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
 
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
     ON_CALL(*client, getName()).WillByDefault(Return("TEST"));
@@ -483,10 +483,11 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnZeroWhenReceiveNotRegiste
 }
 
 TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnErrorWhenNotReceiveMessage) {
+    std::map<uint32_t, IpcContainer> handlers {
+        {5, {[](LinxMessageIpc *msg, void *data) { return 0; }, nullptr}}
+    };
     auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-
-    handler->registerCallback(5, [](LinxMessageIpc *msg, void *data) { return 0;}, nullptr);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     EXPECT_CALL(*queueMock, get(_, _, _)).WillOnce(Invoke([]() {
         return nullptr;
@@ -496,11 +497,13 @@ TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnErrorWhenNotReceiveMessag
 }
 
 TEST_F(LinxIpcExtendedServerTests, handleMessage_ReturnCallbackResult) {
-    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-    auto handler = std::make_shared<LinxIpcHandlerImpl>(server);
-
     MockFunction<LinxIpcCallback> mockCallback;
-    handler->registerCallback(10, mockCallback.AsStdFunction(), nullptr);
+    std::map<uint32_t, IpcContainer> handlers {
+        {10, {mockCallback.AsStdFunction(), nullptr}}
+    };
+
+    auto server = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto handler = std::make_shared<LinxIpcHandlerImpl>(server, handlers);
 
     auto client = std::make_shared<NiceMock<LinxIpcClientMock>>();
     ON_CALL(*client, getName()).WillByDefault(Return("TEST"));

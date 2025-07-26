@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 /**
  * @brief Abstract interface for a LINX IPC server.
  *
@@ -61,42 +63,34 @@ class LinxIpcServer {
 class LinxIpcHandler {
   public:
     virtual ~LinxIpcHandler(){};
-    /**
-     * @brief Registers a callback function for a specific request ID.
-     * @param reqId The request ID to associate with the callback.
-     * @param callback The callback function to invoke when a message with reqId is received.
-     * @param data User-defined data to pass to the callback.
-     */
-    virtual void registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data) = 0;
-    /**
-     * @brief Handles incoming messages and dispatches them to registered callbacks.
-     * @param timeoutMs Timeout in milliseconds to wait for a message. Use INFINITE_TIMEOUT for no timeout.
-     * @return Status code indicating success or failure.
-     */
     virtual int handleMessage(int timeoutMs = INFINITE_TIMEOUT) = 0;
-
-    /**
-     * @brief Returns the server associated with this handler.
-     * @return Pointer to the associated IPC server.
-     */
-    virtual LinxIpcServer* getServer() const = 0;
+    virtual LinxIpcClientPtr createClient(const std::string &serviceName) = 0;
 };
 
+struct IpcContainer {
+    LinxIpcCallback callback;
+    void *data;
+};
 
-using LinxIpcServerPtr = std::shared_ptr<LinxIpcServer>;
-using LinxIpcHandlerPtr = std::shared_ptr<LinxIpcHandler>;
-
-LinxIpcServerPtr createLinxIpcSimpleServer(const std::string &endpointName);
-LinxIpcServerPtr createLinxIpcServer(const std::string &endpointName, int maxSize = 100);
+typedef std::shared_ptr<LinxIpcHandler> LinxIpcHandlerPtr;
+typedef std::shared_ptr<LinxIpcServer> LinxIpcServerPtr;
 
 class LinxIpcHandlerBuilder {
   public:
-    LinxIpcHandlerBuilder(const std::string &serverName);
-    LinxIpcHandlerBuilder &setSimpleServer();
-    LinxIpcHandlerBuilder &setExtendedServer(int maxSize = 100);
+    static LinxIpcHandlerBuilder Simple(const std::string &serverName);
+    static LinxIpcHandlerBuilder Extended(const std::string &serverName, int maxSize = 100);
+
+    LinxIpcHandlerBuilder& registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data);
     LinxIpcHandlerPtr build();
 
   private:
-    LinxIpcServerPtr server;
+    enum class HandlerType {
+        Simple,
+        Extended
+    };
+
+    HandlerType type;
     std::string serverName;
+    int maxSize;
+    std::map<uint32_t, IpcContainer> handlers;
 };

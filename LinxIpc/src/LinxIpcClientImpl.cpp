@@ -6,6 +6,7 @@
 #include <poll.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include "LinxIpcPrivate.h"
 
 LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcServerPtr &server, const std::string &serviceName) {
     assert(server);
