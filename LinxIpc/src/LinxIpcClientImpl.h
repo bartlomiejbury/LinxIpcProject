@@ -11,6 +11,8 @@ class LinxIpcClientImpl : public std::enable_shared_from_this<LinxIpcClient>, pu
     ~LinxIpcClientImpl() {}
     int send(const LinxMessageIpc &message) override;
     LinxMessageIpcPtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel) override;
+    LinxMessageIpcPtr sendReceive(const LinxMessageIpc &message, int timeoutMs = INFINITE_TIMEOUT, const std::vector<uint32_t> &sigsel = LINX_ANY_SIG) override;
+
     std::string getName() const override;
     bool connect(int timeout) override;
     bool operator==(const LinxIpcClient &to) const override;

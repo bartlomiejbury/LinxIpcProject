@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include "gtest/gtest.h"
-#include "PthreadMock.h"
 #include "LinxIpcQueueMock.h"
 #include "LinxIpcClientMock.h"
 #include "LinxIpcSocketMock.h"
@@ -9,6 +8,24 @@
 #include "LinxIpcServerImpl.h"
 
 using namespace ::testing;
+
+class LinxIpcExtendedServerImplTask: public LinxIpcExtendedServerImpl {
+    public:
+        LinxIpcExtendedServerImplTask(LinxIpcSocket *socket, LinxQueue *queue)
+            : LinxIpcExtendedServerImpl(socket, queue) {}
+
+        void task() {
+            LinxIpcExtendedServerImpl::task();
+        }
+
+        void start() {
+            running = true;
+        }
+
+        void stop() {
+            running = false;
+        }
+};
 
 class LinxIpcSimpleServerTests : public testing::Test {
   public:
@@ -259,12 +276,8 @@ TEST_F(LinxIpcSimpleServerTests, handleMessage_ReceiveHuntReqSendResponse) {
 
 class LinxIpcExtendedServerTests : public testing::Test {
   public:
-    NiceMock<PthreadMock> pthreadMock;
     NiceMock<LinxIpcQueueMock> *queueMock;
     NiceMock<LinxIpcSocketMock> *socketMock;
-
-    void* (*callback)(void *arg){};
-    void *data{};
 
     void SetUp() {
         socketMock = new NiceMock<LinxIpcSocketMock>();
@@ -277,25 +290,8 @@ class LinxIpcExtendedServerTests : public testing::Test {
             return 0;
         }));
 
-        ON_CALL(pthreadMock, pthread_attr_init(_)).WillByDefault(Return(0));
-        ON_CALL(pthreadMock, pthread_attr_setinheritsched(_, _)).WillByDefault(Return(0));
-        ON_CALL(pthreadMock, pthread_attr_setschedpolicy(_, _)).WillByDefault(Return(0));
-
-        ON_CALL(pthreadMock, pthread_attr_setschedparam(_, _)).WillByDefault(Return(0));
-        ON_CALL(pthreadMock, pthread_attr_setinheritsched(_, _)).WillByDefault(Return(0));
-        ON_CALL(pthreadMock, pthread_attr_destroy(_)).WillByDefault(Return(0));
-
-        ON_CALL(pthreadMock, pthread_cancel(_)).WillByDefault(Return(0));
-        ON_CALL(pthreadMock, pthread_join(_, _)).WillByDefault(Return(0));
-
-        ON_CALL(pthreadMock, pthread_create(_, _, _, _)).WillByDefault(Return(0));
         ON_CALL(*queueMock, get(_, _, _)).WillByDefault(Return(nullptr));
-
-        ON_CALL(pthreadMock, pthread_create(_, _, _, _)).WillByDefault(DoAll(
-            SaveArg<2>(&callback),
-            SaveArg<3>(&data),
-            Return(0)));
-        }
+    }
 };
 
 TEST_F(LinxIpcExtendedServerTests, getPollFdCallQueueGetFd) {
@@ -371,49 +367,25 @@ TEST_F(LinxIpcExtendedServerTests, endpoint_receiveMsg) {
     ASSERT_STREQ(msg->getClient()->getName().c_str(), "TEST");
 }
 
-TEST_F(LinxIpcExtendedServerTests, start_CallStartNewThread) {
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _));
-    endpoint->start();
-}
-
 TEST_F(LinxIpcExtendedServerTests, start_DoNothingWhenAlreadyStarted) {
     auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
     endpoint->start();
-
-    EXPECT_CALL(pthreadMock, pthread_create(_, _, _, _)).Times(0);
     endpoint->start();
-}
-
-TEST_F(LinxIpcExtendedServerTests, stop_DoNothingWhenNotStarted) {
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-
-    EXPECT_CALL(pthreadMock, pthread_cancel(_)).Times(0);
-    endpoint->stop();
-}
-
-TEST_F(LinxIpcExtendedServerTests, stop_CallThreadCancel) {
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
-    endpoint->start();
-
-    EXPECT_CALL(pthreadMock, pthread_cancel(_));
-    endpoint->stop();
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_DoNothingWhenStopped) {
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto endpoint = std::make_shared<LinxIpcExtendedServerImplTask>(socketMock, queueMock);
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).Times(0);
     EXPECT_CALL(*queueMock, add(_)).Times(0);
 
     endpoint->stop();
-    callback(data);
+    endpoint->task();
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_NotAddToQueueWhenReceiveReturnError) {
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto endpoint = std::make_shared<LinxIpcExtendedServerImplTask>(socketMock, queueMock);
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(DoAll(
@@ -421,12 +393,12 @@ TEST_F(LinxIpcExtendedServerTests, thread_NotAddToQueueWhenReceiveReturnError) {
         Return(-1)));
 
     EXPECT_CALL(*queueMock, add(_)).Times(0);
-    callback(data);
+    endpoint->task();
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_ReceiveHuntReqSendResponse) {
 
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto endpoint = std::make_shared<LinxIpcExtendedServerImplTask>(socketMock, queueMock);
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -440,13 +412,13 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveHuntReqSendResponse) {
     EXPECT_CALL(*socketMock, send(MessageMatcher((uint32_t)IPC_PING_RSP), "TEST"));
     EXPECT_CALL(*queueMock, add(_)).Times(0);
 
-    callback(data);
+    endpoint->task();
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueue) {
     auto msg = std::make_shared<LinxMessageIpc>(10);
 
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto endpoint = std::make_shared<LinxIpcExtendedServerImplTask>(socketMock, queueMock);
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -459,14 +431,14 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueue) {
 
     EXPECT_CALL(*queueMock, add(std::move(msg)));
     
-    callback(data);
+    endpoint->task();
     testing::Mock::VerifyAndClearExpectations(queueMock);
 }
 
 TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueueError) {
     auto msg = std::make_shared<LinxMessageIpc>(10);
 
-    auto endpoint = std::make_shared<LinxIpcExtendedServerImpl>(socketMock, queueMock);
+    auto endpoint = std::make_shared<LinxIpcExtendedServerImplTask>(socketMock, queueMock);
     endpoint->start();
 
     EXPECT_CALL(*socketMock, receive(_, _, _)).WillOnce(
@@ -478,7 +450,7 @@ TEST_F(LinxIpcExtendedServerTests, thread_ReceiveMsgAddToQueueError) {
         }));
 
     EXPECT_CALL(*queueMock, add(_)).WillOnce(Return(-1));
-    callback(data);
+    endpoint->task();
 }
 
 TEST_F(LinxIpcExtendedServerTests, handleMessage_CallQueueGet) {

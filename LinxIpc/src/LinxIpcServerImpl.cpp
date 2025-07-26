@@ -86,12 +86,6 @@ void LinxIpcExtendedServerImpl::task() {
     }
 }
 
-void *LinxIpcExtendedServerImpl::threadFunc(void *arg) {
-    LinxIpcExtendedServerImpl *task = (LinxIpcExtendedServerImpl *)arg;
-    task->task();
-    return NULL;
-}
-
 LinxIpcExtendedServerImpl::LinxIpcExtendedServerImpl(LinxIpcSocket *socket, LinxQueue *queue): LinxIpcSimpleServerImpl(socket) {
     assert(queue);
     this->queue = queue;
@@ -105,29 +99,18 @@ LinxIpcExtendedServerImpl::~LinxIpcExtendedServerImpl() {
 
 void LinxIpcExtendedServerImpl::start() {
 
-    if (running) {
+    if (workerThread.joinable()) {
         return;
     }
 
     running = true;
-
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    pthread_attr_setschedpolicy(&attr, SCHED_OTHER);
-
-    struct sched_param param;
-    param.sched_priority = 0;
-    pthread_attr_setschedparam(&attr, &param);
-    pthread_create(&threadId, &attr, LinxIpcExtendedServerImpl::threadFunc, this);
-    pthread_attr_destroy(&attr);
+    workerThread = std::thread([this]() { this->task(); });
 }
 
 void LinxIpcExtendedServerImpl::stop() {
-    if (running) {
+    if (workerThread.joinable()) {
         running = false;
-        pthread_cancel(threadId);
-        pthread_join(threadId, NULL);
+        workerThread.join();
     }
 }
 

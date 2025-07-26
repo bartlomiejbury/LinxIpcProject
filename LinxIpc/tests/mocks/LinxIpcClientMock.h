@@ -11,6 +11,8 @@ class LinxIpcClientMock : public LinxIpcClient {
 
     MOCK_METHOD(int, send, (const LinxMessageIpc &message));
     MOCK_METHOD(LinxMessageIpcPtr, receive, (int timeoutMs, const std::vector<uint32_t> &sigsel));
+    MOCK_METHOD(LinxMessageIpcPtr, sendReceive, (const LinxMessageIpc &message, int timeoutMs, const std::vector<uint32_t> &sigsel));
+
     MOCK_METHOD(std::string, getName, (), (const));
     MOCK_METHOD(bool, connect, (int timeout));
 

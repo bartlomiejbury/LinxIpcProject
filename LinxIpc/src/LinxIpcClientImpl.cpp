@@ -24,6 +24,15 @@ LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::vector<ui
     return server->receive(timeoutMs, sigsel, shared_from_this());
 }
 
+LinxMessageIpcPtr LinxIpcClientImpl::sendReceive(const LinxMessageIpc &message, int timeoutMs, const std::vector<uint32_t> &sigsel) {
+    if (send(message) < 0) {
+        LINX_ERROR("IPC Client: %s send failed: %s", serviceName.c_str(), strerror(errno));
+        return nullptr;
+    }
+
+    return receive(timeoutMs, sigsel);
+}
+
 std::string LinxIpcClientImpl::getName() const {
     return this->serviceName;
 }

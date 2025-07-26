@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include <pthread.h>
+#include <thread>
 #include "LinxIpc.h"
 #include "LinxIpcSocket.h"
 
@@ -32,7 +32,7 @@ class LinxIpcSimpleServerImpl : public std::enable_shared_from_this<LinxIpcSimpl
     LinxIpcSocket *socket;
 };
 
-class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl {
+class LinxIpcExtendedServerImpl : public LinxIpcSimpleServerImpl {
 
   public:
     LinxIpcExtendedServerImpl(LinxIpcSocket *socket, LinxQueue *queue);
@@ -48,11 +48,11 @@ class LinxIpcExtendedServerImpl : virtual public LinxIpcSimpleServerImpl {
 
   private:
     LinxQueue *queue;
-    pthread_t threadId;
-    bool running = false;
+    std::thread workerThread;
 
+  protected:
+    bool running = false;
     void task();
-    static void *threadFunc(void *arg);
 };
 
 class LinxIpcHandlerImpl : public LinxIpcHandler {

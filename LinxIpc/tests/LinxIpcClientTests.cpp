@@ -20,7 +20,7 @@ class LinxIpcClientTests : public testing::Test {
             .WillByDefault(DoAll(SetArrayArgument<1>(&currentTime, &currentTime + 1), Return(0)));
 
         auto msg = std::make_shared<LinxMessageIpc>(10);
-        ON_CALL(*serverMock.get(), receive(100, _, _)).WillByDefault(Return(msg));
+        ON_CALL(*serverMock.get(), receive(_, _, _)).WillByDefault(Return(msg));
         ON_CALL(*serverMock.get(), send(_, _)).WillByDefault(Return(0));
     }
 };
@@ -66,6 +66,25 @@ TEST_F(LinxIpcClientTests, receive_ReturnEndpointReceivedMsg) {
 
     EXPECT_CALL(*serverMock.get(), receive(_, _, _)).WillOnce(Return(msg));
     ASSERT_EQ(client->receive(1000, {2, 3}), msg);
+}
+
+TEST_F(LinxIpcClientTests, sendReceive_ReturnReturnNullPtr) {
+    auto client = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
+    auto msg = LinxMessageIpc(10);
+
+    EXPECT_CALL(*serverMock.get(), send(_, _)).WillOnce(Return(-1));
+    ASSERT_EQ(client->sendReceive(msg), nullptr);
+}
+
+TEST_F(LinxIpcClientTests, sendReceive_ReturnCallserverSendAndReceive) {
+    auto client = std::make_shared<LinxIpcClientImpl>(serverMock, "TEST");
+    auto msg = LinxMessageIpc(10);
+    auto rsp = std::make_shared<LinxMessageIpc>(12);
+
+    EXPECT_CALL(*serverMock.get(), send(Ref(msg), _)).WillOnce(Return(0));
+    EXPECT_CALL(*serverMock.get(), receive(INFINITE_TIMEOUT, SigselMatcher(LINX_ANY_SIG), _)).WillOnce(Return(rsp));
+
+    ASSERT_EQ(client->sendReceive(msg), rsp);
 }
 
 MATCHER_P(signalMatcher, reqid, "") {
