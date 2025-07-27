@@ -19,11 +19,6 @@ message(STATUS "fetched cmock into ${cmock_SOURCE_DIR}")
 
 include(${cmock_SOURCE_DIR}/mock.cmake)
 
-if(COVERITY)
-    add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -O0)
-    add_link_options(--coverage)
-endif()
-
 #############################
 #     get unittest targets
 #############################
@@ -108,21 +103,11 @@ add_custom_target(run_${PROJECT_NAME}-ut ALL
 #     Coverity
 #############################
 if(COVERITY)
-    add_custom_target(lcov_${PROJECT_NAME}-ut
-        DEPENDS run_${PROJECT_NAME}-ut
-        COMMAND lcov --capture --directory . --output-file coverage.info --gcov-tool=gcov-11 --rc lcov_branch_coverage=1
-        COMMAND lcov -e coverage.info \"${PROJECT_SOURCE_DIR}/LinxIpc/src*\" -o coverage.info.filtered --rc lcov_branch_coverage=1
-        #COMMAND lcov -r coverage.info.filtered \"${PROJECT_SOURCE_DIR}/LinxIpc/src/trace.cpp*\" -o coverage.info.filtered
-        COMMAND genhtml coverage.info.filtered --branch-coverage --no-function-coverage --highlight --legend --output-directory coverity_report
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
-        COMMENT "Running coverity"
-    )
-
-    add_custom_target(gcovr_${PROJECT_NAME}-ut
+    add_custom_target(gcov_${PROJECT_NAME}-ut
         DEPENDS run_${PROJECT_NAME}-ut
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/coverity_report
         COMMAND gcovr -s -b --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-details ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/index.html"
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html"
         COMMENT "Running coverity"
     )
 endif()

@@ -81,6 +81,11 @@ add_link_options(
     -Wl,-Map=output.map
     -Wl,--gc-sections)
 
+if(COVERITY)  
+    add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -g -O0)
+    add_link_options(--coverage)
+endif()
+
 message(STATUS "#################################")
 message(STATUS "     BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 if(DEFINED USE_LOGGING)
