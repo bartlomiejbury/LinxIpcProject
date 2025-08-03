@@ -3,9 +3,8 @@
 
 int main() {
 
-    auto handler = LinxIpcHandlerBuilder::Simple("TEST1").build();
-    auto client = handler->createClient("TEST3");
-    auto server = handler->getServer();
+    auto server = LinxIpcHandlerBuilder("TEST1").build();
+    auto client = server->createClient("TEST3");
 
     auto msg = client->receive(10000, {20});
     if (msg) {

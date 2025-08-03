@@ -3,7 +3,7 @@
 
 int main() {
 
-    auto handler = LinxIpcHandlerBuilder::Extended("TEST1")
+    auto handler = LinxIpcHandlerBuilder("TEST1")
         .registerCallback(20, [](LinxMessageIpc *msg, void *data) {
             printf("Received request: %d from: %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
             return 0;

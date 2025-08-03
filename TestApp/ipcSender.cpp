@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     std::string serverName = argv[1];
     uint32_t messageValue = std::atoi(argv[2]);
 
-    auto handler = LinxIpcHandlerBuilder::Simple("ipcSender").build();
+    auto handler = LinxIpcHandlerBuilder("ipcSender").build();
 
     auto client = handler->createClient(serverName);
     if (!client->connect(5000)) {

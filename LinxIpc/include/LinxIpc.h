@@ -3,6 +3,7 @@
 #include <memory>
 #include <functional>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 #include <initializer_list>
@@ -23,5 +24,20 @@ const LinxIpcClientPtr LINX_ANY_FROM = nullptr;
 
 #include "LinxIpcMessage.h"
 #include "LinxIpcClient.h"
+#include "LinxIpcEndpoint.h"
 #include "LinxIpcServer.h"
+#include "LinxIpcHandler.h"
 
+class LinxIpcHandlerBuilder {
+  public:
+    LinxIpcHandlerBuilder(const std::string &serverName) : serverName(serverName) {}
+    LinxIpcHandlerBuilder& registerCallback(uint32_t reqId, LinxIpcCallback callback, void *data);
+    LinxIpcHandlerPtr build();
+  
+  protected:
+    std::string serverName;
+    std::map<uint32_t, IpcContainer> handlers;
+};
+
+LinxIpcServerPtr createIpcServer(const std::string &serviceName, int maxSize = 100);
+LinxIpcClientPtr createIpcClient(const std::string &serviceName);

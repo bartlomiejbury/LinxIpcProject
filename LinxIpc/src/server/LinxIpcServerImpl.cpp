@@ -1,0 +1,103 @@
+#include <cassert>
+#include "LinxIpc.h"
+#include "LinxIpcServerImpl.h"
+#include "LinxIpcClientImpl.h"
+#include "LinxIpcEndpointImpl.h"
+#include "LinxIpcSocket.h"
+#include "LinxQueueImpl.h"
+#include "LinxTrace.h"
+#include "LinxIpcPrivate.h"
+
+/*
+* Extended server
+*/
+void LinxIpcServerImpl::task() {
+
+    while (running) {
+        LinxMessageIpcPtr ret = endpoint->receive(100, LINX_ANY_SIG, std::nullopt);
+        if (ret != nullptr) {
+            std::string from = ret->getClient()->getName();
+            if (ret->getReqId() == IPC_PING_REQ) {
+                LinxMessageIpc rsp = LinxMessageIpc(IPC_PING_RSP);
+                endpoint->send(rsp, from);
+                continue;
+            }
+
+            if (queue->add(ret) != 0) {
+                LINX_ERROR("Received request on IPC: %s: %d from: %s discarded - queue full", this->serviceName.c_str(),
+                          ret->getReqId(), from.c_str());
+            }
+        }
+    }
+}
+
+LinxIpcServerImpl::LinxIpcServerImpl(const LinxIpcEndpointPtr &endpoint, LinxQueue *queue) {
+    assert(queue);
+    assert(endpoint);
+    this->serviceName = endpoint->getName();
+    this->endpoint = endpoint;
+    this->queue = queue;
+}
+
+LinxIpcServerImpl::~LinxIpcServerImpl() {
+    stop();
+    queue->clear();
+    delete queue;
+}
+
+void LinxIpcServerImpl::start() {
+    
+    if (workerThread.joinable()) {
+        return;
+    }
+
+    running = true;
+    workerThread = std::thread([this]() { this->task(); });
+}
+
+void LinxIpcServerImpl::stop() {
+    if (workerThread.joinable()) {
+        running = false;
+        workerThread.join();
+    }
+}
+
+int LinxIpcServerImpl::send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) {
+    if (!to) {
+        LINX_ERROR("Cannot send message to null client");
+        return -1;
+    }
+    return endpoint->send(message, to->getName());
+}
+
+LinxIpcClientPtr LinxIpcServerImpl::createClient(const std::string &serviceName) {
+      return std::make_shared<LinxIpcClientImpl>(endpoint, serviceName);
+}
+
+LinxMessageIpcPtr LinxIpcServerImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel,
+                                               const LinxIpcClientPtr &from) {
+
+    std::optional<LinxIpcClientPtr> fromOpt = from != nullptr ? std::make_optional(from) : std::nullopt;
+    auto msg = queue->get(timeoutMs, sigsel, fromOpt);
+    if (msg != nullptr) {
+        LINX_DEBUG("Received request on IPC: %s: %d from: %s", serviceName.c_str(), msg->getReqId(),
+                msg->getClient()->getName().c_str());
+        return msg;
+    }
+
+    return nullptr;
+}
+
+int LinxIpcServerImpl::getPollFd() const {
+    return queue->getFd();
+}
+
+LinxIpcServerPtr createIpcServer(const std::string &serviceName, int maxSize) {
+    LinxIpcEndpointPtr endpoint = createLinxEndpoint(serviceName);
+    if (!endpoint) {
+        return nullptr;
+    }
+
+    LinxQueue *queue = createIpcQueue(maxSize);
+    return std::make_shared<LinxIpcServerImpl>(endpoint, queue);
+}
