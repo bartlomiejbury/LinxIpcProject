@@ -168,3 +168,12 @@ std::string LinxIpcSocketImpl::getName() const {
 int LinxIpcSocketImpl::getFd() const {
     return fd;
 }
+
+LinxIpcSocket* createLinxSocket(const std::string &serviceName) {
+    auto socket = new LinxIpcSocketImpl(serviceName);
+    if (socket->getFd() < 0) {
+        delete socket;
+        return nullptr;
+    }
+    return socket;
+}

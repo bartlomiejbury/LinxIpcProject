@@ -10,10 +10,10 @@
 
 class LinxQueue;
 
-class LinxIpcServerImpl : public LinxIpcServer {
+class LinxIpcServerImpl : public std::enable_shared_from_this<LinxIpcServerImpl>, public LinxIpcServer {
 
   public:
-    LinxIpcServerImpl(const LinxIpcEndpointPtr &endpoint, LinxQueue *queue);
+    LinxIpcServerImpl(LinxIpcSocket *socket, LinxQueue *queue);
     ~LinxIpcServerImpl();
 
     int send(const LinxMessageIpc &message, const LinxIpcClientPtr &to) override;
@@ -29,7 +29,7 @@ class LinxIpcServerImpl : public LinxIpcServer {
 
   private:
     std::string serviceName;
-    LinxIpcEndpointPtr endpoint;
+    LinxIpcSocket *socket;
     LinxQueue *queue;
     std::thread workerThread;
 

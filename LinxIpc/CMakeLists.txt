@@ -6,8 +6,8 @@ add_library(LinxIpc STATIC
     ${CMAKE_CURRENT_LIST_DIR}/src/queue/LinxQueueImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/queue/LinxIpcEventFdImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/server/LinxIpcServerImpl.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/endpoint/LinxIpcSocketImpl.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/endpoint/LinxIpcEndpointImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/socket/LinxIpcSocketImpl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/client/LinxIpcEndpointImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/client/LinxIpcClientImpl.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/utils/LinxIpcMessage.cpp
 )
@@ -20,7 +20,7 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/src
     ${CMAKE_CURRENT_LIST_DIR}/src/utils
     ${CMAKE_CURRENT_LIST_DIR}/src/client
-    ${CMAKE_CURRENT_LIST_DIR}/src/endpoint
+    ${CMAKE_CURRENT_LIST_DIR}/src/socket
     ${CMAKE_CURRENT_LIST_DIR}/src/server
     ${CMAKE_CURRENT_LIST_DIR}/src/handler
     ${CMAKE_CURRENT_LIST_DIR}/src/queue

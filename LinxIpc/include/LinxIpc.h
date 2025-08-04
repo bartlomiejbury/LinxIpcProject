@@ -24,7 +24,6 @@ const LinxIpcClientPtr LINX_ANY_FROM = nullptr;
 
 #include "LinxIpcMessage.h"
 #include "LinxIpcClient.h"
-#include "LinxIpcEndpoint.h"
 #include "LinxIpcServer.h"
 #include "LinxIpcHandler.h"
 

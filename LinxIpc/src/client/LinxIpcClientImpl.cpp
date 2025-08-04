@@ -8,24 +8,25 @@
 #include <unistd.h>
 #include "LinxTrace.h"
 #include "LinxIpcClientImpl.h"
+#include "LinxIpcSocketImpl.h"
 #include "LinxIpcEndpointImpl.h"
 #include "LinxIpcPrivate.h"
 
-LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcEndpointPtr &endpoint, const std::string &serviceName) {
-    assert(endpoint);
+LinxIpcClientImpl::LinxIpcClientImpl(const LinxIpcServerPtr &server, const std::string &serviceName) {
+    assert(server);
 
-    this->endpoint = endpoint;
+    this->server = server;
     this->serviceName = serviceName;
 
     LINX_INFO("Setup IPC Client: %s", serviceName.c_str());
 }
 
 int LinxIpcClientImpl::send(const LinxMessageIpc &message) {
-    return endpoint->send(message, getName());
+    return server->send(message, shared_from_this());
 }
 
 LinxMessageIpcPtr LinxIpcClientImpl::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
-    return endpoint->receive(timeoutMs, sigsel, std::optional<std::string>(getName()));
+    return server->receive(timeoutMs, sigsel, shared_from_this());
 }
 
 LinxMessageIpcPtr LinxIpcClientImpl::sendReceive(const LinxMessageIpc &message, int timeoutMs, const std::vector<uint32_t> &sigsel) {
@@ -79,10 +80,11 @@ LinxIpcClientPtr createIpcClient(const std::string &serviceName) {
     oss << serviceName << "_client_" << std::this_thread::get_id();
     auto socketName = oss.str();
 
-    LinxIpcEndpointPtr endpoint = createLinxEndpoint(socketName);
-    if (!endpoint) {
+    LinxIpcSocket *socket = createLinxSocket(socketName);
+    if (!socket) {
         return nullptr;
     }
 
+    LinxIpcEndpointPtr endpoint = std::make_shared<LinxIpcEndpointImpl>(socket);
     return std::make_shared<LinxIpcClientImpl>(endpoint, serviceName);
 }

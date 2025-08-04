@@ -25,3 +25,5 @@ class LinxIpcSocketImpl : public LinxIpcSocket {
 
     socklen_t createAddress(struct sockaddr_un *address, const std::string &serviceName);
 };
+
+LinxIpcSocket* createLinxSocket(const std::string &serviceName);
