@@ -81,7 +81,7 @@ add_link_options(
     -Wl,-Map=output.map
     -Wl,--gc-sections)
 
-if(COVERITY)  
+if(COVERITY)
     add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -g -O0)
     add_link_options(--coverage)
 endif()

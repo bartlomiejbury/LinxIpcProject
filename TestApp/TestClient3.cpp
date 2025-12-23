@@ -1,16 +1,19 @@
 
+#include <stdio.h>
+#include "AfUnixServer.h"
 #include "LinxIpc.h"
 
 int main() {
 
-    auto handler = LinxIpcHandlerBuilder("TEST1")
-        .registerCallback(20, [](LinxMessageIpc *msg, void *data) {
-            printf("Received request: %d from: %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
+    auto server = AfUnixServer::create("TEST1");
+    auto handler = LinxIpcHandler(server);
+    handler.registerCallback(20, [](const LinxReceivedMessageSharedPtr &msg, void *data) {
+            printf("Received request: 0x%x from %s\n", msg->message->getReqId(), msg->context->getName().c_str());
             return 0;
-        }, nullptr)
-        .build();
+        }, nullptr);
 
+    handler.start();
     while (1) {
-        handler->handleMessage(1000);
+        handler.handleMessage(1000);
     }
 }

@@ -1,4 +1,6 @@
 
+#include <stdio.h>
+#include "AfUnixClient.h"
 #include "LinxIpc.h"
 
 int main(int argc, char *argv[]) {
@@ -11,15 +13,13 @@ int main(int argc, char *argv[]) {
     std::string serverName = argv[1];
     uint32_t messageValue = std::atoi(argv[2]);
 
-    auto handler = LinxIpcHandlerBuilder("ipcSender").build();
-
-    auto client = handler->createClient(serverName);
+    auto client = AfUnixClient::create("ipcSender");
     if (!client->connect(5000)) {
         printf("Failed to connect client to server\n");
         return -1;
     }
 
-    LinxMessageIpc message1{messageValue};
+    LinxMessage message1{messageValue};
     int rc = client->send(message1);
     if (rc < 0) {
         printf("Failed to send message: %d\n", rc);

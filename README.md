@@ -1,186 +1,450 @@
-## Linx Ipc Library for linux
+# LinxIpc Library for Linux
 
-Linx IPC based on AF_UNIX sockets:
+A high-performance IPC (Inter-Process Communication) library for Linux based on AF_UNIX sockets.
 
-- Message have unique Signal ID (uint32_t)
-- Each enpoint have separate thread to receive messages
-- Endpoint can be added to poll
-- Filter messages by Signal ID or sender
+## Features
 
-### LinxIpcMessage
-Each IPC message is identified by uint32_t request Id. Two requestID are reserved for internal purposes
+- **Message-based communication** with unique Signal IDs (uint32_t)
+- **Separate thread** for receiving messages per endpoint
+- **Poll support** for integrating with event loops
+- **Message filtering** by Signal ID or sender
+- **Thread-safe message queues** with configurable size
+- **Type-safe message payloads** using C++ templates
+- **Connection verification** with ping/pong mechanism
+
+## Architecture
+
+### Key Components
+
+- **LinxMessage**: Message class with typed payload support
+- **AfUnixServer**: Server endpoint that can receive messages from multiple clients
+- **AfUnixClient**: Client endpoint for sending messages to servers
+- **LinxIpcHandler**: Message dispatcher with callback registration
+
+## Message API
+
+### Creating Messages
+
+LinxMessage is identified by a `uint32_t` request ID.
+
+**Empty message:**
+```cpp
+LinxMessage msg(20);
 ```
-#define IPC_HUNT_REQ 1
-#define IPC_HUNT_RSP 2
-```
 
-LinxIpcMessage can be created in many ways:
-
-IPC message with requestID = 10 and no payload:
-```
-auto msg = LinxMessageIpc(10);
-```
-
-IPC message with payload set to user struct:
-```
+**Message with typed payload:**
+```cpp
 struct Data {
-    int a;
-    char b;
-} expectedMessage = {10, 5};
-auto msg = LinxMessageIpc(10, expectedMessage);
+    int value;
+    char flag;
+};
+
+Data payload = {42, 'A'};
+LinxMessage msg(20, payload);
 ```
 
-Message payload can be read by template method ```getPayload<T>()```. This function will payload data to T* type
-```
-struct Data *data = msg.getPayload<struct Data>();
-```
-You can use  ```getPayload()``` to get raw data as uint8_t * typr
-```
-uint8_t *data = msg.getPayload<uint8_t>();
+**Message from raw buffer:**
+```cpp
+uint8_t buffer[] = {1, 2, 3, 4};
+LinxMessage msg(20, buffer, sizeof(buffer));
 ```
 
-IPC message can be created from raw buffer:
-```
-uint8_t expectedMessage[] = {1, 2, 3, 3};
-auto msg = LinxMessageIpc(10, expectedMessage, sizeof(expectedMessage));
-```
-
-Or by initializer list:
-```
-auto msg = LinxMessageIpc(10, {1, 2, 3});
+**Message from vector:**
+```cpp
+std::vector<uint8_t> data = {1, 2, 3};
+LinxMessage msg(20, data);
 ```
 
-Message payload length in bytes can be read by ```getPayloadSize()``` function
-
-Message requestID can be read by ```getReqId()``` function
-
-When message is received it has set sender client. It can be get by ```getCLient()``` method. This client can be used to identify sender os send back response. Locally created messages has set client to nullptr.
-
-
-### LinxIpcEndpoint
-LinxIpcEndpoint represents local endpoint of IPC comunication. Every application must have one endpoint. <br>
-Endpoint is identified by unique name.<br>
-Each enpoint will create internal thread to receive messages.
-
-#### Create endpoint:
+**Deserialize message:**
+```cpp
+uint8_t data[] = {1, 2, 3};
+LinxMessage msg(data, sizeof(data));
 ```
+
+### Reading Message Payload
+
+**Get typed payload:**
+```cpp
+Data *payload = msg.getPayload<Data>();
+printf("Value: %d\n", payload->value);
+```
+
+**Get raw payload:**
+```cpp
+uint8_t *raw = msg.getPayload();
+```
+
+**Get payload size:**
+```cpp
+uint32_t size = msg.getPayloadSize();
+```
+
+**Get request ID:**
+```cpp
+uint32_t reqId = msg.getReqId();
+```
+
+## Server API
+
+### Creating a Server
+
+```cpp
+#include "AfUnixServer.h"
 #include "LinxIpc.h"
-auto endpoint = createLinxIpcServer("EndointName", 100);
-endpoint->start();
+
+// Create server with default queue size (100)
+auto server = AfUnixServer::create("MyServer");
+
+// Or specify custom queue size
+auto server = AfUnixServer::create("MyServer", 200);
+
+// Start the server thread
+server->start();
 ```
 
-Second parameter indicates queue size. If queue is empty new messages are dropped.
+### Receiving Messages
 
-You can check current queue occupancy by
-```
-endpint->getQueueSize();
-```
-#### Receive message:
-```
-auto endpoint = createLinxIpcServer("EndointName", 100);
-endpoint->start();
-...
-auto msg = endpoint->receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, LINX_ANY_FROM);
-```
-
-First parameter indicates how long in miliseconds receive function will wait for message that matches filter.
-If time expire receive function return nullptr.
-```LINX_ANY_SIG``` - receive any signal
-
-Second parameter indicates which signals are expected to receive.
-Others signals are added to queue but not interrupt receive waiting.
-Third parameter indicates which sender are expected to receive message from.
-Signals from other sources not interrupt receive waiting.
-```LINX_ANY_FROM```- receive signal from any source
-
-You can create client by calling createClient method on endpoint. LinxIpcClient represent remote endpoint
-```
-auto endpoint = createLinxIpcServer("EndointName", 100);
-auto client = endpoint->createClient("ClientName");
-endpoint->start();
-```
-
-LinxIpcClient can be also used to receive message from this client.
-```
-auto endpoint = createLinxIpcServer("EndointName", 100);
-auto client = endpoint->createClient("ClientName");
-endpoint->start();
-auto msg = client->receive(10000, {20});
-```
-
-#### Send message:
-
-```
-auto endpoint = createLinxIpcServer("EndointName", 100);
-auto client = endpoint->createClient("ClientName");
-endpoint->start();
-
-LinxMessageIpc message1{12};
-client->send(&message1);
-```
-
-Message can be send directly by endpoint
-```
-LinxMessageIpc message2{20};
-endpoint->send(&message2, client);
-```
-
-#### Connecting to endpoint:
-There is no guarantee remote endpoint is alive. To check remote endpoint is alive call ```connect``` function on client
-```
-auto endpoint = createLinxIpcServer("EndointName", 100);
-auto client = endpoint->createClient("ClientName");
-endpoint->start();
-
-if (client->connect(5000)) {
-    // client is alive
+**Receive any message:**
+```cpp
+auto msg = server->receive(INFINITE_TIMEOUT);
+if (msg) {
+    printf("Received: 0x%x from %s\n",
+           msg->message->getReqId(),
+           msg->context->getName().c_str());
 }
 ```
 
-This function will send HUNT_REQ messages to client every 500 ms. When HUNT_RSP message is received, client is alive and connect returns true.
-
-Passing ```IMMEDIATE_TIMEOUT``` to connect will cause one ping to be send.
-
-#### Pooling endpoint:
-You can register message handlers in LinxIpcEndpoint. Calling receive method without any arguments will get first message from queue and execute registered callback. This function will never block. Return value from callbeck is returned by receive() call.
-If queue is empty receive() call will return -1
-
-```
-int callback(LinxMessageIpc *msg, void *data) {
-    printf("received message from: %s\n", msg->getClient()->getName().c_str());
-    return 0;
+**Receive with timeout (milliseconds):**
+```cpp
+auto msg = server->receive(5000);  // Wait up to 5 seconds
+if (!msg) {
+    printf("Timeout\n");
 }
-
-auto endpoint = createLinxIpcServer("EndointName", 100);
-endpoint->registerCallback(13, callback, nullptr);
-endpoint->start();
 ```
 
-You can add LinxIpcENdpoint to poll by getting it file descriptor by ```getPollFd()``` function. File descriptor can be red when there are messages in buffer.
-Note that when filter is used, messages not matched fiter are still in buffer and poll will be always pending.
+**Receive specific message types:**
+```cpp
+// Wait for message with reqId 20 or 30
+auto msg = server->receive(INFINITE_TIMEOUT, {20, 30});
 ```
+
+**Receive from specific client:**
+```cpp
+auto client = server->createContext("ClientName");
+auto msg = server->receive(INFINITE_TIMEOUT, LINX_ANY_SIG, client);
+```
+
+### Creating Contexts
+
+Create a context to represent a remote client:
+
+```cpp
+auto client = server->createContext("RemoteClient");
+
+// Use context to receive messages only from that client
+auto msg = client->receive(1000, {20});
+```
+
+### Using Message Handlers
+
+Register callbacks for specific message types:
+
+```cpp
 #include "LinxIpc.h"
+
+auto server = AfUnixServer::create("MyServer");
+auto handler = LinxIpcHandler(server);
+
+// Register callback for message ID 20
+handler.registerCallback(20,
+    [](const LinxReceivedMessageSharedPtr &msg, void *data) {
+        printf("Received: 0x%x from %s\n",
+               msg->message->getReqId(),
+               msg->context->getName().c_str());
+        return 0;  // Return value can be checked
+    },
+    nullptr);  // Optional user data
+
+handler.start();
+
+// Process messages in loop
+while (true) {
+    handler.handleMessage(1000);  // Process one message
+}
+```
+
+### Polling Support
+
+Integrate server with poll/select:
+
+```cpp
 #include <poll.h>
 
-int main() {
+auto server = AfUnixServer::create("MyServer");
+server->start();
 
-    auto endpoint = createLinxIpcServer("TEST1");
-    endpoint->start();
+struct pollfd fds[1];
+fds[0].fd = server->getPollFd();
+fds[0].events = POLLIN;
 
-    struct pollfd fds[1];
-    fds[0].fd = endpoint->getPollFd();
-    fds[0].events = POLLIN;
-
-    while(1) {
-        int pollrc = poll(fds, 1, 10000);
-        if (pollrc < 0) {
-            printf("recv error, errono: %d\n", errno);
-        } else if (pollrc == 0) {
-            printf("recv timeout\n");
-        } else {
-            LinxMessageIpcPtr msg = endpoint->receive(IMMEDIATE_TIMEOUT, LINX_ANY_SIG);
-            printf("OK: received msg: %d from %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
+while (true) {
+    int rc = poll(fds, 1, 10000);
+    if (rc > 0) {
+        auto msg = server->receive(IMMEDIATE_TIMEOUT);
+        if (msg) {
+            printf("Received: 0x%x\n", msg->message->getReqId());
         }
     }
 }
 ```
+
+## Client API
+
+### Creating a Client
+
+```cpp
+#include "AfUnixClient.h"
+#include "LinxIpc.h"
+
+auto client = AfUnixClient::create("MyClientName");
+```
+
+### Connecting to Server
+
+Verify the server is alive before sending:
+
+```cpp
+if (client->connect(5000)) {  // 5 second timeout
+    printf("Connected to server\n");
+} else {
+    printf("Failed to connect\n");
+}
+```
+
+### Sending Messages
+
+```cpp
+LinxMessage msg(20);
+int rc = client->send(msg);
+if (rc < 0) {
+    printf("Send failed\n");
+}
+```
+
+### Send and Receive
+
+Send a message and wait for response:
+
+```cpp
+LinxMessage request(10);
+auto response = client->sendReceive(request, 5000, {20});
+if (response) {
+    printf("Got response: 0x%x\n", response->getReqId());
+}
+```
+
+## Constants
+
+```cpp
+INFINITE_TIMEOUT   // -1, wait forever
+IMMEDIATE_TIMEOUT  // 0, don't wait
+LINX_ANY_SIG      // {}, receive any message type
+LINX_ANY_FROM     // nullptr, receive from any sender
+LINX_DEFAULT_QUEUE_SIZE  // 100
+```
+
+## Complete Example
+
+**Server (receiver.cpp):**
+```cpp
+#include <stdio.h>
+#include "AfUnixServer.h"
+#include "LinxIpc.h"
+
+int main() {
+    auto server = AfUnixServer::create("MyServer");
+    auto handler = LinxIpcHandler(server);
+
+    handler.registerCallback(20,
+        [](const LinxReceivedMessageSharedPtr &msg, void *data) {
+            printf("Received: 0x%x from %s\n",
+                   msg->message->getReqId(),
+                   msg->context->getName().c_str());
+            return 0;
+        }, nullptr);
+
+    handler.start();
+
+    while (true) {
+        handler.handleMessage(1000);
+    }
+
+    return 0;
+}
+```
+
+**Client (sender.cpp):**
+```cpp
+#include <stdio.h>
+#include "AfUnixClient.h"
+#include "LinxIpc.h"
+
+int main() {
+    auto client = AfUnixClient::create("MySender");
+
+    if (!client->connect(5000)) {
+        printf("Failed to connect\n");
+        return -1;
+    }
+
+    LinxMessage msg(20);
+    if (client->send(msg) < 0) {
+        printf("Failed to send\n");
+        return -1;
+    }
+
+    printf("Message sent successfully\n");
+    return 0;
+}
+```
+
+## Logging
+
+LinxIpc includes a built-in logging system that can be configured at compile-time and runtime.
+
+### Compile-Time Configuration
+
+Set the `USE_LOGGING` level when configuring CMake:
+
+```bash
+# No logging (default if not specified)
+cmake -B build
+
+# Error level only
+cmake -B build -DUSE_LOGGING=1
+
+# Warning and error
+cmake -B build -DUSE_LOGGING=2
+
+# Info, warning, and error
+cmake -B build -DUSE_LOGGING=3
+
+# All levels including debug
+cmake -B build -DUSE_LOGGING=4
+```
+
+**Logging Levels:**
+- `1` - `SEVERITY_ERROR`: Critical errors only
+- `2` - `SEVERITY_WARNING`: Warnings and errors
+- `3` - `SEVERITY_INFO`: Informational messages, warnings, and errors
+- `4` - `SEVERITY_DEBUG`: All messages including debug output
+
+### Runtime Configuration
+
+Override the log level at runtime using the `LOG_LEVEL` environment variable:
+
+```bash
+# Set log level to INFO for this run
+LOG_LEVEL=3 ./myapp
+
+# Set log level to DEBUG
+LOG_LEVEL=4 ./myapp
+```
+
+### Using Logging Macros
+
+Initialize logging in your application:
+
+```cpp
+#include "trace.h"
+
+int main() {
+    TRACE_INIT();  // Initialize logging system
+
+    TRACE_ERROR("Critical error: %d", errorCode);
+    TRACE_WARNING("Warning condition detected");
+    TRACE_INFO("Server started on port %d", port);
+    TRACE_DEBUG("Processing message ID: %d", msgId);
+
+    return 0;
+}
+```
+
+**Available Macros:**
+- `TRACE_INIT()` - Initialize logging (call once at startup)
+- `TRACE_ERROR(...)` - Log error messages
+- `TRACE_WARNING(...)` - Log warnings
+- `TRACE_INFO(...)` - Log informational messages
+- `TRACE_DEBUG(...)` - Log debug messages
+- `TRACE_ENTER()` - Log function entry (debug level)
+- `TRACE_EXIT()` - Log function exit (debug level)
+
+Logging output is sent to syslog and can be viewed with:
+
+```bash
+journalctl -f
+```
+
+### Custom Logging Implementation
+
+You can replace the default logging implementation by setting `LINX_LOG_PREFIX` to your custom function prefix:
+
+```cmake
+# In your CMakeLists.txt
+set(LINX_LOG_PREFIX mylog)
+```
+
+Then implement these functions with your custom logging:
+
+```cpp
+extern "C" {
+    void mylog_error(const char *fileName, int lineNum, const char *format, ...);
+    void mylog_warning(const char *fileName, int lineNum, const char *format, ...);
+    void mylog_info(const char *fileName, int lineNum, const char *format, ...);
+    void mylog_debug(const char *fileName, int lineNum, const char *format, ...);
+}
+```
+
+The library will call your functions instead of the default `trace_*` functions. This allows you to integrate with custom logging frameworks, file logging, or other output destinations.
+
+**Example custom logger:**
+```cpp
+#include <cstdio>
+#include <cstdarg>
+
+extern "C" void mylog_info(const char *fileName, int lineNum,
+                           const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    printf("[INFO] %s:%d: ", fileName, lineNum);
+    vprintf(format, args);
+    printf("\n");
+    va_end(args);
+}
+// Implement other levels similarly...
+```
+
+## Building
+
+```bash
+cmake -B build
+cmake --build build
+```
+
+## Testing
+
+```bash
+cmake -B build_ut -DCMAKE_BUILD_TYPE=Debug
+cmake --build build_ut
+cd build_ut && ctest
+```
+
+## Thread Safety
+
+- Server and Client objects are thread-safe for concurrent operations
+- Message queues are protected with mutexes
+- Each server runs its own receive thread
+
+## License
+
+See LICENSE.txt for details.

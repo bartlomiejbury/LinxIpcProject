@@ -112,5 +112,4 @@ if(COVERITY)
     )
 endif()
 
-enable_testing()
-add_test(NAME ${PROJECT_NAME} COMMAND ${CMAKE_COMMAND} --build . --target run_LinxIpc-ut)
+add_test(NAME "${PROJECT_NAME}_Unit_Tests" COMMAND ${CMAKE_BINARY_DIR}/output/bin/LinxIpc-ut)

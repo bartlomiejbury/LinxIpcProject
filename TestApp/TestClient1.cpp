@@ -1,10 +1,11 @@
-
+#include <stdio.h>
+#include "AfUnixServer.h"
 #include "LinxIpc.h"
 
 int main() {
 
-    auto server = LinxIpcHandlerBuilder("TEST1").build();
-    auto client = server->createClient("TEST3");
+    auto server = AfUnixServer::create("TEST3");
+    auto client = server->createContext("TEST3");
 
     auto msg = client->receive(10000, {20});
     if (msg) {
@@ -14,9 +15,9 @@ int main() {
     }
 
     while (1) {
-        auto msg = server->receive(INFINITE_TIMEOUT, {});
+        auto msg = server->receive(INFINITE_TIMEOUT);
         if (msg) {
-            printf("OK: received msg: %d from %s\n", msg->getReqId(), msg->getClient()->getName().c_str());
+            printf("OK: received msg: 0x%x from %s\n", msg->message->getReqId(), msg->context->getName().c_str());
         } else {
             printf("OK: not received any message\n");
         }

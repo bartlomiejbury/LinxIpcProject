@@ -1,10 +1,10 @@
-#include "trace.h"
-#include <syslog.h>
-#include <string.h>
-#include <unordered_map>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 #include <cstdlib>
-#include <stdarg.h>
+#include <cstring>
+#include <syslog.h>
+#include <unordered_map>
+#include "trace.h"
 
 //LCOV_EXCL_START
 #if USE_LOGGING >= SEVERITY_ERROR

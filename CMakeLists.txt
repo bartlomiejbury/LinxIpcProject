@@ -10,5 +10,6 @@ add_subdirectory(LinxIpc)
 add_subdirectory(TestApp)
 
 if(UNIT_TESTS)
+    enable_testing()
     add_subdirectory(UnitTests)
 endif()

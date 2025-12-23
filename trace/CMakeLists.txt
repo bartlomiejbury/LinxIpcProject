@@ -8,5 +8,3 @@ target_include_directories(
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/exports
 )
-
-add_to_ut(TARGET trace)

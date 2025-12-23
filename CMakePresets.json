@@ -1,5 +1,5 @@
 {
-    "version": 2,
+    "version": 6,
     "configurePresets": [
         {
             "name": "linux",
@@ -9,7 +9,7 @@
         {
             "name": "default",
             "inherits": "linux",
-            "displayName": "Default Config",
+            "displayName": "Default build",
             "description": "Default build",
             "binaryDir": "${sourceDir}/build/"
         },
@@ -20,21 +20,35 @@
             "description": "Build and run unit tests",
             "binaryDir": "${sourceDir}/build_ut/",
             "cacheVariables": {
-                "UNIT_TESTS": "1"
+                "UNIT_TESTS": "1",
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         }
     ],
     "buildPresets": [
         {
             "name": "default",
+            "displayName": "Default build",
             "configurePreset": "default"
         },
         {
             "name": "ut",
+            "displayName": "Unit Tests",
             "configurePreset": "ut",
             "targets": [
-                "run_LinxIpc-ut"
+                "LinxIpc-ut"
             ]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "ut",
+            "displayName": "Unit Tests",
+            "configurePreset": "ut",
+            "output": {
+                "outputOnFailure": true,
+                "verbosity": "verbose"
+            }
         }
     ]
 }
