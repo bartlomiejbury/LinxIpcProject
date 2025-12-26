@@ -1,9 +1,10 @@
 # LinxIpc Library for Linux
 
-A high-performance IPC (Inter-Process Communication) library for Linux based on AF_UNIX sockets.
+A high-performance IPC (Inter-Process Communication) library for Linux supporting both Unix Domain Sockets and UDP.
 
 ## Features
 
+- **Multiple transport protocols**: AF_UNIX sockets and UDP (including multicast)
 - **Message-based communication** with unique Signal IDs (uint32_t)
 - **Separate thread** for receiving messages per endpoint
 - **Poll support** for integrating with event loops
@@ -11,25 +12,71 @@ A high-performance IPC (Inter-Process Communication) library for Linux based on 
 - **Thread-safe message queues** with configurable size
 - **Type-safe message payloads** using C++ templates
 - **Connection verification** with ping/pong mechanism
+- **Generic template framework** for extensible transport protocols
+- **Interface-based identifier system** for type-safe addressing
+
+## Quick Start
+
+### Unix Domain Socket Example
+
+```cpp
+// Server
+#include "AfUnixServer.h"
+#include "LinxIpc.h"
+
+auto server = AfUnixFactory::createServer("MyServer");
+server->start();
+auto msg = server->receive(INFINITE_TIMEOUT);
+
+// Client
+#include "AfUnixClient.h"
+auto client = AfUnixFactory::createClient("MyClient");
+client->connect(5000);
+RawMessage message(20);
+client->send(message);
+```
+
+### UDP Example
+
+```cpp
+// Server
+#include "UdpLinx.h"
+
+auto server = UdpFactory::createServer(8080);
+server->start();
+auto msg = server->receive(INFINITE_TIMEOUT);
+
+// Client
+auto client = UdpFactory::createClient("127.0.0.1", 8080);
+client->connect(5000);
+RawMessage message(20);
+client->send(message);
+```
 
 ## Architecture
 
 ### Key Components
 
-- **LinxMessage**: Message class with typed payload support
-- **AfUnixServer**: Server endpoint that can receive messages from multiple clients
-- **AfUnixClient**: Client endpoint for sending messages to servers
+- **IMessage/ILinxMessage**: Base message interface and template for typed messages
+- **RawMessage**: Message class with dynamic byte buffer payload (alias for ILinxMessage<uint8_t>)
+- **GenericServer/GenericClient**: Generic template framework for transport protocols
+- **AfUnixServer/AfUnixClient**: Unix domain socket implementation
+- **UdpServer/UdpClient**: UDP socket implementation (with multicast support)
+- **AfUnixFactory/UdpFactory**: Protocol-specific factories for creating endpoints
 - **LinxIpcHandler**: Message dispatcher with callback registration
+- **IIdentifier**: Interface for client/server identification (StringIdentifier, PortInfo)
+
+For detailed architecture information, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Message API
 
 ### Creating Messages
 
-LinxMessage is identified by a `uint32_t` request ID.
+Messages are identified by a `uint32_t` request ID.
 
-**Empty message:**
+**Empty message (RawMessage with no payload):**
 ```cpp
-LinxMessage msg(20);
+RawMessage msg(20);
 ```
 
 **Message with typed payload:**
@@ -46,32 +93,44 @@ LinxMessage msg(20, payload);
 **Message from raw buffer:**
 ```cpp
 uint8_t buffer[] = {1, 2, 3, 4};
-LinxMessage msg(20, buffer, sizeof(buffer));
+RawMessage msg(20, buffer, sizeof(buffer));
 ```
 
 **Message from vector:**
 ```cpp
 std::vector<uint8_t> data = {1, 2, 3};
-LinxMessage msg(20, data);
+RawMessage msg(20, data);
 ```
 
-**Deserialize message:**
+**Typed message with custom payload:**
 ```cpp
-uint8_t data[] = {1, 2, 3};
-LinxMessage msg(data, sizeof(data));
+struct Data {
+    int value;
+    char flag;
+};
+Data payload = {42, 'A'};
+ILinxMessage<Data> msg(20, payload);
 ```
 
 ### Reading Message Payload
 
-**Get typed payload:**
+**Get typed payload from RawMessage:**
 ```cpp
-Data *payload = msg.getPayload<Data>();
+RawMessage msg = ...;
+Data *payload = msg.getPayloadAs<Data>();
 printf("Value: %d\n", payload->value);
 ```
 
-**Get raw payload:**
+**Get typed payload from ILinxMessage:**
 ```cpp
-uint8_t *raw = msg.getPayload();
+ILinxMessage<Data> msg(20, {42, 'A'});
+const Data *payload = msg.getPayload();
+printf("Value: %d\n", payload->value);
+```
+
+**Get raw payload from RawMessage:**
+```cpp
+const uint8_t *raw = msg.getPayload();
 ```
 
 **Get payload size:**
@@ -84,19 +143,52 @@ uint32_t size = msg.getPayloadSize();
 uint32_t reqId = msg.getReqId();
 ```
 
+### Serializing Messages
+
+Messages can be serialized to a byte buffer. The `serialize()` method returns the number of bytes written, or 0 on failure:
+
+```cpp
+RawMessage msg(20, buffer, size);
+uint8_t serialBuffer[1024];
+uint32_t bytesWritten = msg.serialize(serialBuffer, sizeof(serialBuffer));
+if (bytesWritten == 0) {
+    // Serialization failed (buffer too small)
+} else {
+    // Successfully serialized bytesWritten bytes
+}
+```
+
 ## Server API
 
 ### Creating a Server
 
+**Unix Domain Socket Server:**
 ```cpp
 #include "AfUnixServer.h"
 #include "LinxIpc.h"
 
 // Create server with default queue size (100)
-auto server = AfUnixServer::create("MyServer");
+auto server = AfUnixFactory::createServer("MyServer");
 
 // Or specify custom queue size
-auto server = AfUnixServer::create("MyServer", 200);
+auto server = AfUnixFactory::createServer("MyServer", 200);
+
+// Start the server thread
+server->start();
+```
+
+**UDP Server:**
+```cpp
+#include "UdpLinx.h"
+
+// Create UDP server on port 8080
+auto server = UdpFactory::createServer(8080);
+
+// Create UDP server with multicast support
+auto server = UdpFactory::createServer(8080, true);
+
+// Create UDP server with custom queue size
+auto server = UdpFactory::createServer(8080, false, 200);
 
 // Start the server thread
 server->start();
@@ -110,7 +202,7 @@ auto msg = server->receive(INFINITE_TIMEOUT);
 if (msg) {
     printf("Received: 0x%x from %s\n",
            msg->message->getReqId(),
-           msg->context->getName().c_str());
+           msg->from->format().c_str());
 }
 ```
 
@@ -130,19 +222,17 @@ auto msg = server->receive(INFINITE_TIMEOUT, {20, 30});
 
 **Receive from specific client:**
 ```cpp
-auto client = server->createContext("ClientName");
-auto msg = server->receive(INFINITE_TIMEOUT, LINX_ANY_SIG, client);
+StringIdentifier clientId("ClientName");
+auto msg = server->receive(INFINITE_TIMEOUT, LINX_ANY_SIG, &clientId);
 ```
 
-### Creating Contexts
-
-Create a context to represent a remote client:
-
+**Send response to received message:**
 ```cpp
-auto client = server->createContext("RemoteClient");
-
-// Use context to receive messages only from that client
-auto msg = client->receive(1000, {20});
+auto msg = server->receive(INFINITE_TIMEOUT);
+if (msg) {
+    LinxMessage response(100);
+    msg->sendResponse(response);  // Send back to the sender
+}
 ```
 
 ### Using Message Handlers
@@ -152,7 +242,7 @@ Register callbacks for specific message types:
 ```cpp
 #include "LinxIpc.h"
 
-auto server = AfUnixServer::create("MyServer");
+auto server = AfUnixFactory::createServer("MyServer");
 auto handler = LinxIpcHandler(server);
 
 // Register callback for message ID 20
@@ -160,7 +250,11 @@ handler.registerCallback(20,
     [](const LinxReceivedMessageSharedPtr &msg, void *data) {
         printf("Received: 0x%x from %s\n",
                msg->message->getReqId(),
-               msg->context->getName().c_str());
+               msg->from->format().c_str());
+
+        // Send response
+        LinxMessage response(21);
+        msg->sendResponse(response);
         return 0;  // Return value can be checked
     },
     nullptr);  // Optional user data
@@ -180,7 +274,7 @@ Integrate server with poll/select:
 ```cpp
 #include <poll.h>
 
-auto server = AfUnixServer::create("MyServer");
+auto server = AfUnixFactory::createServer("MyServer");
 server->start();
 
 struct pollfd fds[1];
@@ -202,11 +296,23 @@ while (true) {
 
 ### Creating a Client
 
+**Unix Domain Socket Client:**
 ```cpp
 #include "AfUnixClient.h"
 #include "LinxIpc.h"
 
-auto client = AfUnixClient::create("MyClientName");
+auto client = AfUnixFactory::createClient("MyClientName");
+```
+
+**UDP Client:**
+```cpp
+#include "UdpLinx.h"
+
+// Connect to server at 192.168.1.100:8080
+auto client = UdpFactory::createClient("192.168.1.100", 8080);
+
+// For multicast
+auto client = UdpFactory::createClient(LINX_MULTICAST_IP_ADDRESS, 8080);
 ```
 
 ### Connecting to Server
@@ -262,14 +368,18 @@ LINX_DEFAULT_QUEUE_SIZE  // 100
 #include "LinxIpc.h"
 
 int main() {
-    auto server = AfUnixServer::create("MyServer");
+    auto server = AfUnixFactory::createServer("MyServer");
     auto handler = LinxIpcHandler(server);
 
     handler.registerCallback(20,
         [](const LinxReceivedMessageSharedPtr &msg, void *data) {
             printf("Received: 0x%x from %s\n",
                    msg->message->getReqId(),
-                   msg->context->getName().c_str());
+                   msg->from->format().c_str());
+
+            // Send response back
+            LinxMessage response(21);
+            msg->sendResponse(response);
             return 0;
         }, nullptr);
 
@@ -290,7 +400,7 @@ int main() {
 #include "LinxIpc.h"
 
 int main() {
-    auto client = AfUnixClient::create("MySender");
+    auto client = AfUnixFactory::createClient("MySender");
 
     if (!client->connect(5000)) {
         printf("Failed to connect\n");
@@ -306,6 +416,79 @@ int main() {
     printf("Message sent successfully\n");
     return 0;
 }
+```
+
+## UDP Communication Example
+
+**UDP Server (udp_server.cpp):**
+```cpp
+#include <stdio.h>
+#include "UdpLinx.h"
+#include "LinxIpc.h"
+
+int main() {
+    // Create UDP server on port 8080
+    auto server = UdpFactory::createServer(8080);
+    auto handler = LinxIpcHandler(server);
+
+    handler.registerCallback(20,
+        [](const LinxReceivedMessageSharedPtr &msg, void *data) {
+            printf("Received: 0x%x from %s\n",
+                   msg->message->getReqId(),
+                   msg->from->format().c_str());
+
+            // Send response back
+            LinxMessage response(21);
+            msg->sendResponse(response);
+            return 0;
+        }, nullptr);
+
+    handler.start();
+
+    printf("UDP Server listening on port 8080\n");
+    while (true) {
+        handler.handleMessage(1000);
+    }
+
+    return 0;
+}
+```
+
+**UDP Client (udp_client.cpp):**
+```cpp
+#include <stdio.h>
+#include "UdpLinx.h"
+
+int main() {
+    // Connect to server at localhost:8080
+    auto client = UdpFactory::createClient("127.0.0.1", 8080);
+
+    if (!client->connect(5000)) {
+        printf("Failed to connect\n");
+        return -1;
+    }
+
+    LinxMessage msg(20);
+    if (client->send(msg) < 0) {
+        printf("Failed to send\n");
+        return -1;
+    }
+
+    printf("UDP message sent successfully\n");
+    return 0;
+}
+```
+
+**UDP Multicast Example:**
+```cpp
+#include "UdpLinx.h"
+
+// Server with multicast enabled
+auto server = UdpFactory::createServer(8080, true);
+server->start();
+
+// Client connecting to multicast address
+auto client = UdpFactory::createClient(LINX_MULTICAST_IP_ADDRESS, 8080);
 ```
 
 ## Logging
@@ -426,17 +609,94 @@ extern "C" void mylog_info(const char *fileName, int lineNum,
 
 ## Building
 
+### Basic Build
+
 ```bash
 cmake -B build
 cmake --build build
 ```
 
-## Testing
+### Build with Logging
 
 ```bash
-cmake -B build_ut -DCMAKE_BUILD_TYPE=Debug
+# Error level only
+cmake -B build -DUSE_LOGGING=1
+cmake --build build
+
+# Warning and error
+cmake -B build -DUSE_LOGGING=2
+cmake --build build
+
+# Info, warning, and error
+cmake -B build -DUSE_LOGGING=3
+cmake --build build
+
+# All levels including debug
+cmake -B build -DUSE_LOGGING=4
+cmake --build build
+```
+
+### Output
+
+Built libraries and test applications are placed in:
+- Libraries: `build/output/lib/`
+- Executables: `build/output/bin/`
+
+## Testing
+
+### Unit Tests
+
+```bash
+# Configure with unit tests enabled
+cmake -B build_ut -DCMAKE_BUILD_TYPE=Debug -DUNIT_TESTS=ON
+
+# Build all tests
 cmake --build build_ut
+
+# Run all tests
 cd build_ut && ctest
+
+# Run tests with verbose output
+cd build_ut && ctest --verbose
+
+# Run specific test
+./build_ut/UnitTests/bin/LinxIpc-ut
+```
+
+### Test Applications
+
+Example test applications are provided in the `TestApp/` directory:
+
+```bash
+# Build the project
+cmake --build build
+
+# Run test client
+./build/output/bin/TestClient1
+
+# Run IPC sender
+./build/output/bin/ipcSender
+```
+
+## Project Structure
+
+```
+LinxIpc/                    # Main library
+├── include/                # Public headers
+│   ├── AfUnix.h           # Unix domain socket API
+│   ├── UdpLinx.h          # UDP API
+│   ├── LinxIpc.h          # Core IPC definitions
+│   └── common/            # Common headers
+├── src/                    # Implementation
+│   ├── unix/              # Unix domain socket implementation
+│   ├── udp/               # UDP implementation
+│   ├── message/           # Message handling
+│   └── queue/             # Queue management
+└── tests/                  # Integration and performance tests
+
+TestApp/                    # Example applications
+trace/                      # Logging subsystem
+UnitTests/                  # Unit test suite
 ```
 
 ## Thread Safety
@@ -445,6 +705,22 @@ cd build_ut && ctest
 - Message queues are protected with mutexes
 - Each server runs its own receive thread
 
+## Extending the Library
+
+The LinxIpc framework is designed to be extensible. You can add support for new transport protocols by:
+
+1. Implementing the socket interface for your transport protocol
+2. Creating a new identifier type derived from `IIdentifier`
+3. Using the `GenericServer` and `GenericClient` templates
+
+For detailed information on extending the library, see [EXTENDING.md](EXTENDING.md).
+
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architecture and design patterns
+- [EXTENDING.md](EXTENDING.md) - Guide for adding new transport protocols
+- [LICENSE.txt](LICENSE.txt) - License information
+
 ## License
 
-See LICENSE.txt for details.
+See [LICENSE.txt](LICENSE.txt) for details.

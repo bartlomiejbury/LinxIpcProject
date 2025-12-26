@@ -3,26 +3,27 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include "LinxIpc.h"
+#include "GenericSocket.h"
+#include "AfUnix.h"
 
-class AfUnixSocket {
+class AfUnixSocket : public GenericSocket<StringIdentifier> {
   public:
-    AfUnixSocket(const std::string &serviceName);
+    AfUnixSocket(const std::string &socketName);
     virtual ~AfUnixSocket();
 
-    virtual std::string getName() const;
     virtual int getFd() const;
 
-    virtual int send(const LinxMessage &message, const std::string &to);
-    virtual int receive(LinxMessagePtr *msg, std::string *from, int timeout);
+    virtual int send(const IMessage &message, const StringIdentifier &to);
+    virtual int receive(RawMessagePtr *msg, StringIdentifier *from, int timeoutMs);
 
     virtual int flush();
-    virtual bool open();
+    virtual int open();
     virtual void close();
 
   protected:
     int fd = -1;
     struct sockaddr_un address {};
-    std::string serviceName;
+    std::string socketName;
 
-    socklen_t createAddress(struct sockaddr_un *address, const std::string &serviceName);
+    socklen_t createAddress(struct sockaddr_un *address, const std::string &socketName);
 };

@@ -20,10 +20,13 @@ void trace_error(const char *fileName, int lineNum, const char *format, ...);
 
 #if USE_LOGGING >= SEVERITY_ERROR
     extern "C" void trace_init();
+    extern "C" void trace_close();
     #define TRACE_INIT() trace_init()
+    #define TRACE_CLOSE() trace_close()
     #define TRACE_ERROR(...) trace_error(__FILE__, __LINE__, ##__VA_ARGS__)
 #else
     #define TRACE_INIT()
+    #define TRACE_CLOSE()
     #define TRACE_ERROR(...)
 #endif
 

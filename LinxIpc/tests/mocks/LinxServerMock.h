@@ -5,9 +5,11 @@ class LinxServerMock : public LinxServer {
   public:
     MOCK_METHOD(LinxReceivedMessageSharedPtr, receive, (int timeoutMs,
                                              const std::vector<uint32_t> &sigsel,
-                                             const LinxReceiveContextSharedPtr &from));
+                                             const IIdentifier *from));
 
     MOCK_METHOD(int, getPollFd, (), (const));
     MOCK_METHOD(bool, start, ());
     MOCK_METHOD(void, stop, ());
+    MOCK_METHOD(int, send, (const IMessage &message, const IIdentifier &to));
+    MOCK_METHOD(std::string, getName, (), (const, override));
 };

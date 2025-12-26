@@ -1,3 +1,4 @@
+#include "StringIdentifier.h"
 #include "gtest/gtest.h"
 #include "AfUnixEndpoint.h"
 #include "AfUnixServer.h"
@@ -65,8 +66,9 @@ TEST_F(AfUnixEndpointTests, receive_ReturnsMessageWhenServerReturnsMessage) {
     auto endpoint = std::make_shared<AfUnixEndpoint>(socket, server, "TEST");
 
     auto msg = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
-        .message = std::make_unique<LinxMessage>(42),
-        .context = std::make_unique<AfUnixEndpoint>(socket, server, "TEST")
+        .message = std::make_unique<RawMessage>(42),
+        .from = std::make_unique<StringIdentifier>("TEST"),
+        .server = server
     });
 
     EXPECT_CALL(*queuePtr, get(_, _, _)).WillOnce(Invoke(
@@ -181,7 +183,7 @@ TEST_F(AfUnixEndpointTests, send_CallsParentClientSend) {
     auto server = std::make_shared<AfUnixServer>(socket, std::move(queue), "TEST");
     auto endpoint = std::make_shared<AfUnixEndpoint>(socket, server, "TEST");
 
-    auto msg = LinxMessage(10);
+    auto msg = RawMessage(10);
     EXPECT_CALL(*socketPtr, send(Ref(msg), "TEST")).Times(1);
 
     endpoint->send(msg);

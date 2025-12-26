@@ -6,8 +6,7 @@
 #include <iomanip>
 #include <sys/utsname.h>
 #include "gtest/gtest.h"
-#include "AfUnixClient.h"
-#include "AfUnixServer.h"
+#include "AfUnix.h"
 
 using namespace ::testing;
 using namespace std::chrono;
@@ -108,14 +107,14 @@ TEST_F(LinxIpcPerformanceTests, Throughput_MessageRate) {
 
     // Start server with handler
     std::thread serverThread([&]() {
-        auto server = AfUnixServer::create("PerfTestServer", 1000);
+        auto server = AfUnixFactory::createServer("PerfTestServer", 1000);
         auto handler = LinxIpcHandler(server);
 
         handler.registerCallback(PERF_SIG_REQ,
             [&](const LinxReceivedMessageSharedPtr &msg, void *data) {
                 messageCount++;
-                LinxMessage rsp(PERF_SIG_RSP);
-                msg->context->send(rsp);
+                RawMessage rsp(PERF_SIG_RSP);
+                handler.send(rsp, *msg->from);
                 return 0;
             }, nullptr);
 
@@ -128,12 +127,12 @@ TEST_F(LinxIpcPerformanceTests, Throughput_MessageRate) {
 
     std::this_thread::sleep_for(milliseconds(100));
 
-    auto client = AfUnixClient::create("PerfTestServer");
+    auto client = AfUnixFactory::createClient("PerfTestServer");
     ASSERT_TRUE(client->connect(5000));
 
     // Warm up
     for (int i = 0; i < 100; i++) {
-        LinxMessage msg(PERF_SIG_REQ);
+        RawMessage msg(PERF_SIG_REQ);
         client->sendReceive(msg, 1000, {PERF_SIG_RSP});
     }
 
@@ -143,7 +142,7 @@ TEST_F(LinxIpcPerformanceTests, Throughput_MessageRate) {
     // Performance test - send 10000 messages
     const int totalMessages = 10000;
     for (int i = 0; i < totalMessages; i++) {
-        LinxMessage msg(PERF_SIG_REQ);
+        RawMessage msg(PERF_SIG_REQ);
         auto rsp = client->sendReceive(msg, 1000, {PERF_SIG_RSP});
         ASSERT_NE(rsp, nullptr);
     }
@@ -172,13 +171,13 @@ TEST_F(LinxIpcPerformanceTests, Latency_SingleMessage) {
     std::atomic<bool> running{true};
 
     std::thread serverThread([&]() {
-        auto server = AfUnixServer::create("LatencyTestServer");
+        auto server = AfUnixFactory::createServer("LatencyTestServer");
         auto handler = LinxIpcHandler(server);
 
         handler.registerCallback(PERF_SIG_REQ,
-            [](const LinxReceivedMessageSharedPtr &msg, void *data) {
-                LinxMessage rsp(PERF_SIG_RSP);
-                msg->context->send(rsp);
+            [&](const LinxReceivedMessageSharedPtr &msg, void *data) {
+                RawMessage rsp(PERF_SIG_RSP);
+                handler.send(rsp, *msg->from);
                 return 0;
             }, nullptr);
 
@@ -191,12 +190,12 @@ TEST_F(LinxIpcPerformanceTests, Latency_SingleMessage) {
 
     std::this_thread::sleep_for(milliseconds(100));
 
-    auto client = AfUnixClient::create("LatencyTestServer");
+    auto client = AfUnixFactory::createClient("LatencyTestServer");
     ASSERT_TRUE(client->connect(5000));
 
     // Warm up
     for (int i = 0; i < 10; i++) {
-        LinxMessage msg(PERF_SIG_REQ);
+        RawMessage msg(PERF_SIG_REQ);
         client->sendReceive(msg, 1000, {PERF_SIG_RSP});
     }
 
@@ -209,7 +208,7 @@ TEST_F(LinxIpcPerformanceTests, Latency_SingleMessage) {
     for (int i = 0; i < samples; i++) {
         auto start = high_resolution_clock::now();
 
-        LinxMessage msg(PERF_SIG_REQ);
+        RawMessage msg(PERF_SIG_REQ);
         auto rsp = client->sendReceive(msg, 1000, {PERF_SIG_RSP});
 
         auto end = high_resolution_clock::now();
@@ -241,16 +240,16 @@ TEST_F(LinxIpcPerformanceTests, Throughput_LargePayload) {
     std::atomic<bool> running{true};
 
     std::thread serverThread([&]() {
-        auto server = AfUnixServer::create("LargePayloadServer", 500);
+        auto server = AfUnixFactory::createServer("LargePayloadServer", 500);
         auto handler = LinxIpcHandler(server);
 
         handler.registerCallback(PERF_SIG_REQ,
-            [](const LinxReceivedMessageSharedPtr &msg, void *data) {
+            [&](const LinxReceivedMessageSharedPtr &msg, void *data) {
                 // Echo back the payload
                 auto payload = msg->message->getPayload();
                 auto size = msg->message->getPayloadSize();
-                LinxMessage rsp(PERF_SIG_RSP, payload, size);
-                msg->context->send(rsp);
+                RawMessage rsp(PERF_SIG_RSP, payload, size);
+                handler.send(rsp, *msg->from);
                 return 0;
             }, nullptr);
 
@@ -263,7 +262,7 @@ TEST_F(LinxIpcPerformanceTests, Throughput_LargePayload) {
 
     std::this_thread::sleep_for(milliseconds(100));
 
-    auto client = AfUnixClient::create("LargePayloadServer");
+    auto client = AfUnixFactory::createClient("LargePayloadServer");
     ASSERT_TRUE(client->connect(5000));
 
     // Test with 64KB payload
@@ -275,7 +274,7 @@ TEST_F(LinxIpcPerformanceTests, Throughput_LargePayload) {
 
     // Warm up
     for (int i = 0; i < 10; i++) {
-        LinxMessage msg(PERF_SIG_REQ, largePayload.data(), payloadSize);
+        RawMessage msg(PERF_SIG_REQ, largePayload.data(), payloadSize);
         client->sendReceive(msg, 2000, {PERF_SIG_RSP});
     }
 
@@ -283,7 +282,7 @@ TEST_F(LinxIpcPerformanceTests, Throughput_LargePayload) {
 
     const int iterations = 1000;
     for (int i = 0; i < iterations; i++) {
-        LinxMessage msg(PERF_SIG_REQ, largePayload.data(), payloadSize);
+        RawMessage msg(PERF_SIG_REQ, largePayload.data(), payloadSize);
         auto rsp = client->sendReceive(msg, 2000, {PERF_SIG_RSP});
         ASSERT_NE(rsp, nullptr);
         ASSERT_EQ(rsp->getPayloadSize(), payloadSize);
@@ -314,14 +313,14 @@ TEST_F(LinxIpcPerformanceTests, Concurrency_MultipleClients) {
     std::atomic<int> totalMessages{0};
 
     std::thread serverThread([&]() {
-        auto server = AfUnixServer::create("ConcurrencyTestServer", 2000);
+        auto server = AfUnixFactory::createServer("ConcurrencyTestServer", 2000);
         auto handler = LinxIpcHandler(server);
 
         handler.registerCallback(PERF_SIG_REQ,
             [&](const LinxReceivedMessageSharedPtr &msg, void *data) {
                 totalMessages++;
-                LinxMessage rsp(PERF_SIG_RSP);
-                msg->context->send(rsp);
+                RawMessage rsp(PERF_SIG_RSP);
+                handler.send(rsp, *msg->from);
                 return 0;
             }, nullptr);
 
@@ -342,11 +341,11 @@ TEST_F(LinxIpcPerformanceTests, Concurrency_MultipleClients) {
 
     for (int c = 0; c < numClients; c++) {
         clientThreads.emplace_back([c, messagesPerClient]() {
-            auto client = AfUnixClient::create("ConcurrencyTestServer");
+            auto client = AfUnixFactory::createClient("ConcurrencyTestServer");
             ASSERT_TRUE(client->connect(5000));
 
             for (int i = 0; i < messagesPerClient; i++) {
-                LinxMessage msg(PERF_SIG_REQ);
+                RawMessage msg(PERF_SIG_REQ);
                 auto rsp = client->sendReceive(msg, 2000, {PERF_SIG_RSP});
                 ASSERT_NE(rsp, nullptr);
             }

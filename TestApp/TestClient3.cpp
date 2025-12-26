@@ -5,7 +5,7 @@
 
 int main() {
 
-    auto server = AfUnixServer::create("TEST1");
+    auto server = AfUnixFactory::createServer("TEST1");
     auto handler = LinxIpcHandler(server);
     handler.registerCallback(20, [](const LinxReceivedMessageSharedPtr &msg, void *data) {
             printf("Received request: 0x%x from %s\n", msg->message->getReqId(), msg->context->getName().c_str());

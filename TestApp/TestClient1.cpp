@@ -4,7 +4,7 @@
 
 int main() {
 
-    auto server = AfUnixServer::create("TEST3");
+    auto server = AfUnixFactory::createServer("TEST3");
     auto client = server->createContext("TEST3");
 
     auto msg = client->receive(10000, {20});

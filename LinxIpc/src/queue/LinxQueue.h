@@ -6,8 +6,7 @@
 #include "LinxIpc.h"
 
 class LinxEventFd;
-
-using LinxReceiveContextOpt = std::optional<LinxReceiveContextSharedPtr>;
+class IIdentifier;
 
 class LinxQueue {
    public:
@@ -18,7 +17,7 @@ class LinxQueue {
     virtual int getFd() const;
     virtual void clear();
     virtual LinxReceivedMessagePtr get(int timeoutMs, const std::vector<uint32_t> &sigsel,
-                                   const LinxReceiveContextOpt &from);
+                                   const IIdentifier *from);
 
    private:
     std::unique_ptr<LinxEventFd> efd;
@@ -27,8 +26,8 @@ class LinxQueue {
     std::condition_variable m_cv;
     std::list<LinxReceivedMessagePtr> queue;
 
-    LinxReceivedMessagePtr findMessage(const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from);
-    LinxReceivedMessagePtr waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from);
-    LinxReceivedMessagePtr waitForMessage(const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from);
-    LinxReceivedMessagePtr getMessage(const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from);
+    LinxReceivedMessagePtr findMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from);
+    LinxReceivedMessagePtr waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel, const IIdentifier *from);
+    LinxReceivedMessagePtr waitForMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from);
+    LinxReceivedMessagePtr getMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from);
 };

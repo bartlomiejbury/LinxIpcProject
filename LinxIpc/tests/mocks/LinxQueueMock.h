@@ -3,6 +3,8 @@
 #include "LinxIpc.h"
 #include "LinxQueue.h"
 
+class IIdentifier;
+
 class LinxQueueMock : public LinxQueue {
   public:
     LinxQueueMock() : LinxQueue(std::make_unique<testing::NiceMock<LinxEventFdMock>>(), 10) {}
@@ -12,5 +14,5 @@ class LinxQueueMock : public LinxQueue {
     MOCK_METHOD(int, getFd, (), (const));
     MOCK_METHOD(void, clear, ());
     MOCK_METHOD(LinxReceivedMessagePtr, get, (int timeoutMs, const std::vector<uint32_t> &sigsel,
-                                              const LinxReceiveContextOpt &from));
+                                              const IIdentifier *from));
 };

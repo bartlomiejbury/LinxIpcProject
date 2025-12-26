@@ -2,6 +2,7 @@
 #include "LinxEventFd.h"
 #include "LinxIpc.h"
 #include "LinxQueue.h"
+#include "IIdentifier.h"
 
 LinxQueue::LinxQueue(std::unique_ptr<LinxEventFd> &&efd, int size): efd{std::move(efd)}, max_size{size} {
     assert(this->efd);
@@ -35,7 +36,7 @@ void LinxQueue::clear() {
     efd->clearEvents();
 }
 
-LinxReceivedMessagePtr LinxQueue::get(int timeoutMs, const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from) {
+LinxReceivedMessagePtr LinxQueue::get(int timeoutMs, const std::vector<uint32_t> &sigsel, const IIdentifier *from) {
     if (timeoutMs == IMMEDIATE_TIMEOUT) {
         return getMessage(sigsel, from);
     } else if (timeoutMs == INFINITE_TIMEOUT) {
@@ -46,12 +47,12 @@ LinxReceivedMessagePtr LinxQueue::get(int timeoutMs, const std::vector<uint32_t>
 }
 
 LinxReceivedMessagePtr LinxQueue::getMessage(const std::vector<uint32_t> &sigsel,
-                                           const LinxReceiveContextOpt &from) {
+                                           const IIdentifier *from) {
     std::lock_guard<std::mutex> lock(m_mutex);
     return findMessage(sigsel, from);
 }
 
-LinxReceivedMessagePtr LinxQueue::waitForMessage(const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from) {
+LinxReceivedMessagePtr LinxQueue::waitForMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from) {
 
     LinxReceivedMessagePtr msg = nullptr;
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -64,7 +65,7 @@ LinxReceivedMessagePtr LinxQueue::waitForMessage(const std::vector<uint32_t> &si
 };
 
 LinxReceivedMessagePtr LinxQueue::waitForMessage(int timeoutMs, const std::vector<uint32_t> &sigsel,
-                                                               const LinxReceiveContextOpt &from) {
+                                                               const IIdentifier *from) {
 
     LinxReceivedMessagePtr msg = nullptr;
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -79,11 +80,11 @@ LinxReceivedMessagePtr LinxQueue::waitForMessage(int timeoutMs, const std::vecto
     return msg;
 };
 
-LinxReceivedMessagePtr LinxQueue::findMessage(const std::vector<uint32_t> &sigsel, const LinxReceiveContextOpt &from) {
+LinxReceivedMessagePtr LinxQueue::findMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from) {
 
     auto predicate = [&sigsel, &from](LinxReceivedMessagePtr &msg) {
-        if (from.has_value()) {
-            if (*msg->context != *from.value()) {
+        if (from != nullptr) {
+            if (!msg->from->isEqual(*from)) {
                 return false;
             }
         }

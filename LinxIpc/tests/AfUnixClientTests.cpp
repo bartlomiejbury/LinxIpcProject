@@ -1,7 +1,7 @@
 #include <thread>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "AfUnixClient.h"
+#include "AfUnix.h"
 #include "AfUnixSocketMock.h"
 #include "LinxIpc.h"
 #include "LinxMessageIds.h"
@@ -18,26 +18,20 @@ class AfUnixClientTests : public testing::Test {
         socketPtr = socket.get();
         ON_CALL(*socketPtr, receive(_, _, _)).WillByDefault(Return(-1));
         ON_CALL(*socketPtr, send(_, _)).WillByDefault(Return(0));
-        ON_CALL(*socketPtr, open()).WillByDefault(Return(true));
     }
 };
 
-TEST_F(AfUnixClientTests, clienCallConnectOnCreation) {
-    EXPECT_CALL(*socketPtr, open());
-    auto client = AfUnixClient(std::move(socket), "TEST");
-}
-
 TEST_F(AfUnixClientTests, send_CallSocketSend) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
-    auto msg = LinxMessage(10);
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
+    auto msg = RawMessage(10);
 
-    EXPECT_CALL(*socketPtr, send(Ref(msg), "TEST"));
+    EXPECT_CALL(*socketPtr, send(Ref(msg), StringIdentifier("TEST")));
     client.send(msg);
 }
 
 TEST_F(AfUnixClientTests, send_ReturnSocketSendResult) {
-    auto client = std::make_shared<AfUnixClient>(std::move(socket), "TEST");
-    auto msg = LinxMessage(10);
+    auto client = std::make_shared<AfUnixClient>("test_instance", std::move(socket), StringIdentifier("TEST"));
+    auto msg = RawMessage(10);
 
     EXPECT_CALL(*socketPtr, send(_, _)).WillOnce(Return(2));
     ASSERT_EQ(client->send(msg), 2);
@@ -50,7 +44,7 @@ MATCHER_P(SigselMatcher, signals, "") {
 }
 
 TEST_F(AfUnixClientTests, receive_CallSocketReceive) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
     std::initializer_list<uint32_t> sigsel = {2, 3};
 
     EXPECT_CALL(*socketPtr, receive(_, _, _));
@@ -58,13 +52,13 @@ TEST_F(AfUnixClientTests, receive_CallSocketReceive) {
 }
 
 TEST_F(AfUnixClientTests, receive_ReturnSocketReceivedMsg) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(2);
-            *from = "TEST";
-            return 0;
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(2);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
     auto result = client.receive(1000, {2, 3});
@@ -73,35 +67,35 @@ TEST_F(AfUnixClientTests, receive_ReturnSocketReceivedMsg) {
 }
 
 TEST_F(AfUnixClientTests, receive_ReturnNullWhenFromDifferentService) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            *msg = std::make_unique<LinxMessage>(2);
-            *from = "TEST2";
-            return 0;
+            *msg = std::make_unique<RawMessage>(2);
+            *from = StringIdentifier("TEST2");
+            return 4;
         }
     ));
     ASSERT_EQ(client.receive(100, {2, 3}), nullptr);
 }
 
 TEST_F(AfUnixClientTests, receive_ReturnNullWhenSignalNotInSigsel) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            *msg = std::make_unique<LinxMessage>(10);
-            *from = "TEST";
-            return 0;
+            *msg = std::make_unique<RawMessage>(10);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
     ASSERT_EQ(client.receive(100, {2, 3}), nullptr);
 }
 
 TEST_F(AfUnixClientTests, receive_ReturnNullWhenSocketReturnError) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
     auto sigsel = std::initializer_list<uint32_t>{4};
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Return(-1));
 
@@ -109,13 +103,13 @@ TEST_F(AfUnixClientTests, receive_ReturnNullWhenSocketReturnError) {
 }
 
 TEST_F(AfUnixClientTests, receive_ReturnMsgWhenSignalMatchAny) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(10);
-            *from = "TEST";
-            return 0;
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(10);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
     auto result = client.receive(10000, LINX_ANY_SIG);
@@ -124,23 +118,23 @@ TEST_F(AfUnixClientTests, receive_ReturnMsgWhenSignalMatchAny) {
 }
 
 TEST_F(AfUnixClientTests, sendReceive_ReturnReturnNullPtr) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
-    auto msg = LinxMessage(10);
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
+    auto msg = RawMessage(10);
 
     EXPECT_CALL(*socketPtr, send(_, _)).WillOnce(Return(-1));
     ASSERT_EQ(client.sendReceive(msg), nullptr);
 }
 
 TEST_F(AfUnixClientTests, sendReceive_ReturnCallserverSendAndReceive) {
-    auto client =AfUnixClient(std::move(socket), "TEST");
-    auto msg = LinxMessage(10);
+    auto client =AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
+    auto msg = RawMessage(10);
 
     EXPECT_CALL(*socketPtr, send(Ref(msg), _)).WillOnce(Return(0));
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(12);
-            *from = "TEST";
-            return 0;
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(12);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
 
@@ -150,41 +144,41 @@ TEST_F(AfUnixClientTests, sendReceive_ReturnCallserverSendAndReceive) {
 }
 
 MATCHER_P(signalMatcher, reqid, "") {
-    LinxMessage &msg = (LinxMessage &)arg;
+    RawMessage &msg = (RawMessage &)arg;
     return msg.getReqId() == (uint32_t)reqid;
 }
 
 TEST_F(AfUnixClientTests, connect_SendHuntReq) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, send(signalMatcher(IPC_PING_REQ), _)).Times(1);
     client.connect(0);
 }
 
 TEST_F(AfUnixClientTests, connect_ReturnTrueWhenRspReceived) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(IPC_PING_RSP);
-            *from = "TEST";
-            return 0;
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
     ASSERT_EQ(client.connect(0), true);
 }
 
 TEST_F(AfUnixClientTests, connect_NotCallReceiveWhenSendFail) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, send(_, _))
         .WillOnce(Return(-1))
         .WillOnce(Return(2));
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(IPC_PING_RSP);
-            *from = "TEST";
-            return 0;
+        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }
     ));
 
@@ -192,21 +186,21 @@ TEST_F(AfUnixClientTests, connect_NotCallReceiveWhenSendFail) {
 }
 
 TEST_F(AfUnixClientTests, connect_SendAgainWhenNoReponseReceived) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, send(signalMatcher(IPC_PING_REQ), _)).Times(2);
     EXPECT_CALL(*socketPtr, receive(_, _, _))
         .WillOnce(Invoke(
-            [](LinxMessagePtr*, std::string*, int) {
+            [](RawMessagePtr*, StringIdentifier*, int) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 return -1;
             }
         ))
         .WillOnce(Invoke(
-            [](LinxMessagePtr* msg, std::string* from, int) {
-                *msg = std::make_unique<LinxMessage>(IPC_PING_RSP);
-                *from = "TEST";
-                return 0;
+            [](RawMessagePtr* msg, StringIdentifier* from, int) {
+                *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
+                *from = StringIdentifier(StringIdentifier("TEST"));
+                return 4;
             }
         ));
 
@@ -214,7 +208,7 @@ TEST_F(AfUnixClientTests, connect_SendAgainWhenNoReponseReceived) {
 }
 
 TEST_F(AfUnixClientTests, connect_ReturnFalseWhenTimeOutTimeout) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(DoAll(
         InvokeWithoutArgs([]() { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }),
@@ -232,7 +226,7 @@ TEST_F(AfUnixClientTests, testConnectDuration) {
         InvokeWithoutArgs([]() { std::this_thread::sleep_for(std::chrono::milliseconds(50)); }),
         Return(-1)
     ));
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     auto startTime = std::chrono::steady_clock::now();
     ASSERT_FALSE(client.connect(time));
@@ -245,26 +239,26 @@ TEST_F(AfUnixClientTests, testConnectDuration) {
 }
 
 TEST_F(AfUnixClientTests, receive_LoopsContinueUntilCorrectMessageReceived) {
-    auto client = AfUnixClient(std::move(socket), "TEST");
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     // First call returns wrong signal (5 instead of 2 or 3)
     // Second call returns wrong service name
     // Third call returns correct message
     EXPECT_CALL(*socketPtr, receive(_, _, _))
-        .WillOnce(Invoke([](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(5);  // Wrong signal
-            *from = "TEST";
-            return 0;
+        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(5);  // Wrong signal
+            *from = StringIdentifier(StringIdentifier("TEST"));
+            return 4;
         }))
-        .WillOnce(Invoke([](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(2);  // Right signal
-            *from = "WRONG_SERVICE";  // Wrong service name
-            return 0;
+        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(2);  // Right signal
+            *from = StringIdentifier("WRONG_SERVICE");  // Wrong service name
+            return 4;
         }))
-        .WillOnce(Invoke([](LinxMessagePtr* msg, std::string* from, int) {
-            *msg = std::make_unique<LinxMessage>(3);  // Right signal
-            *from = "TEST";  // Right service name
-            return 0;
+        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+            *msg = std::make_unique<RawMessage>(3);  // Right signal
+            *from = StringIdentifier(StringIdentifier("TEST"));  // Right service name
+            return 4;
         }));
 
     auto result = client.receive(10000, {2, 3});
@@ -272,12 +266,12 @@ TEST_F(AfUnixClientTests, receive_LoopsContinueUntilCorrectMessageReceived) {
     ASSERT_EQ(result->getReqId(), 3);
 }
 
-TEST_F(AfUnixClientTests, isEqual_ReturnsTrueWhenSameSocketAndServiceName) {
+TEST_F(AfUnixClientTests, isEqual_ReturnsTrueWhenSameSocketAndSocketName) {
     auto socket1 = std::make_shared<NiceMock<AfUnixSocketMock>>();
     auto socket2 = socket1; // Same shared_ptr
 
-    auto client1 = AfUnixClient(socket1, "TEST");
-    auto client2 = AfUnixClient(socket2, "TEST");
+    auto client1 = AfUnixClient("test_instance", socket1, StringIdentifier("TEST"));
+    auto client2 = AfUnixClient("test_instance", socket2, StringIdentifier("TEST"));
 
     ASSERT_TRUE(client1.isEqual(client2));
 }
@@ -286,8 +280,8 @@ TEST_F(AfUnixClientTests, isEqual_ReturnsFalseWhenDifferentSocket) {
     auto socket1 = std::make_shared<NiceMock<AfUnixSocketMock>>();
     auto socket2 = std::make_shared<NiceMock<AfUnixSocketMock>>();
 
-    auto client1 = AfUnixClient(socket1, "TEST");
-    auto client2 = AfUnixClient(socket2, "TEST");
+    auto client1 = AfUnixClient("test_instance", socket1, StringIdentifier("TEST"));
+    auto client2 = AfUnixClient("test_instance", socket2, StringIdentifier("TEST"));
 
     ASSERT_FALSE(client1.isEqual(client2));
 }
@@ -296,13 +290,8 @@ TEST_F(AfUnixClientTests, isEqual_ReturnsFalseWhenDifferentServiceName) {
     auto socket1 = std::make_shared<NiceMock<AfUnixSocketMock>>();
     auto socket2 = socket1; // Same shared_ptr
 
-    auto client1 = AfUnixClient(socket1, "TEST1");
-    auto client2 = AfUnixClient(socket2, "TEST2");
+    auto client1 = AfUnixClient("test_instance", socket1, StringIdentifier("TEST1"));
+    auto client2 = AfUnixClient("test_instance", socket2, StringIdentifier("TEST2"));
 
     ASSERT_FALSE(client1.isEqual(client2));
-}
-
-TEST_F(AfUnixClientTests, getName_ReturnsServiceName) {
-    auto client = AfUnixClient(std::move(socket), "TEST_SERVICE");
-    ASSERT_EQ(client.getName(), "TEST_SERVICE");
 }

@@ -1,5 +1,17 @@
 #include "LinxIpc.h"
 #include "LinxTrace.h"
+#include "IIdentifier.h"
+#include <stdio.h>
+
+// LinxReceivedMessage::sendResponse implementation
+int LinxReceivedMessage::sendResponse(const IMessage &response) const {
+    if (auto srv = server.lock()) {
+        if (from) {
+            return srv->send(response, *from);
+        }
+    }
+    return -1;
+}
 
 LinxIpcHandler::LinxIpcHandler(const std::shared_ptr<LinxServer> &server):
     server(server) {
@@ -44,6 +56,14 @@ int LinxIpcHandler::getPollFd() const {
 
 LinxReceivedMessageSharedPtr LinxIpcHandler::receive(int timeoutMs,
                                       const std::vector<uint32_t> &sigsel,
-                                       const LinxReceiveContextSharedPtr &from) {
+                                       const IIdentifier *from) {
     return server->receive(timeoutMs, sigsel, from);
+}
+
+int LinxIpcHandler::send(const IMessage &message, const IIdentifier &to) {
+    return server->send(message, to);
+}
+
+std::string LinxIpcHandler::getName() const {
+    return server->getName();
 }

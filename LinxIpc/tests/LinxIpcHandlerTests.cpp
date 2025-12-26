@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 #include "LinxIpc.h"
 #include "LinxServerMock.h"
+#include "IIdentifier.h"
 
 using namespace ::testing;
 
@@ -18,8 +19,8 @@ TEST_F(LinxIpcHandlerTests, handleMessage_ReturnZeroWhenReceiveNotRegisteredMess
     handler.registerCallback(5, cb.callback, cb.data);
 
     auto msg = std::make_shared<LinxReceivedMessage>();
-    msg->message = std::make_unique<LinxMessage>(10);
-    msg->context = nullptr;
+    msg->message = std::make_unique<RawMessage>(10);
+    msg->from = nullptr;
 
     EXPECT_CALL(*server, receive(_, _, _)).WillOnce(Return(msg));
     ASSERT_EQ(handler.handleMessage(10000), 0);
@@ -46,8 +47,8 @@ TEST_F(LinxIpcHandlerTests, handleMessage_ReturnCallbackResult) {
     handler.registerCallback(10, mockCallback.AsStdFunction(), nullptr);
 
     auto msg = std::make_shared<LinxReceivedMessage>();
-    msg->message = std::make_unique<LinxMessage>(10);
-    msg->context = nullptr;
+    msg->message = std::make_unique<RawMessage>(10);
+    msg->from = nullptr;
 
     EXPECT_CALL(*server, receive(_, _, _)).WillOnce(Return(msg));
     EXPECT_CALL(mockCallback, Call(msg, nullptr)).WillOnce(Return(5));

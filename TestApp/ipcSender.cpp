@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     std::string serverName = argv[1];
     uint32_t messageValue = std::atoi(argv[2]);
 
-    auto client = AfUnixClient::create("ipcSender");
+    auto client = AfUnixFactory::createClient("ipcSender");
     if (!client->connect(5000)) {
         printf("Failed to connect client to server\n");
         return -1;
