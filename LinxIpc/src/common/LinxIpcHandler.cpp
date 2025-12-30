@@ -1,14 +1,14 @@
+#include <cassert>
+#include <stdio.h>
 #include "LinxIpc.h"
 #include "LinxTrace.h"
 #include "IIdentifier.h"
-#include <stdio.h>
 
 // LinxReceivedMessage::sendResponse implementation
 int LinxReceivedMessage::sendResponse(const IMessage &response) const {
+    assert(from);
     if (auto srv = server.lock()) {
-        if (from) {
-            return srv->send(response, *from);
-        }
+        return srv->send(response, *from);
     }
     return -1;
 }
