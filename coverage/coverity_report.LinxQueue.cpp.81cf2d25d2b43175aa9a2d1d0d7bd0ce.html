@@ -26,7 +26,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2025-12-30 23:01:41</td>
+      <td>2025-12-30 23:14:31</td>
     </tr>
   </table>
 </div>
@@ -79,7 +79,7 @@
     <tr><td><a href="#l7">LinxQueue::LinxQueue(std::unique_ptr&lt;LinxEventFd, std::default_delete&lt;LinxEventFd&gt; &gt;&amp;&amp;, int) (line 7)</a></td><td>called 51 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
     <tr><td><a href="#l15">LinxQueue::add(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;&amp;) (line 15)</a></td><td>called 16266 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
     <tr><td><a href="#l32">LinxQueue::clear() (line 32)</a></td><td>called 61 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
-    <tr><td><a href="#l83">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (line 83)</a></td><td>called 27526 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+    <tr><td><a href="#l83">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (line 83)</a></td><td>called 27537 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
     <tr><td><a href="#l85">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*)::{lambda(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;)#1}::operator()(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;) const (line 85)</a></td><td>called 16277 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
     <tr><td><a href="#l94">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*)::{lambda(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;)#1}::operator()(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;) const::{lambda(unsigned int)#1}::operator()(unsigned int) const (line 94)</a></td><td>called 57 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
     <tr><td><a href="#l39">LinxQueue::get(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (line 39)</a></td><td>called 16263 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
@@ -647,12 +647,12 @@
         <details class="linebranchDetails">
           <summary class="linebranchSummary">2/2</summary>
           <div class="linebranchContents">
-            <div class="takenBranch">&check; Branch 4 taken 11272 times.</div>
+            <div class="takenBranch">&check; Branch 4 taken 11283 times.</div>
             <div class="takenBranch">&check; Branch 5 taken 16227 times.</div>
           </div>
         </details>
       </td>
-      <td class="linecount coveredLine">27499</td>
+      <td class="linecount coveredLine">27510</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">msg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">findMessage</span><span class="p">(</span><span class="n">sigsel</span><span class="p">,</span><span class="w"> </span><span class="n">from</span><span class="p">))</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -662,11 +662,11 @@
           <summary class="linebranchSummary">2/2</summary>
           <div class="linebranchContents">
             <div class="takenBranch">&check; Branch 1 taken 22 times.</div>
-            <div class="takenBranch">&check; Branch 2 taken 11250 times.</div>
+            <div class="takenBranch">&check; Branch 2 taken 11261 times.</div>
           </div>
         </details>
       </td>
-      <td class="linecount coveredLine">11272</td>
+      <td class="linecount coveredLine">11283</td>
       <td class="src coveredLine"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">m_cv</span><span class="p">.</span><span class="n">wait_for</span><span class="p">(</span><span class="n">lock</span><span class="p">,</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">cv_status</span><span class="o">::</span><span class="n">timeout</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -722,7 +722,7 @@
       <td class="lineno"><a id="l83" href="#l83">83</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">27526</td>
+      <td class="linecount coveredLine">27537</td>
       <td class="src coveredLine"><span class="n">LinxReceivedMessagePtr</span><span class="w"> </span><span class="nf">LinxQueue::findMessage</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">uint32_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="n">sigsel</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">IIdentifier</span><span class="w"> </span><span class="o">*</span><span class="n">from</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -829,7 +829,7 @@
       <td class="lineno"><a id="l95" href="#l95">95</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">27526</td>
+      <td class="linecount coveredLine">27537</td>
       <td class="src coveredLine"><span class="w">    </span><span class="p">};</span></td>
     </tr>
     <tr class="source-line">
@@ -846,11 +846,11 @@
           <summary class="linebranchSummary">2/2</summary>
           <div class="linebranchContents">
             <div class="takenBranch">&check; Branch 5 taken 16238 times.</div>
-            <div class="takenBranch">&check; Branch 6 taken 11288 times.</div>
+            <div class="takenBranch">&check; Branch 6 taken 11299 times.</div>
           </div>
         </details>
       </td>
-      <td class="linecount coveredLine">27526</td>
+      <td class="linecount coveredLine">27537</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">find_if</span><span class="p">(</span><span class="n">queue</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">queue</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span><span class="w"> </span><span class="n">predicate</span><span class="p">);</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">queue</span><span class="p">.</span><span class="n">end</span><span class="p">())</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -899,7 +899,7 @@
       <td class="lineno"><a id="l104" href="#l104">104</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">11288</td>
+      <td class="linecount coveredLine">11299</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span></td>
     </tr>
     <tr class="source-line">

@@ -26,7 +26,7 @@
     </tr>
     <tr>
       <th scope="row">Date:</th>
-      <td>2025-12-30 23:01:41</td>
+      <td>2025-12-30 23:14:31</td>
     </tr>
   </table>
 </div>
@@ -76,12 +76,12 @@
       <th>Branch coverage</th>
       <th>Block coverage</th>
     </tr>
-    <tr><td><a href="#l5">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int) (line 5)</a></td><td>called 89552 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+    <tr><td><a href="#l5">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int) (line 5)</a></td><td>called 89073 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
     <tr><td><a href="#l15">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; const&amp;) (line 15)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
-    <tr><td><a href="#l19">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (line 19)</a></td><td>called 32387 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+    <tr><td><a href="#l19">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (line 19)</a></td><td>called 32365 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
     <tr><td><a href="#l7">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, unsigned long) (line 7)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
     <tr><td><a href="#l11">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, void const*, unsigned int) (line 11)</a></td><td>called 2024 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
-    <tr><td><a href="#l23">ILinxMessage&lt;unsigned char&gt;::deserialize(std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (line 23)</a></td><td>called 32356 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+    <tr><td><a href="#l23">ILinxMessage&lt;unsigned char&gt;::deserialize(std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (line 23)</a></td><td>called 32336 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
   </table>
 </details>
 
@@ -127,7 +127,7 @@
       <td class="lineno"><a id="l5" href="#l5">5</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">89552</td>
+      <td class="linecount coveredLine">89073</td>
       <td class="src coveredLine"><span class="n">ILinxMessage</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;::</span><span class="n">ILinxMessage</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">reqId</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">IMessage</span><span class="p">(</span><span class="n">reqId</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span></td>
     </tr>
     <tr class="source-line">
@@ -225,7 +225,7 @@
       <td class="lineno"><a id="l19" href="#l19">19</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32387</td>
+      <td class="linecount coveredLine">32365</td>
       <td class="src coveredLine"><span class="n">ILinxMessage</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;::</span><span class="n">ILinxMessage</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">reqId</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">IMessage</span><span class="p">(</span><span class="n">reqId</span><span class="p">),</span><span class="w"> </span><span class="n">payload</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">buffer</span><span class="p">))</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -239,7 +239,7 @@
       <td class="lineno"><a id="l21" href="#l21">21</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32424</td>
+      <td class="linecount coveredLine">32417</td>
       <td class="src coveredLine"><span class="p">}</span></td>
     </tr>
     <tr class="source-line">
@@ -253,7 +253,7 @@
       <td class="lineno"><a id="l23" href="#l23">23</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32356</td>
+      <td class="linecount coveredLine">32336</td>
       <td class="src coveredLine"><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">RawMessage</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ILinxMessage</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;::</span><span class="n">deserialize</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">uint8_t</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -263,11 +263,11 @@
           <summary class="linebranchSummary">2/2</summary>
           <div class="linebranchContents">
             <div class="takenBranch">&check; Branch 1 taken 1 time.</div>
-            <div class="takenBranch">&check; Branch 2 taken 32371 times.</div>
+            <div class="takenBranch">&check; Branch 2 taken 32348 times.</div>
           </div>
         </details>
       </td>
-      <td class="linecount coveredLine">32356</td>
+      <td class="linecount coveredLine">32336</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">))</span><span class="w"> </span><span class="p">{</span></td>
     </tr>
     <tr class="source-line">
@@ -309,14 +309,14 @@
       <td class="lineno"><a id="l30" href="#l30">30</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32371</td>
+      <td class="linecount coveredLine">32348</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">memcpy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">reqId</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">));</span></td>
     </tr>
     <tr class="source-line">
       <td class="lineno"><a id="l31" href="#l31">31</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32376</td>
+      <td class="linecount coveredLine">32371</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">reqId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ntohl</span><span class="p">(</span><span class="n">reqId</span><span class="p">);</span></td>
     </tr>
     <tr class="source-line">
@@ -337,7 +337,7 @@
       <td class="lineno"><a id="l34" href="#l34">34</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32376</td>
+      <td class="linecount coveredLine">32371</td>
       <td class="src coveredLine"><span class="w">    </span><span class="n">buffer</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span><span class="w"> </span><span class="n">buffer</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">));</span></td>
     </tr>
     <tr class="source-line">
@@ -358,7 +358,7 @@
       <td class="lineno"><a id="l37" href="#l37">37</a></td>
       <td class="linebranch">
       </td>
-      <td class="linecount coveredLine">32343</td>
+      <td class="linecount coveredLine">32321</td>
       <td class="src coveredLine"><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">RawMessage</span><span class="o">&gt;</span><span class="p">(</span><span class="n">reqId</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">move</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span></td>
     </tr>
     <tr class="source-line">
