@@ -88,8 +88,10 @@ TEST_F(RawMessageTests, serializeInsufficientBuffer) {
     uint8_t expectedMessage[] = {1, 2, 3, 3};
     auto msg = RawMessage(10, expectedMessage, sizeof(expectedMessage));
 
-    uint8_t buffer[4]; // Intentionally small buffer
-    uint32_t serializedSize = msg.serialize(buffer, sizeof(buffer));
+    // Test with buffer that's too small - need at least 8 bytes (4 reqId + 4 payload)
+    // Use 7 bytes (just 1 byte short) to test insufficient buffer without triggering compiler warnings
+    std::vector<uint8_t> buffer(7);  // Intentionally too small by 1 byte
+    uint32_t serializedSize = msg.serialize(buffer.data(), buffer.size());
     ASSERT_EQ(serializedSize, 0);
 }
 
