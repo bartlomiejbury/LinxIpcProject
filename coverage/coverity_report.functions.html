@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="theme-green">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Functions - GCC Code Coverage Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="coverity_report.css"/>
+  </head>
+
+  <body>
+
+    <header>
+      <h1>GCC Code Coverage Report</h1>
+      <hr/>
+      <div class="summary">
+<div>
+  <table class="legend">
+    <tr>
+      <th scope="row">Directory:</th>
+      <td>LinxIpc/src/</td>
+    </tr>
+    <tr>
+      <th scope="row">Date:</th>
+      <td>2025-12-30 23:01:41</td>
+    </tr>
+  </table>
+</div>
+
+<div>
+  <table class="coverage">
+    <tr>
+      <th></th>
+      <th scope="col">Coverage</th>
+      <th scope="col">Exec</th>
+      <th scope="col">Excl</th>
+      <th scope="col">Total</th>
+    </tr>
+    <tr>
+      <th scope="row">Lines:</th>
+      <td class="coverage-medium">81.7%</td>
+      <td class="coverage-medium">611</td>
+      <td class="coverage-medium">0</td>
+      <td class="coverage-medium">748</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td class="coverage-high">95.4%</td>
+      <td class="coverage-high">103</td>
+      <td class="coverage-high">0</td>
+      <td class="coverage-high">108</td>
+    </tr>
+    <tr>
+      <th scope="row">Branches:</th>
+      <td class="coverage-low">68.8%</td>
+      <td class="coverage-low">216</td>
+      <td class="coverage-low">0</td>
+      <td class="coverage-low">314</td>
+    </tr>
+  </table>
+</div>
+      </div>
+      <hr/>
+    </header>
+    <nav>
+    </nav>
+    <main>
+<table class="listOfFunctions">
+  <tr>
+    <th>Function (File:Line)</th>
+    <th>Call count</th>
+    <th>Line coverage</th>
+    <th>Branch coverage</th>
+    <th>Block coverage</th>
+  </tr>
+  <tr><td><a href="coverity_report.AfUnixFactory.cpp.a0528755eba65524188e38dd6d9a32de.html#l25">AfUnixFactory::createClient(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/unix/AfUnixFactory.cpp:25)</a></td><td>called 16 times</td><td>81.8%</td><td>66.7%</td><td>92.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixFactory.cpp.a0528755eba65524188e38dd6d9a32de.html#l11">AfUnixFactory::createServer(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, unsigned long) (LinxIpc/src/unix/AfUnixFactory.cpp:11)</a></td><td>called 9 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l8">AfUnixSocket::AfUnixSocket(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/unix/AfUnixSocket.cpp:8)</a></td><td>called 69 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l40">AfUnixSocket::close() (LinxIpc/src/unix/AfUnixSocket.cpp:40)</a></td><td>called 92 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l148">AfUnixSocket::createAddress(sockaddr_un*, std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/unix/AfUnixSocket.cpp:148)</a></td><td>called 91441 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l155">AfUnixSocket::flush() (LinxIpc/src/unix/AfUnixSocket.cpp:155)</a></td><td>not called</td><td>0.0%</td><td>0.0%</td><td>0.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l176">AfUnixSocket::getFd() const (LinxIpc/src/unix/AfUnixSocket.cpp:176)</a></td><td>called 24 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l16">AfUnixSocket::open() (LinxIpc/src/unix/AfUnixSocket.cpp:16)</a></td><td>called 25 times</td><td>66.7%</td><td>66.7%</td><td>73.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l48">AfUnixSocket::receive(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;*, StringIdentifier*, int) (LinxIpc/src/unix/AfUnixSocket.cpp:48)</a></td><td>called 32445 times</td><td>63.4%</td><td>50.0%</td><td>72.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l114">AfUnixSocket::send(IMessage const&amp;, StringIdentifier const&amp;) (LinxIpc/src/unix/AfUnixSocket.cpp:114)</a></td><td>called 91436 times</td><td>71.4%</td><td>62.5%</td><td>70.0%</td></tr>
+  <tr><td><a href="coverity_report.AfUnixSocket.cpp.07d84f3b1945c8ef51ae0fb1e895e60a.html#l12">AfUnixSocket::~AfUnixSocket() (LinxIpc/src/unix/AfUnixSocket.cpp:12)</a></td><td>called 69 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.Deadline.h.1298e6ac1f03370864f267f18281b300.html#l8">Deadline::Deadline(int) (LinxIpc/src/common/Deadline.h:8)</a></td><td>called 16297 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.Deadline.h.1298e6ac1f03370864f267f18281b300.html#l20">Deadline::getRemainingTimeMs() const (LinxIpc/src/common/Deadline.h:20)</a></td><td>called 16256 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.Deadline.h.1298e6ac1f03370864f267f18281b300.html#l16">Deadline::isExpired() const (LinxIpc/src/common/Deadline.h:16)</a></td><td>called 59058 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l10">GenericClient&lt;AfUnixSocket&gt;::GenericClient(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, std::shared_ptr&lt;AfUnixSocket&gt; const&amp;, StringIdentifier const&amp;) (LinxIpc/src/common/GenericClient.tpp:10)</a></td><td>called 39 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l79">GenericClient&lt;AfUnixSocket&gt;::connect(int) (LinxIpc/src/common/GenericClient.tpp:79)</a></td><td>called 21 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l106">GenericClient&lt;AfUnixSocket&gt;::getName[abi:cxx11]() const (LinxIpc/src/common/GenericClient.tpp:106)</a></td><td>called 134388 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l100">GenericClient&lt;AfUnixSocket&gt;::isEqual(LinxClient const&amp;) const (LinxIpc/src/common/GenericClient.tpp:100)</a></td><td>called 3 times</td><td>100.0%</td><td>83.3%</td><td>91.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l34">GenericClient&lt;AfUnixSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;) (LinxIpc/src/common/GenericClient.tpp:34)</a></td><td>called 16278 times</td><td>100.0%</td><td>-%</td><td>85.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l39">GenericClient&lt;AfUnixSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;)::{lambda(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, StringIdentifier const&amp;)#1}::operator()(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, StringIdentifier const&amp;) const (LinxIpc/src/common/GenericClient.tpp:39)</a></td><td>called 16219 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l43">GenericClient&lt;AfUnixSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;)::{lambda(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, StringIdentifier const&amp;)#1}::operator()(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, StringIdentifier const&amp;) const::{lambda(unsigned int)#1}::operator()(unsigned int) const (LinxIpc/src/common/GenericClient.tpp:43)</a></td><td>called 16232 times</td><td>88.2%</td><td>87.5%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l23">GenericClient&lt;AfUnixSocket&gt;::send(IMessage const&amp;) (LinxIpc/src/common/GenericClient.tpp:23)</a></td><td>called 75271 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l70">GenericClient&lt;AfUnixSocket&gt;::sendReceive(IMessage const&amp;, int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;) (LinxIpc/src/common/GenericClient.tpp:70)</a></td><td>called 16191 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l17">GenericClient&lt;AfUnixSocket&gt;::~GenericClient() (LinxIpc/src/common/GenericClient.tpp:17)</a></td><td>called 39 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l10">GenericClient&lt;UdpSocket&gt;::GenericClient(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, std::shared_ptr&lt;UdpSocket&gt; const&amp;, PortInfo const&amp;) (LinxIpc/src/common/GenericClient.tpp:10)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l79">GenericClient&lt;UdpSocket&gt;::connect(int) (LinxIpc/src/common/GenericClient.tpp:79)</a></td><td>called 1 time</td><td>84.6%</td><td>40.0%</td><td>68.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l106">GenericClient&lt;UdpSocket&gt;::getName[abi:cxx11]() const (LinxIpc/src/common/GenericClient.tpp:106)</a></td><td>called 4 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l100">GenericClient&lt;UdpSocket&gt;::isEqual(LinxClient const&amp;) const (LinxIpc/src/common/GenericClient.tpp:100)</a></td><td>not called</td><td>0.0%</td><td>0.0%</td><td>0.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l34">GenericClient&lt;UdpSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;) (LinxIpc/src/common/GenericClient.tpp:34)</a></td><td>called 2 times</td><td>100.0%</td><td>-%</td><td>47.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l39">GenericClient&lt;UdpSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;)::{lambda(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, PortInfo const&amp;)#1}::operator()(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, PortInfo const&amp;) const (LinxIpc/src/common/GenericClient.tpp:39)</a></td><td>called 2 times</td><td>100.0%</td><td>66.7%</td><td>88.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l43">GenericClient&lt;UdpSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;)::{lambda(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, PortInfo const&amp;)#1}::operator()(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;&amp;, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, PortInfo const&amp;) const::{lambda(unsigned int)#1}::operator()(unsigned int) const (LinxIpc/src/common/GenericClient.tpp:43)</a></td><td>called 1 time</td><td>52.9%</td><td>37.5%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l23">GenericClient&lt;UdpSocket&gt;::send(IMessage const&amp;) (LinxIpc/src/common/GenericClient.tpp:23)</a></td><td>called 2 times</td><td>83.3%</td><td>50.0%</td><td>67.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l70">GenericClient&lt;UdpSocket&gt;::sendReceive(IMessage const&amp;, int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;) (LinxIpc/src/common/GenericClient.tpp:70)</a></td><td>called 1 time</td><td>75.0%</td><td>50.0%</td><td>80.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericClient.tpp.d42d04e41d7f0ab4de59d1344b31d428.html#l17">GenericClient&lt;UdpSocket&gt;::~GenericClient() (LinxIpc/src/common/GenericClient.tpp:17)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l49">GenericServer&lt;AfUnixSocket&gt;::GenericServer(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, std::shared_ptr&lt;AfUnixSocket&gt; const&amp;, std::unique_ptr&lt;LinxQueue, std::default_delete&lt;LinxQueue&gt; &gt;&amp;&amp;) (LinxIpc/src/common/GenericServer.tpp:49)</a></td><td>called 28 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l134">GenericServer&lt;AfUnixSocket&gt;::getName[abi:cxx11]() const (LinxIpc/src/common/GenericServer.tpp:134)</a></td><td>called 32517 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l87">GenericServer&lt;AfUnixSocket&gt;::getPollFd() const (LinxIpc/src/common/GenericServer.tpp:87)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l111">GenericServer&lt;AfUnixSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/common/GenericServer.tpp:111)</a></td><td>called 16250 times</td><td>100.0%</td><td>87.5%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l92">GenericServer&lt;AfUnixSocket&gt;::send(IMessage const&amp;, IIdentifier const&amp;) (LinxIpc/src/common/GenericServer.tpp:92)</a></td><td>called 16225 times</td><td>100.0%</td><td>83.3%</td><td>96.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l67">GenericServer&lt;AfUnixSocket&gt;::start() (LinxIpc/src/common/GenericServer.tpp:67)</a></td><td>called 17 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l73">GenericServer&lt;AfUnixSocket&gt;::start()::{lambda()#1}::operator()() const (LinxIpc/src/common/GenericServer.tpp:73)</a></td><td>called 16 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l78">GenericServer&lt;AfUnixSocket&gt;::stop() (LinxIpc/src/common/GenericServer.tpp:78)</a></td><td>called 52 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l12">GenericServer&lt;AfUnixSocket&gt;::task() (LinxIpc/src/common/GenericServer.tpp:12)</a></td><td>called 16 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l61">GenericServer&lt;AfUnixSocket&gt;::~GenericServer() (LinxIpc/src/common/GenericServer.tpp:61)</a></td><td>called 28 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l49">GenericServer&lt;UdpSocket&gt;::GenericServer(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, std::shared_ptr&lt;UdpSocket&gt; const&amp;, std::unique_ptr&lt;LinxQueue, std::default_delete&lt;LinxQueue&gt; &gt;&amp;&amp;) (LinxIpc/src/common/GenericServer.tpp:49)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l134">GenericServer&lt;UdpSocket&gt;::getName[abi:cxx11]() const (LinxIpc/src/common/GenericServer.tpp:134)</a></td><td>called 6 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l87">GenericServer&lt;UdpSocket&gt;::getPollFd() const (LinxIpc/src/common/GenericServer.tpp:87)</a></td><td>not called</td><td>0.0%</td><td>-%</td><td>0.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l111">GenericServer&lt;UdpSocket&gt;::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/common/GenericServer.tpp:111)</a></td><td>called 2 times</td><td>83.3%</td><td>62.5%</td><td>77.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l92">GenericServer&lt;UdpSocket&gt;::send(IMessage const&amp;, IIdentifier const&amp;) (LinxIpc/src/common/GenericServer.tpp:92)</a></td><td>called 1 time</td><td>70.0%</td><td>50.0%</td><td>59.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l67">GenericServer&lt;UdpSocket&gt;::start() (LinxIpc/src/common/GenericServer.tpp:67)</a></td><td>called 1 time</td><td>75.0%</td><td>50.0%</td><td>92.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l73">GenericServer&lt;UdpSocket&gt;::start()::{lambda()#1}::operator()() const (LinxIpc/src/common/GenericServer.tpp:73)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l78">GenericServer&lt;UdpSocket&gt;::stop() (LinxIpc/src/common/GenericServer.tpp:78)</a></td><td>called 3 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l12">GenericServer&lt;UdpSocket&gt;::task() (LinxIpc/src/common/GenericServer.tpp:12)</a></td><td>called 1 time</td><td>87.0%</td><td>85.7%</td><td>79.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericServer.tpp.df58d998c4c98a42c463714f1e1da4d9.html#l61">GenericServer&lt;UdpSocket&gt;::~GenericServer() (LinxIpc/src/common/GenericServer.tpp:61)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericSocket.h.dc0542ed7973895505ad4b9b403e5c31.html#l10">GenericSocket&lt;PortInfo&gt;::~GenericSocket() (LinxIpc/src/common/GenericSocket.h:10)</a></td><td>called 2 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.GenericSocket.h.dc0542ed7973895505ad4b9b403e5c31.html#l10">GenericSocket&lt;StringIdentifier&gt;::~GenericSocket() (LinxIpc/src/common/GenericSocket.h:10)</a></td><td>called 69 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l5">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int) (LinxIpc/src/message/RawMessage.cpp:5)</a></td><td>called 89552 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l15">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt; const&amp;) (LinxIpc/src/message/RawMessage.cpp:15)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l19">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (LinxIpc/src/message/RawMessage.cpp:19)</a></td><td>called 32387 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l7">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, unsigned long) (LinxIpc/src/message/RawMessage.cpp:7)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l11">ILinxMessage&lt;unsigned char&gt;::ILinxMessage(unsigned int, void const*, unsigned int) (LinxIpc/src/message/RawMessage.cpp:11)</a></td><td>called 2024 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.RawMessage.cpp.3f891709761985aee76b35441470a7e8.html#l23">ILinxMessage&lt;unsigned char&gt;::deserialize(std::vector&lt;unsigned char, std::allocator&lt;unsigned char&gt; &gt;&amp;&amp;) (LinxIpc/src/message/RawMessage.cpp:23)</a></td><td>called 32356 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l7">LinxEventFd::LinxEventFd() (LinxIpc/src/queue/LinxEventFd.cpp:7)</a></td><td>called 64 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l34">LinxEventFd::clearEvents() (LinxIpc/src/queue/LinxEventFd.cpp:34)</a></td><td>called 20 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l60">LinxEventFd::getFd() const (LinxIpc/src/queue/LinxEventFd.cpp:60)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l45">LinxEventFd::readEvent() (LinxIpc/src/queue/LinxEventFd.cpp:45)</a></td><td>called 16228 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l19">LinxEventFd::writeEvent() (LinxIpc/src/queue/LinxEventFd.cpp:19)</a></td><td>called 16228 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxEventFd.cpp.2b982c7ae011ea80bbf625f7e34e63ff.html#l13">LinxEventFd::~LinxEventFd() (LinxIpc/src/queue/LinxEventFd.cpp:13)</a></td><td>called 73 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l16">LinxIpcHandler::LinxIpcHandler(std::shared_ptr&lt;LinxServer&gt; const&amp;) (LinxIpc/src/common/LinxIpcHandler.cpp:16)</a></td><td>called 15 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l67">LinxIpcHandler::getName[abi:cxx11]() const (LinxIpc/src/common/LinxIpcHandler.cpp:67)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l53">LinxIpcHandler::getPollFd() const (LinxIpc/src/common/LinxIpcHandler.cpp:53)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l29">LinxIpcHandler::handleMessage(int) (LinxIpc/src/common/LinxIpcHandler.cpp:29)</a></td><td>called 16246 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l57">LinxIpcHandler::receive(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/common/LinxIpcHandler.cpp:57)</a></td><td>called 16247 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l24">LinxIpcHandler::registerCallback(unsigned int, std::function&lt;int (std::shared_ptr&lt;LinxReceivedMessage&gt; const&amp;, void*)&gt; const&amp;, void*) (LinxIpc/src/common/LinxIpcHandler.cpp:24)</a></td><td>called 15 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l63">LinxIpcHandler::send(IMessage const&amp;, IIdentifier const&amp;) (LinxIpc/src/common/LinxIpcHandler.cpp:63)</a></td><td>called 16224 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l45">LinxIpcHandler::start() (LinxIpc/src/common/LinxIpcHandler.cpp:45)</a></td><td>called 8 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l49">LinxIpcHandler::stop() (LinxIpc/src/common/LinxIpcHandler.cpp:49)</a></td><td>called 23 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l20">LinxIpcHandler::~LinxIpcHandler() (LinxIpc/src/common/LinxIpcHandler.cpp:20)</a></td><td>called 15 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l7">LinxQueue::LinxQueue(std::unique_ptr&lt;LinxEventFd, std::default_delete&lt;LinxEventFd&gt; &gt;&amp;&amp;, int) (LinxIpc/src/queue/LinxQueue.cpp:7)</a></td><td>called 51 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l15">LinxQueue::add(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;&amp;) (LinxIpc/src/queue/LinxQueue.cpp:15)</a></td><td>called 16266 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l32">LinxQueue::clear() (LinxIpc/src/queue/LinxQueue.cpp:32)</a></td><td>called 61 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l83">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/queue/LinxQueue.cpp:83)</a></td><td>called 27526 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l85">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*)::{lambda(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;)#1}::operator()(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;) const (LinxIpc/src/queue/LinxQueue.cpp:85)</a></td><td>called 16277 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l94">LinxQueue::findMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*)::{lambda(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;)#1}::operator()(std::unique_ptr&lt;LinxReceivedMessage, std::default_delete&lt;LinxReceivedMessage&gt; &gt;&amp;) const::{lambda(unsigned int)#1}::operator()(unsigned int) const (LinxIpc/src/queue/LinxQueue.cpp:94)</a></td><td>called 57 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l39">LinxQueue::get(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/queue/LinxQueue.cpp:39)</a></td><td>called 16263 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l111">LinxQueue::getFd() const (LinxIpc/src/queue/LinxQueue.cpp:111)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l49">LinxQueue::getMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/queue/LinxQueue.cpp:49)</a></td><td>called 6 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l107">LinxQueue::size() const (LinxIpc/src/queue/LinxQueue.cpp:107)</a></td><td>called 9 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l67">LinxQueue::waitForMessage(int, std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/queue/LinxQueue.cpp:67)</a></td><td>called 16249 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l55">LinxQueue::waitForMessage(std::vector&lt;unsigned int, std::allocator&lt;unsigned int&gt; &gt; const&amp;, IIdentifier const*) (LinxIpc/src/queue/LinxQueue.cpp:55)</a></td><td>called 8 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxQueue.cpp.81cf2d25d2b43175aa9a2d1d0d7bd0ce.html#l11">LinxQueue::~LinxQueue() (LinxIpc/src/queue/LinxQueue.cpp:11)</a></td><td>called 60 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.LinxIpcHandler.cpp.a3c5ef388a3c83428e584711c1347a04.html#l8">LinxReceivedMessage::sendResponse(IMessage const&amp;) const (LinxIpc/src/common/LinxIpcHandler.cpp:8)</a></td><td>called 2 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpFactory.cpp.d5f256498745172ebb4719246df7ad82.html#l41">UdpFactory::createClient(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;, unsigned short) (LinxIpc/src/udp/UdpFactory.cpp:41)</a></td><td>called 1 time</td><td>63.2%</td><td>42.9%</td><td>80.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpFactory.cpp.d5f256498745172ebb4719246df7ad82.html#l12">UdpFactory::createServer(unsigned short, bool, unsigned long) (LinxIpc/src/udp/UdpFactory.cpp:12)</a></td><td>called 1 time</td><td>68.4%</td><td>50.0%</td><td>83.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l226">UdpFactory::isBroadcastIp(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/udp/UdpSocket.cpp:226)</a></td><td>called 7 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l230">UdpFactory::isMulticastIp(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/udp/UdpSocket.cpp:230)</a></td><td>called 8 times</td><td>80.0%</td><td>66.7%</td><td>91.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l10">UdpSocket::UdpSocket() (LinxIpc/src/udp/UdpSocket.cpp:10)</a></td><td>called 2 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l174">UdpSocket::bind(unsigned short) (LinxIpc/src/udp/UdpSocket.cpp:174)</a></td><td>called 1 time</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l151">UdpSocket::close() (LinxIpc/src/udp/UdpSocket.cpp:151)</a></td><td>called 4 times</td><td>100.0%</td><td>100.0%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l129">UdpSocket::flush() (LinxIpc/src/udp/UdpSocket.cpp:129)</a></td><td>not called</td><td>0.0%</td><td>0.0%</td><td>0.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l17">UdpSocket::getFd() const (LinxIpc/src/udp/UdpSocket.cpp:17)</a></td><td>called 2 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l182">UdpSocket::joinMulticastGroup(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;) (LinxIpc/src/udp/UdpSocket.cpp:182)</a></td><td>called 1 time</td><td>77.8%</td><td>50.0%</td><td>80.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l159">UdpSocket::open() (LinxIpc/src/udp/UdpSocket.cpp:159)</a></td><td>called 1 time</td><td>44.4%</td><td>50.0%</td><td>56.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l21">UdpSocket::receive(std::unique_ptr&lt;ILinxMessage&lt;unsigned char&gt;, std::default_delete&lt;ILinxMessage&lt;unsigned char&gt; &gt; &gt;*, PortInfo*, int) (LinxIpc/src/udp/UdpSocket.cpp:21)</a></td><td>called 5 times</td><td>65.9%</td><td>50.0%</td><td>72.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l91">UdpSocket::send(IMessage const&amp;, PortInfo const&amp;) (LinxIpc/src/udp/UdpSocket.cpp:91)</a></td><td>called 4 times</td><td>60.0%</td><td>50.0%</td><td>45.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l197">UdpSocket::setBroadcast(bool) (LinxIpc/src/udp/UdpSocket.cpp:197)</a></td><td>not called</td><td>0.0%</td><td>0.0%</td><td>0.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l209">UdpSocket::setMulticastTtl(int) (LinxIpc/src/udp/UdpSocket.cpp:209)</a></td><td>called 1 time</td><td>77.8%</td><td>50.0%</td><td>75.0%</td></tr>
+  <tr><td><a href="coverity_report.UdpSocket.cpp.e5e7bf463295ba069c50beda0c55ada0.html#l13">UdpSocket::~UdpSocket() (LinxIpc/src/udp/UdpSocket.cpp:13)</a></td><td>called 2 times</td><td>100.0%</td><td>-%</td><td>100.0%</td></tr>
+</table>
+
+      <hr/>
+    </main>
+    <footer>
+      Generated by: <a href="http://gcovr.com/en/8.4">GCOVR (Version 8.4)</a>
+    </footer>
+  </body>
+</html>
