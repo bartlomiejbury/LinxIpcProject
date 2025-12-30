@@ -32,7 +32,7 @@ class MyMessage : public IMessage {
 
     virtual uint32_t serializePayload(uint8_t *buffer, uint32_t bufferSize) const override {
         Data data = {
-            .value = htonl(value),
+            .value = static_cast<int>(htonl(value)),
             .temperature = temperature
         };
 
@@ -42,8 +42,8 @@ class MyMessage : public IMessage {
 
     static std::unique_ptr<MyMessage> fromRawMessage(const RawMessage &rawMsg) {
         Data data = *rawMsg.getPayloadAs<Data>();
-        data.value = ntohl(data.value);
-        return std::make_unique<MyMessage>(rawMsg.getReqId(), data.value, data.temperature);
+        int value = static_cast<int>(ntohl(data.value));
+        return std::make_unique<MyMessage>(rawMsg.getReqId(), value, data.temperature);
     }
 
   private:

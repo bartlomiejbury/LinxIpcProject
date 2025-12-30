@@ -95,3 +95,49 @@ TEST_F(RawMessageTests, serializeInsufficientBuffer) {
     ASSERT_EQ(serializedSize, 0);
 }
 
+TEST_F(RawMessageTests, createMessageWithPayloadSize) {
+    auto msg = RawMessage(42, 10);
+
+    ASSERT_EQ(msg.getReqId(), 42);
+    ASSERT_EQ(msg.getPayloadSize(), 10);
+
+    // Payload should be allocated and initialized to zeros
+    const uint8_t *payload = msg.getPayload();
+    for (size_t i = 0; i < 10; ++i) {
+        ASSERT_EQ(payload[i], 0);
+    }
+}
+
+TEST_F(RawMessageTests, createMessageFromVector) {
+    std::vector<uint8_t> buffer = {5, 6, 7, 8, 9};
+    auto msg = RawMessage(33, buffer);
+
+    ASSERT_EQ(msg.getReqId(), 33);
+    ASSERT_EQ(msg.getPayloadSize(), 5);
+
+    const uint8_t *payload = msg.getPayload();
+    for (size_t i = 0; i < buffer.size(); ++i) {
+        ASSERT_EQ(payload[i], buffer[i]);
+    }
+}
+
+TEST_F(RawMessageTests, createMessageFromVectorMove) {
+    std::vector<uint8_t> buffer = {10, 20, 30, 40};
+    auto msg = RawMessage(55, std::move(buffer));
+
+    ASSERT_EQ(msg.getReqId(), 55);
+    ASSERT_EQ(msg.getPayloadSize(), 4);
+
+    const uint8_t expected[] = {10, 20, 30, 40};
+    ASSERT_EQ(memcmp(expected, msg.getPayload(), sizeof(expected)), 0);
+}
+
+TEST_F(RawMessageTests, deserializeInsufficientBuffer) {
+    // Create a buffer that's too small (less than 4 bytes for reqId)
+    std::vector<uint8_t> buffer = {1, 2};
+
+    auto msg = RawMessage::deserialize(std::move(buffer));
+
+    ASSERT_EQ(msg, nullptr);
+}
+

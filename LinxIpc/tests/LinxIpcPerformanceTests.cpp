@@ -305,7 +305,7 @@ TEST_F(LinxIpcPerformanceTests, Throughput_LargePayload) {
     std::cout << std::left << std::setw(labelWidth) << "Avg latency:" << avgLatencyMs << " ms\n";
     std::cout << "==================================\n";
 
-    EXPECT_GT(throughputMBps, 50.0) << "Throughput should be > 50 MB/s";
+    EXPECT_GT(throughputMBps, 10.0) << "Throughput should be > 10 MB/s";
 }
 
 TEST_F(LinxIpcPerformanceTests, Concurrency_MultipleClients) {

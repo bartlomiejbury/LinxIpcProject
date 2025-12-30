@@ -241,3 +241,70 @@ TEST_F(AfUnixServerTests, stop_MultipleCalls_SafeToCall) {
     server->stop(); // Should be safe to call multiple times
     server->stop();
 }
+
+TEST_F(AfUnixServerTests, send_ReturnsErrorWhenSocketFails) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+
+    // Mock socket->send to return error
+    EXPECT_CALL(*socketPtr, send(_, _)).WillOnce(Return(-5));
+
+    RawMessage msg(123);
+    StringIdentifier to("CLIENT");
+    int result = server->send(msg, to);
+
+    ASSERT_EQ(result, -5);
+}
+
+TEST_F(AfUnixServerTests, send_ReturnsErrorWithInvalidIdentifierType) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+
+    // Create a mock identifier that doesn't match the socket type
+    class DifferentIdentifier : public IIdentifier {
+    public:
+        std::string format() const override { return "different"; }
+        bool isEqual(const IIdentifier &) const override { return false; }
+        std::unique_ptr<IIdentifier> clone() const override { return std::make_unique<DifferentIdentifier>(); }
+    };
+
+    RawMessage msg(123);
+    DifferentIdentifier wrongType;
+    int result = server->send(msg, wrongType);
+
+    ASSERT_EQ(result, -1);
+
+    // Socket send should NOT be called
+    EXPECT_CALL(*socketPtr, send(_, _)).Times(0);
+}
+
+TEST_F(AfUnixServerTests, receive_ReturnsNullWithInvalidIdentifierType) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+
+    // Create a mock identifier that doesn't match the socket type
+    class DifferentIdentifier : public IIdentifier {
+    public:
+        std::string format() const override { return "different"; }
+        bool isEqual(const IIdentifier &) const override { return false; }
+        std::unique_ptr<IIdentifier> clone() const override { return std::make_unique<DifferentIdentifier>(); }
+    };
+
+    auto sigsel = std::initializer_list<uint32_t>{42};
+    DifferentIdentifier wrongType;
+
+    auto result = server->receive(1000, sigsel, &wrongType);
+
+    ASSERT_EQ(result, nullptr);
+
+    // Queue get should NOT be called
+    EXPECT_CALL(*queuePtr, get(_, _, _)).Times(0);
+}
+TEST_F(AfUnixServerTests, start_ReturnsTrueWhenAlreadyStarted) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+
+    // Start the server
+    ASSERT_TRUE(server->start());
+
+    // Start again - should return true immediately without creating a new thread
+    ASSERT_TRUE(server->start());
+
+    server->stop();
+}

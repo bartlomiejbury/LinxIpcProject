@@ -3,6 +3,7 @@
 #include "LinxIpc.h"
 #include "LinxServerMock.h"
 #include "IIdentifier.h"
+#include "AfUnix.h"
 
 using namespace ::testing;
 
@@ -78,5 +79,68 @@ TEST_F(LinxIpcHandlerTests, getPollFd) {
 
     EXPECT_CALL(*server, getPollFd()).WillOnce(Return(42));
     ASSERT_EQ(handler.getPollFd(), 42);
+}
+
+TEST_F(LinxIpcHandlerTests, getName) {
+    auto server = std::make_shared<NiceMock<LinxServerMock>>();
+    auto handler = LinxIpcHandler(server);
+
+    EXPECT_CALL(*server, getName()).WillOnce(Return("TestServer"));
+    ASSERT_EQ(handler.getName(), "TestServer");
+}
+
+TEST_F(LinxIpcHandlerTests, send) {
+    auto server = std::make_shared<NiceMock<LinxServerMock>>();
+    auto handler = LinxIpcHandler(server);
+
+    RawMessage message(42);
+    StringIdentifier to("destination");
+
+    EXPECT_CALL(*server, send(_, _)).WillOnce(Return(100));
+    ASSERT_EQ(handler.send(message, to), 100);
+}
+
+TEST_F(LinxIpcHandlerTests, receive) {
+    auto server = std::make_shared<NiceMock<LinxServerMock>>();
+    auto handler = LinxIpcHandler(server);
+
+    auto msg = std::make_shared<LinxReceivedMessage>();
+    msg->message = std::make_unique<RawMessage>(10);
+    msg->from = std::make_unique<StringIdentifier>("sender");
+
+    EXPECT_CALL(*server, receive(1000, _, _)).WillOnce(Return(msg));
+    auto result = handler.receive(1000, LINX_ANY_SIG, LINX_ANY_FROM);
+    ASSERT_EQ(result, msg);
+}
+
+TEST_F(LinxIpcHandlerTests, sendResponse_Success) {
+    auto server = std::make_shared<NiceMock<LinxServerMock>>();
+
+    auto msg = std::make_shared<LinxReceivedMessage>();
+    msg->message = std::make_unique<RawMessage>(10);
+    msg->from = std::make_unique<StringIdentifier>("sender");
+    msg->server = server;
+
+    RawMessage response(20);
+
+    EXPECT_CALL(*server, send(_, _)).WillOnce(Return(50));
+    ASSERT_EQ(msg->sendResponse(response), 50);
+}
+
+TEST_F(LinxIpcHandlerTests, sendResponse_FailureWhenServerExpired) {
+    auto server = std::make_shared<NiceMock<LinxServerMock>>();
+
+    auto msg = std::make_shared<LinxReceivedMessage>();
+    msg->message = std::make_unique<RawMessage>(10);
+    msg->from = std::make_unique<StringIdentifier>("sender");
+    msg->server = server;
+
+    // Let the server expire by resetting the shared_ptr
+    server.reset();
+
+    RawMessage response(20);
+
+    // Should return -1 when server is expired
+    ASSERT_EQ(msg->sendResponse(response), -1);
 }
 

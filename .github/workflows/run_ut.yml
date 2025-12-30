@@ -1,17 +1,44 @@
 name: LinxIpc unit tests
 run-name: ${{ github.actor }} is testing LinxIpc
 on: [push]
+
+permissions:
+  contents: write
+
 jobs:
   unit_tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+
+      - name: Install gcovr
+        run: pip install gcovr
+
       - name: Build unit tests
-        run: | 
-          cmake -B build_ut -DUNIT_TESTS=1
-          cmake --build build_ut --target LinxIpc-ut
-      - name: Run unit tests
         run: |
-          cmake --build build_ut --target run_LinxIpc-ut
-          echo "🍏 This job's status is ${{ job.status }}."
+          cmake -B build_ut -DUNIT_TESTS=1 -DCOVERITY=1
+          cmake --build build_ut --target LinxIpc-ut
+
+      - name: Run unit tests and Generate coverage report
+        run: |
+          cmake --build build_ut --target gcov_LinxIpc-ut
+
+      - name: Deploy coverage report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build_ut/coverity_report
+          destination_dir: coverage
+
+      - name: Upload coverage report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build_ut/coverity_report/
+
+      - name: Add job summary
+        run: |
+          echo "🍏 This job's status is ${{ job.status }}." >> $GITHUB_STEP_SUMMARY
+          echo "📊 Coverage report will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/coverage/" >> $GITHUB_STEP_SUMMARY
