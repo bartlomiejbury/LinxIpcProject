@@ -106,7 +106,7 @@ if(COVERITY)
     add_custom_target(gcov_${PROJECT_NAME}-ut
         DEPENDS run_${PROJECT_NAME}-ut
         COMMAND mkdir -p ${CMAKE_BINARY_DIR}/coverity_report
-        COMMAND gcovr -s -b --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-details ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html --gcov-ignore-parse-errors=negative_hits.warn
+        COMMAND gcovr -s --txt-metric branch --root ${PROJECT_SOURCE_DIR} --filter ${PROJECT_SOURCE_DIR}/LinxIpc/src --html-details ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html --gcov-ignore-parse-errors=negative_hits.warn_once_per_file
         COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --cyan "coverity report stored in ${CMAKE_BINARY_DIR}/coverity_report/coverity_report.html"
         COMMENT "Running coverity"
     )
