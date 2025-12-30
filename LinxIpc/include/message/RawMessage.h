@@ -11,6 +11,7 @@ class ILinxMessage<uint8_t> : public IMessage {
     ILinxMessage(uint32_t reqId, size_t payloadSize);
     ILinxMessage(uint32_t reqId, const void *buffer, uint32_t payloadSize);
     ILinxMessage(uint32_t reqId, const std::vector<uint8_t> &buffer);
+    ILinxMessage(uint32_t reqId, std::vector<uint8_t> &&buffer);
 
     virtual ~ILinxMessage() = default;
 
@@ -31,7 +32,7 @@ class ILinxMessage<uint8_t> : public IMessage {
         std::copy(this->payload.begin(), this->payload.end(), buffer);
         return this->getPayloadSize();
     }
-    static std::unique_ptr<ILinxMessage<uint8_t>> deserialize(const uint8_t *buffer, uint32_t bufferSize);
+    static std::unique_ptr<ILinxMessage<uint8_t>> deserialize(std::vector<uint8_t> &&buffer);
 
   protected:
     std::vector<uint8_t> payload{};

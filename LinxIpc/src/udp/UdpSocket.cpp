@@ -67,7 +67,7 @@ int UdpSocket::receive(RawMessagePtr *msg, PortInfo *from, int timeoutMs) {
         return -5;
     }
 
-    auto ipc = RawMessage::deserialize(buffer.data(), len);
+    auto ipc = RawMessage::deserialize(std::move(buffer));
     if (ipc == nullptr) {
         LINX_ERROR("IPC recv deserialize failed for IPC socket");
         return -6;

@@ -1,5 +1,6 @@
 #include "RawMessage.h"
 #include <arpa/inet.h>
+#include <cstring>
 
 ILinxMessage<uint8_t>::ILinxMessage(uint32_t reqId) : IMessage(reqId) {}
 
@@ -15,17 +16,23 @@ ILinxMessage<uint8_t>::ILinxMessage(uint32_t reqId, const std::vector<uint8_t> &
     std::copy(buffer.begin(), buffer.end(), std::back_inserter(payload));
 }
 
-typedef struct {
-    uint32_t reqId;
-    uint8_t payload[0];
-} IpcMessage;
+ILinxMessage<uint8_t>::ILinxMessage(uint32_t reqId, std::vector<uint8_t> &&buffer) : IMessage(reqId), payload(std::move(buffer)) {
+    // Move the entire vector - zero copy!
+}
 
-std::unique_ptr<RawMessage> ILinxMessage<uint8_t>::deserialize(const uint8_t *buffer, uint32_t bufferSize) {
-    if (bufferSize < sizeof(uint32_t)) {
+std::unique_ptr<RawMessage> ILinxMessage<uint8_t>::deserialize(std::vector<uint8_t> &&buffer) {
+    if (buffer.size() < sizeof(uint32_t)) {
         return nullptr;
     }
-    const IpcMessage *ipc = (const IpcMessage *)buffer;
-    uint32_t payloadSize = bufferSize - sizeof(ipc->reqId);
-    uint32_t reqId = ntohl(ipc->reqId);
-    return std::make_unique<RawMessage>(reqId, (void *)ipc->payload, payloadSize);
+
+    // Extract reqId from the buffer
+    uint32_t reqId;
+    std::memcpy(&reqId, buffer.data(), sizeof(uint32_t));
+    reqId = ntohl(reqId);
+
+    // Remove the reqId bytes from the beginning, keeping only payload
+    buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t));
+
+    // Move the vector into the RawMessage - zero copy!
+    return std::make_unique<RawMessage>(reqId, std::move(buffer));
 }

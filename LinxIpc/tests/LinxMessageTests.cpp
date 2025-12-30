@@ -74,7 +74,9 @@ TEST_F(RawMessageTests, serializeDeserializeMessage) {
     uint32_t serializedSize = msg.serialize(buffer, sizeof(buffer));
     ASSERT_NE(serializedSize, 0);
 
-    auto  deserializedMsg = RawMessage::deserialize(buffer, serializedSize);
+    // Convert buffer to vector and move it to deserialize
+    std::vector<uint8_t> vec(buffer, buffer + serializedSize);
+    auto  deserializedMsg = RawMessage::deserialize(std::move(vec));
     ASSERT_NE(deserializedMsg, nullptr);
     ASSERT_EQ(deserializedMsg->getReqId(), msg.getReqId());
     ASSERT_EQ(deserializedMsg->getPayloadSize(), msg.getPayloadSize());
