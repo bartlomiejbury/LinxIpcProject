@@ -66,6 +66,19 @@ std::shared_ptr<UdpClient> createClient(const std::string &ip, uint16_t port) {
     return std::make_shared<UdpClient>(instanceId, socket, PortInfo(ip, port));
 }
 
+bool isBroadcastIp(const std::string &ip) {
+    return ip == "255.255.255.255";
+}
+
+bool isMulticastIp(const std::string &ip) {
+    struct in_addr addr;
+    if (inet_pton(AF_INET, ip.c_str(), &addr) != 1) {
+        return false;
+    }
+    uint32_t ip_num = ntohl(addr.s_addr);
+    return (ip_num >= 0xE0000000 && ip_num <= 0xEFFFFFFF);
+}
+
 } // namespace UdpFactory
 
 // Explicit template instantiation

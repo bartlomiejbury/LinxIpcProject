@@ -44,6 +44,7 @@ add_to_ut(TARGET LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcIntegrationTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcPerformanceTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/DeadlineTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/UdpFactoryTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/SylogEnvironment.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks

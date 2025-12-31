@@ -220,20 +220,3 @@ int UdpSocket::setMulticastTtl(int ttl) {
     auto result2 = setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop));
     return result1 < 0 ? result1 : result2;
 }
-
-namespace UdpFactory {
-
-bool isBroadcastIp(const std::string &ip) {
-    return ip == "255.255.255.255";
-}
-
-bool isMulticastIp(const std::string &ip) {
-    struct in_addr addr;
-    if (inet_pton(AF_INET, ip.c_str(), &addr) != 1) {
-        return false;
-    }
-    uint32_t ip_num = ntohl(addr.s_addr);
-    return (ip_num >= 0xE0000000 && ip_num <= 0xEFFFFFFF);
-}
-
-}

@@ -102,6 +102,14 @@ TEST_F(AfUnixClientTests, receive_ReturnNullWhenSocketReturnError) {
     ASSERT_EQ(client.receive(10000, sigsel), nullptr);
 }
 
+TEST_F(AfUnixClientTests, receive_ReturnNullWhenSocketTimeout) {
+    auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
+    auto sigsel = std::initializer_list<uint32_t>{4};
+    EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Return(0));
+
+    ASSERT_EQ(client.receive(10000, sigsel), nullptr);
+}
+
 TEST_F(AfUnixClientTests, receive_ReturnMsgWhenSignalMatchAny) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
