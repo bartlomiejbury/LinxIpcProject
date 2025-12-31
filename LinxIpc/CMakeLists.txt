@@ -31,10 +31,6 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}/src/queue
 )
 
-if(DEFINED LINX_LOG_PREFIX)
-    target_compile_definitions(LinxIpc PRIVATE LINX_LOG_PREFIX_LOWER="${LINX_LOG_PREFIX_LOWER}")
-endif()
-
 target_link_libraries(LinxIpc
     PRIVATE
     trace
