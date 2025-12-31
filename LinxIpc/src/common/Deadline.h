@@ -14,6 +14,9 @@ class Deadline {
         }
 
         bool isExpired() const {
+            if (deadline == std::chrono::steady_clock::time_point::max()) {
+                return false;
+            }
             return std::chrono::steady_clock::now() > deadline;
         }
 

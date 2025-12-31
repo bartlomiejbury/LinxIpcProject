@@ -23,7 +23,7 @@ class GenericClient : public LinxClient {
     RawMessagePtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel) override;
     RawMessagePtr sendReceive(const IMessage &message, int timeoutMs = INFINITE_TIMEOUT,
                                const std::vector<uint32_t> &sigsel = LINX_ANY_SIG) override;
-    bool connect(int timeoutMs) override;
+    bool connect(int timeoutMs = INFINITE_TIMEOUT) override;
     bool isEqual(const LinxClient &other) const override;
     std::string getName() const override;
 
