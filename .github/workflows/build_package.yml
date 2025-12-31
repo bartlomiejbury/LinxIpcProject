@@ -1,0 +1,29 @@
+name: Build Distribution Package
+run-name: ${{ github.actor }} is building LinxIpc package
+on: [push]
+
+jobs:
+  build_package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Build release library
+        run: |
+          cmake -B build
+          cmake --build build
+
+      - name: Create distribution package
+        run: ./create_package.sh
+
+      - name: Upload distribution package
+        uses: actions/upload-artifact@v4
+        with:
+          name: LinxIpc-package
+          path: dist/LinxIpc-*/
+
+      - name: Add job summary
+        run: |
+          echo "🍏 This job's status is ${{ job.status }}." >> $GITHUB_STEP_SUMMARY
+          echo "📦 Distribution package created successfully" >> $GITHUB_STEP_SUMMARY
