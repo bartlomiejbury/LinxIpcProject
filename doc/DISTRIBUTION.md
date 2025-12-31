@@ -61,9 +61,9 @@ add_executable(myapp main.cpp)
 target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 ```
 
-**Complete working example:** See [examples/cmake-package-config/](examples/cmake-package-config/)
+**Complete working example:** See [examples/client-server-example/](examples/client-server-example/)
 
-**Important:** If you build LinxIpc with `-DUSE_LOGGING=4`, this setting is automatically propagated to customer builds. The `USE_LOGGING` definition controls trace macro expansion in headers and must match between library and consumer.
+**Important:** If you build LinxIpc with `-DUSE_LOGGING=4`, this setting is automatically propagated to customer builds through CMake's target properties. Customers don't need to manually set USE_LOGGING.
 
 ## Distribution Methods
 
@@ -85,22 +85,16 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 **Customer usage:**
 ```cmake
-add_library(LinxIpc STATIC IMPORTED)
-set_target_properties(LinxIpc PROPERTIES
+add_library(LinxIpc_imported STATIC IMPORTED)
+set_target_properties(LinxIpc_imported PROPERTIES
     IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/lib/libLinxIpc.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/common;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/generic;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/message;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/trace"
+    INTERFACE_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/lib/libtrace.a"
 )
-target_link_libraries(myapp PRIVATE LinxIpc)
-
-# If library was built with USE_LOGGING=4:
-target_compile_definitions(myapp PRIVATE USE_LOGGING=4)
+target_link_libraries(myapp PRIVATE LinxIpc_imported)
 ```
 
-**Note:** If you built LinxIpc with `-DUSE_LOGGING=4`, customers must define the same level:
-- **CMake:** `target_compile_definitions(myapp PRIVATE USE_LOGGING=4)`
-- **g++:** `g++ -DUSE_LOGGING=4 ...`
-
-The `trace/trace.h` header defaults to `USE_LOGGING=0` if not specified.
+**Note:** LinxIpc's internal logging is already compiled in. If you built LinxIpc with `-DUSE_LOGGING=4`, you only need to define `USE_LOGGING` if you want to use trace macros in **your own code**. The `trace.h` header defaults to `USE_LOGGING=0` if not specified.
 
 ### 2. System Installation
 
@@ -201,7 +195,9 @@ LinxIpc-1.0.0/
 
 ### Example 1: Simple g++ Build
 ```bash
-g++ -I./LinxIpc/include myapp.cpp LinxIpc/lib/libLinxIpc.a -o myapp -pthread
+g++ -I./LinxIpc/include -I./LinxIpc/include/common -I./LinxIpc/include/generic \
+    -I./LinxIpc/include/message -I./LinxIpc/include/trace \
+    myapp.cpp LinxIpc/lib/libLinxIpc.a LinxIpc/lib/libtrace.a -o myapp -pthread
 ```
 
 ### Example 2: CMake Project
@@ -209,14 +205,15 @@ g++ -I./LinxIpc/include myapp.cpp LinxIpc/lib/libLinxIpc.a -o myapp -pthread
 cmake_minimum_required(VERSION 3.20)
 project(MyApp)
 
-add_library(LinxIpc STATIC IMPORTED)
-set_target_properties(LinxIpc PROPERTIES
+add_library(LinxIpc_imported STATIC IMPORTED)
+set_target_properties(LinxIpc_imported PROPERTIES
     IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/lib/libLinxIpc.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include"
+    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/common;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/generic;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/message;${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/include/trace"
+    INTERFACE_LINK_LIBRARIES "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/lib/libtrace.a"
 )
 
 add_executable(myapp main.cpp)
-target_link_libraries(myapp PRIVATE LinxIpc pthread)
+target_link_libraries(myapp PRIVATE LinxIpc_imported pthread)
 ```
 
 ### Example 3: Installed Package

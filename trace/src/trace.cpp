@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 //LCOV_EXCL_START
-#if USE_LOGGING >= SEVERITY_ERROR
 
 static const std::unordered_map<int, int> severityMap{{SEVERITY_DEBUG, LOG_DEBUG},
                                                       {SEVERITY_INFO, LOG_INFO},
@@ -48,42 +47,32 @@ void trace_close() {
     closelog();
 }
 
-#endif
-
 void trace_error(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= SEVERITY_ERROR
     va_list argptr;
     va_start(argptr, format);
     vtrace(SEVERITY_ERROR, fileName, lineNum, format, argptr);
     va_end(argptr);
-#endif
 }
 
 void trace_warning(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= SEVERITY_WARNING
     va_list argptr;
     va_start(argptr, format);
     vtrace(SEVERITY_WARNING, fileName, lineNum, format, argptr);
     va_end(argptr);
-#endif
 }
 
 void trace_info(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= SEVERITY_INFO
     va_list argptr;
     va_start(argptr, format);
     vtrace(SEVERITY_INFO, fileName, lineNum, format, argptr);
     va_end(argptr);
-#endif
 }
 
 void trace_debug(const char *fileName, int lineNum, const char *format, ...) {
-#if USE_LOGGING >= SEVERITY_DEBUG
     va_list argptr;
     va_start(argptr, format);
     vtrace(SEVERITY_DEBUG, fileName, lineNum, format, argptr);
     va_end(argptr);
-#endif
 }
 
 //LCOV_EXCL_STOP

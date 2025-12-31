@@ -73,8 +73,8 @@ class BluetoothSocket : public GenericSocket<BluetoothAddress> {
     bool open() override;
     void close() override;
     int getFd() const override;
-    int send(const LinxMessage &message, const BluetoothAddress &to) override;
-    int receive(LinxMessagePtr *msg, BluetoothAddress *from, int timeout) override;
+    int send(const IMessage &message, const BluetoothAddress &to) override;
+    int receive(RawMessagePtr *msg, BluetoothAddress *from, int timeout) override;
     int flush() override;
 
   protected:

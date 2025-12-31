@@ -10,7 +10,6 @@ add_library(LinxIpc STATIC
     ${CMAKE_CURRENT_LIST_DIR}/src/udp/UdpSocket.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/queue/LinxQueue.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/queue/LinxEventFd.cpp
-    $<TARGET_OBJECTS:trace>
 )
 
 target_include_directories(
@@ -37,16 +36,8 @@ target_include_directories(
 
 target_link_libraries(LinxIpc
     PRIVATE
+    trace
 )
-
-# Propagate USE_LOGGING definition to consumers
-# This is needed because trace.h uses USE_LOGGING in macros
-if(DEFINED USE_LOGGING)
-    target_compile_definitions(LinxIpc PUBLIC USE_LOGGING=${USE_LOGGING})
-else()
-    # Default to no logging if not specified
-    target_compile_definitions(LinxIpc PUBLIC USE_LOGGING=0)
-endif()
 
 # Installation rules
 install(TARGETS LinxIpc

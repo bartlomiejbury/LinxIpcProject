@@ -15,21 +15,27 @@ A high-performance IPC (Inter-Process Communication) library for Linux supportin
 - **Generic template framework** for extensible transport protocols
 - **Interface-based identifier system** for type-safe addressing
 
+## Documentation
+
+- [Architecture Guide](doc/ARCHITECTURE.md) - System design and component overview
+- [Distribution Guide](doc/DISTRIBUTION.md) - How to package and distribute the library
+- [Extending Guide](doc/EXTENDING.md) - How to add new transport types
+
 ## Quick Start
 
 ### Unix Domain Socket Example
 
 ```cpp
 // Server
-#include "AfUnixServer.h"
-#include "LinxIpc.h"
+#include "AfUnix.h"
 
 auto server = AfUnixFactory::createServer("MyServer");
 server->start();
 auto msg = server->receive(INFINITE_TIMEOUT);
 
 // Client
-#include "AfUnixClient.h"
+#include "AfUnix.h"
+
 auto client = AfUnixFactory::createClient("MyClient");
 client->connect(5000);
 RawMessage message(20);
@@ -66,7 +72,7 @@ client->send(message);
 - **LinxIpcHandler**: Message dispatcher with callback registration
 - **IIdentifier**: Interface for client/server identification (StringIdentifier, PortInfo)
 
-For detailed architecture information, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For detailed architecture information, see [ARCHITECTURE.md](doc/ARCHITECTURE.md).
 
 ## Message API
 
@@ -164,8 +170,7 @@ if (bytesWritten == 0) {
 
 **Unix Domain Socket Server:**
 ```cpp
-#include "AfUnixServer.h"
-#include "LinxIpc.h"
+#include "AfUnix.h"
 
 // Create server with default queue size (100)
 auto server = AfUnixFactory::createServer("MyServer");
@@ -230,7 +235,7 @@ auto msg = server->receive(INFINITE_TIMEOUT, LINX_ANY_SIG, &clientId);
 ```cpp
 auto msg = server->receive(INFINITE_TIMEOUT);
 if (msg) {
-    LinxMessage response(100);
+    RawMessage response(100);
     msg->sendResponse(response);  // Send back to the sender
 }
 ```
@@ -240,7 +245,8 @@ if (msg) {
 Register callbacks for specific message types:
 
 ```cpp
-#include "LinxIpc.h"
+#include "AfUnix.h"
+#include "common/LinxIpc.h"
 
 auto server = AfUnixFactory::createServer("MyServer");
 auto handler = LinxIpcHandler(server);
@@ -253,7 +259,7 @@ handler.registerCallback(20,
                msg->from->format().c_str());
 
         // Send response
-        LinxMessage response(21);
+        RawMessage response(21);
         msg->sendResponse(response);
         return 0;  // Return value can be checked
     },
@@ -298,8 +304,7 @@ while (true) {
 
 **Unix Domain Socket Client:**
 ```cpp
-#include "AfUnixClient.h"
-#include "LinxIpc.h"
+#include "AfUnix.h"
 
 auto client = AfUnixFactory::createClient("MyClientName");
 ```
@@ -330,7 +335,7 @@ if (client->connect(5000)) {  // 5 second timeout
 ### Sending Messages
 
 ```cpp
-LinxMessage msg(20);
+RawMessage msg(20);
 int rc = client->send(msg);
 if (rc < 0) {
     printf("Send failed\n");
@@ -342,7 +347,7 @@ if (rc < 0) {
 Send a message and wait for response:
 
 ```cpp
-LinxMessage request(10);
+RawMessage request(10);
 auto response = client->sendReceive(request, 5000, {20});
 if (response) {
     printf("Got response: 0x%x\n", response->getReqId());
@@ -364,8 +369,8 @@ LINX_DEFAULT_QUEUE_SIZE  // 100
 **Server (receiver.cpp):**
 ```cpp
 #include <stdio.h>
-#include "AfUnixServer.h"
-#include "LinxIpc.h"
+#include "AfUnix.h"
+#include "common/LinxIpc.h"
 
 int main() {
     auto server = AfUnixFactory::createServer("MyServer");
@@ -378,7 +383,7 @@ int main() {
                    msg->from->format().c_str());
 
             // Send response back
-            LinxMessage response(21);
+            RawMessage response(21);
             msg->sendResponse(response);
             return 0;
         }, nullptr);
@@ -396,8 +401,7 @@ int main() {
 **Client (sender.cpp):**
 ```cpp
 #include <stdio.h>
-#include "AfUnixClient.h"
-#include "LinxIpc.h"
+#include "AfUnix.h"
 
 int main() {
     auto client = AfUnixFactory::createClient("MySender");
@@ -407,7 +411,7 @@ int main() {
         return -1;
     }
 
-    LinxMessage msg(20);
+    RawMessage msg(20);
     if (client->send(msg) < 0) {
         printf("Failed to send\n");
         return -1;
@@ -438,7 +442,7 @@ int main() {
                    msg->from->format().c_str());
 
             // Send response back
-            LinxMessage response(21);
+            RawMessage response(21);
             msg->sendResponse(response);
             return 0;
         }, nullptr);
@@ -468,7 +472,7 @@ int main() {
         return -1;
     }
 
-    LinxMessage msg(20);
+    RawMessage msg(20);
     if (client->send(msg) < 0) {
         printf("Failed to send\n");
         return -1;
@@ -713,12 +717,12 @@ The LinxIpc framework is designed to be extensible. You can add support for new 
 2. Creating a new identifier type derived from `IIdentifier`
 3. Using the `GenericServer` and `GenericClient` templates
 
-For detailed information on extending the library, see [EXTENDING.md](EXTENDING.md).
+For detailed information on extending the library, see [EXTENDING.md](doc/EXTENDING.md).
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architecture and design patterns
-- [EXTENDING.md](EXTENDING.md) - Guide for adding new transport protocols
+- [ARCHITECTURE.md](doc/ARCHITECTURE.md) - Detailed architecture and design patterns
+- [EXTENDING.md](doc/EXTENDING.md) - Guide for adding new transport protocols
 - [LICENSE.txt](LICENSE.txt) - License information
 
 ## License

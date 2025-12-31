@@ -32,7 +32,7 @@ class IIdentifier {
 
 ### StringIdentifier
 
-**File:** `LinxIpc/include/StringIdentifier.h`
+**File:** `LinxIpc/include/AfUnix.h`
 
 Wraps `std::string` for Unix domain socket paths.
 
@@ -135,8 +135,8 @@ class CustomIdentifier : public IIdentifier {
 ```cpp
 class MyCustomSocket : public GenericSocket<CustomIdentifier> {
   public:
-    int send(const LinxMessage &msg, const CustomIdentifier &to) override;
-    int receive(LinxMessagePtr *msg, CustomIdentifier *from, int timeoutMs) override;
+    int send(const IMessage &msg, const CustomIdentifier &to) override;
+    int receive(RawMessagePtr *msg, CustomIdentifier *from, int timeoutMs) override;
     // ... other methods
 };
 ```

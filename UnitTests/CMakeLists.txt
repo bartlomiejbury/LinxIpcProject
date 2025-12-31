@@ -76,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}-ut
     gtest
     ut_mocks
     ${UNIT_TEST_LINKED_LIBS}
+    trace
 )
 
 #############################s
