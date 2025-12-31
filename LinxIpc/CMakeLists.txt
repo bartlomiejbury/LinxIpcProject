@@ -36,50 +36,53 @@ target_link_libraries(LinxIpc
     trace
 )
 
-# Installation rules
-install(TARGETS LinxIpc
-    EXPORT LinxIpcTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-)
+option(LINXIPC_INSTALL "Install LinxIpc library" ON)
+if(LINXIPC_INSTALL)
+    # Installation rules
+    install(TARGETS LinxIpc
+        EXPORT LinxIpcTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+    )
 
-# Install public headers
-install(DIRECTORY include/
-    DESTINATION include/LinxIpc
-    FILES_MATCHING PATTERN "*.h"
-)
+    # Install public headers
+    install(DIRECTORY include/
+        DESTINATION include/LinxIpc
+        FILES_MATCHING PATTERN "*.h"
+    )
 
-# Install package configuration files
-include(CMakePackageConfigHelpers)
+    # Install package configuration files
+    include(CMakePackageConfigHelpers)
 
-# Generate the config file that includes the exports
-configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/LinxIpcConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfig.cmake
-    INSTALL_DESTINATION lib/cmake/LinxIpc
-)
+    # Generate the config file that includes the exports
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/LinxIpcConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfig.cmake
+        INSTALL_DESTINATION lib/cmake/LinxIpc
+    )
 
-# Generate the version file
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfigVersion.cmake
-    VERSION 1.0.0
-    COMPATIBILITY SameMajorVersion
-)
+    # Generate the version file
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfigVersion.cmake
+        VERSION 1.0.0
+        COMPATIBILITY SameMajorVersion
+    )
 
-# Install the config and version files
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfigVersion.cmake
-    DESTINATION lib/cmake/LinxIpc
-)
+    # Install the config and version files
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfigVersion.cmake
+        DESTINATION lib/cmake/LinxIpc
+    )
 
-# Install the export set for use with the install-tree
-install(EXPORT LinxIpcTargets
-    FILE LinxIpcTargets.cmake
-    NAMESPACE LinxIpc::
-    DESTINATION lib/cmake/LinxIpc
-)
+    # Install the export set for use with the install-tree
+    install(EXPORT LinxIpcTargets
+        FILE LinxIpcTargets.cmake
+        NAMESPACE LinxIpc::
+        DESTINATION lib/cmake/LinxIpc
+    )
+endif()
 
 add_to_ut(TARGET LinxIpc
     SOURCES
