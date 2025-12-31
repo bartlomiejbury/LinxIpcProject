@@ -1,5 +1,11 @@
 #pragma once
 
+// Default logging level if not specified by build system
+// Can be overridden with -DUSE_LOGGING=4 at compile time
+#ifndef USE_LOGGING
+#define USE_LOGGING 0
+#endif
+
 #define SEVERITY_ERROR 1
 #define SEVERITY_WARNING 2
 #define SEVERITY_INFO 3

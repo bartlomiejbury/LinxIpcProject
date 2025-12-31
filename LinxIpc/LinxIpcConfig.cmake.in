@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+# LinxIpc CMake Package Configuration File
+# This file is used by CMake to find and use LinxIpc library
+
+include("${CMAKE_CURRENT_LIST_DIR}/LinxIpcTargets.cmake")
+
+# Check that all required components are present
+check_required_components(LinxIpc)
+
+# Provide some information about the package
+set(LinxIpc_FOUND TRUE)
+set(LinxIpc_VERSION "@PROJECT_VERSION@")
+set(LinxIpc_LIBRARIES LinxIpc::LinxIpc)
+set(LinxIpc_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/include/LinxIpc")
+
+# Usage information
+if(NOT LinxIpc_FIND_QUIETLY)
+    message(STATUS "Found LinxIpc: ${LinxIpc_VERSION}")
+    message(STATUS "  Libraries: ${LinxIpc_LIBRARIES}")
+    message(STATUS "  Include dirs: ${LinxIpc_INCLUDE_DIRS}")
+endif()

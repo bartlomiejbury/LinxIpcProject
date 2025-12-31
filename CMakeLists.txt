@@ -7,7 +7,6 @@ set(LINX_LOG_PREFIX trace)
 
 add_subdirectory(trace)
 add_subdirectory(LinxIpc)
-add_subdirectory(TestApp)
 
 if(UNIT_TESTS)
     enable_testing()
