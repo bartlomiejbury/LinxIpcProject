@@ -118,8 +118,7 @@ LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
     if (typedFrom || from == LINX_ANY_FROM) {
         auto recvMsg = queue->get(timeoutMs, sigsel, from);
         if (recvMsg != nullptr) {
-            auto reqId = recvMsg->message->getReqId();
-            LINX_DEBUG("[%s] Received reqId: 0x%x", getName().c_str(), reqId);
+            LINX_DEBUG("[%s] Received reqId: 0x%x", getName().c_str(), recvMsg->message->getReqId());
             return recvMsg;
         }
 
