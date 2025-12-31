@@ -38,6 +38,7 @@ add_to_ut(TARGET LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxMessageTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/AfUnixClientTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/AfUnixServerTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/AfUnixSocketTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxEventFdTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxQueueTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcHandlerTests.cpp
@@ -45,6 +46,7 @@ add_to_ut(TARGET LinxIpc
     ${CMAKE_CURRENT_LIST_DIR}/tests/LinxIpcPerformanceTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/DeadlineTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/UdpFactoryTests.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/tests/UdpSocketTests.cpp
     ${CMAKE_CURRENT_LIST_DIR}/tests/SylogEnvironment.cpp
     MOCKS
     ${CMAKE_CURRENT_LIST_DIR}/tests/mocks
