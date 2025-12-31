@@ -10,14 +10,16 @@ target_include_directories(
     $<INSTALL_INTERFACE:include/LinxIpc/trace>
 )
 
-# Install trace library and headers
-install(TARGETS trace
-    EXPORT LinxIpcTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-)
+if(LINXIPC_INSTALL)
+    # Install trace library and headers
+    install(TARGETS trace
+        EXPORT LinxIpcTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+    )
 
-install(DIRECTORY include/
-    DESTINATION include/LinxIpc/trace
-    FILES_MATCHING PATTERN "*.h"
-)
+    install(DIRECTORY include/
+        DESTINATION include/LinxIpc/trace
+        FILES_MATCHING PATTERN "*.h"
+    )
+endif()
