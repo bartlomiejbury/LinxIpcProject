@@ -19,7 +19,7 @@ target_include_directories(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/common>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/generic>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include/message>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/trace/exports>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/trace/include>
     $<INSTALL_INTERFACE:include/LinxIpc>
     $<INSTALL_INTERFACE:include/LinxIpc/common>
     $<INSTALL_INTERFACE:include/LinxIpc/generic>

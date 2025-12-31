@@ -6,7 +6,7 @@ add_library(trace STATIC
 target_include_directories(
     trace
     PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/exports>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
     $<INSTALL_INTERFACE:include/LinxIpc/trace>
 )
 
@@ -17,7 +17,7 @@ install(TARGETS trace
     LIBRARY DESTINATION lib
 )
 
-install(DIRECTORY exports/
+install(DIRECTORY include/
     DESTINATION include/LinxIpc/trace
     FILES_MATCHING PATTERN "*.h"
 )

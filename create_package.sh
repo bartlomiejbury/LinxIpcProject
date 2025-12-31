@@ -37,7 +37,7 @@ cp -r "$PROJECT_ROOT/LinxIpc/include"/* "$PACKAGE_DIR/include/"
 # Copy trace headers
 echo "Copying trace headers..."
 mkdir -p "$PACKAGE_DIR/include/trace"
-cp "$PROJECT_ROOT/trace/exports/trace.h" "$PACKAGE_DIR/include/trace/"
+cp "$PROJECT_ROOT/trace/include/trace.h" "$PACKAGE_DIR/include/trace/"
 
 # Copy documentation files
 echo "Copying documentation..."
