@@ -16,10 +16,13 @@ class LinxQueue {
     virtual int size() const;
     virtual int getFd() const;
     virtual void clear();
+    virtual void stop();
+
     virtual LinxReceivedMessagePtr get(int timeoutMs, const std::vector<uint32_t> &sigsel,
                                    const IIdentifier *from);
 
    private:
+    bool stopped = false;
     std::unique_ptr<LinxEventFd> efd;
     int max_size = 0;
     std::mutex m_mutex;

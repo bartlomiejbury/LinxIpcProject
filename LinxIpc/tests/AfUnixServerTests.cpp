@@ -98,7 +98,7 @@ TEST_F(AfUnixServerTests, stop_StopsTheWorkerThread) {
 }
 
 TEST_F(AfUnixServerTests, destructor_CallsStopAndClearsQueue) {
-    EXPECT_CALL(*queuePtr, clear()).Times(1);
+    EXPECT_CALL(*queuePtr, stop()).Times(1);
     {
         auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
         server->start();

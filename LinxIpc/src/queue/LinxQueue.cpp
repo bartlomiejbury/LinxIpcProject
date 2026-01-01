@@ -9,7 +9,7 @@ LinxQueue::LinxQueue(std::unique_ptr<LinxEventFd> &&efd, int size): efd{std::mov
 }
 
 LinxQueue::~LinxQueue() {
-    clear();
+    stop();
 }
 
 int LinxQueue::add(LinxReceivedMessagePtr &&msg) {
@@ -29,9 +29,16 @@ int LinxQueue::add(LinxReceivedMessagePtr &&msg) {
     return result;
 };
 
+void LinxQueue::stop() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    stopped = true;
+    queue.clear();
+    efd->clearEvents();
+    m_cv.notify_all();
+}
+
 void LinxQueue::clear() {
     std::lock_guard<std::mutex> lock(m_mutex);
-
     queue.clear();
     efd->clearEvents();
 }
@@ -57,9 +64,10 @@ LinxReceivedMessagePtr LinxQueue::waitForMessage(const std::vector<uint32_t> &si
     LinxReceivedMessagePtr msg = nullptr;
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    while ((msg = findMessage(sigsel, from)) == nullptr) {
-        m_cv.wait(lock);
-    }
+    m_cv.wait(lock, [this, &sigsel, &from, &msg]() {
+        msg = findMessage(sigsel, from);
+        return msg != nullptr || stopped;
+    });
 
     return msg;
 };
@@ -71,11 +79,10 @@ LinxReceivedMessagePtr LinxQueue::waitForMessage(int timeoutMs, const std::vecto
     std::unique_lock<std::mutex> lock(m_mutex);
     auto timeout = std::chrono::milliseconds(timeoutMs);
 
-    while ((msg = findMessage(sigsel, from)) == nullptr) {
-        if (m_cv.wait_for(lock, timeout) == std::cv_status::timeout) {
-            break;
-        }
-    }
+    m_cv.wait_for(lock, timeout, [this, &sigsel, &from, &msg]() {
+        msg = findMessage(sigsel, from);
+        return msg != nullptr || stopped;
+    });
 
     return msg;
 };

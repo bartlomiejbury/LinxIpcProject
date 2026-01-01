@@ -13,6 +13,7 @@ class LinxQueueMock : public LinxQueue {
     MOCK_METHOD(int, size, (), (const));
     MOCK_METHOD(int, getFd, (), (const));
     MOCK_METHOD(void, clear, ());
+    MOCK_METHOD(void, stop, ());
     MOCK_METHOD(LinxReceivedMessagePtr, get, (int timeoutMs, const std::vector<uint32_t> &sigsel,
                                               const IIdentifier *from));
 };

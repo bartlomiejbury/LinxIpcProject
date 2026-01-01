@@ -60,7 +60,6 @@ GenericServer<SocketType>::GenericServer(
 template<typename SocketType>
 GenericServer<SocketType>::~GenericServer() {
     stop();
-    queue->clear();
 }
 
 template<typename SocketType>
@@ -79,6 +78,7 @@ void GenericServer<SocketType>::stop() {
     if (workerThread.joinable()) {
         LINX_INFO("[%s] Stopping", getName().c_str());
         this->socket->close();
+        this->queue->stop();
         workerThread.join();
     }
 }

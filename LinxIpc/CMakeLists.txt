@@ -36,7 +36,6 @@ target_link_libraries(LinxIpc
     trace
 )
 
-option(LINXIPC_INSTALL "Install LinxIpc library" ON)
 if(LINXIPC_INSTALL)
     # Installation rules
     install(TARGETS LinxIpc
