@@ -48,6 +48,3 @@ int main() {
 
     return 0;
 }
-
-// Build: g++ -I../include -I../include/common -I../include/generic -I../include/message -I../include/trace \
-//        simple_example.cpp ../lib/libLinxIpc.a ../lib/libtrace.a -o simple_example -pthread

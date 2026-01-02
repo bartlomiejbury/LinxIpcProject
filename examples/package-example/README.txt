@@ -24,11 +24,7 @@ Logging levels: 0=none, 1=error, 2=warning, 3=info, 4=debug
 
 Building with CMake:
 --------------------
-# Method 1: Using CMake Package (if installed system-wide)
-find_package(LinxIpc REQUIRED)
-target_link_libraries(your_app PRIVATE LinxIpc::LinxIpc)
-
-# Method 2: Using IMPORTED target
+# Using IMPORTED target (for package without system installation)
 add_library(LinxIpc_imported STATIC IMPORTED)
 set_target_properties(LinxIpc_imported PROPERTIES
     IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/LinxIpc/lib/libLinxIpc.a"
