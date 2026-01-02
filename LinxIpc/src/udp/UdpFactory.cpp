@@ -9,8 +9,38 @@
 
 namespace UdpFactory {
 
-std::shared_ptr<UdpServer> createServer(uint16_t port, bool useMulticast, size_t queueSize) {
-    std::string ip = useMulticast ? LINX_MULTICAST_IP_ADDRESS : "0.0.0.0";
+std::shared_ptr<UdpServer> createMulticastServer(const std::string &multicastIp, uint16_t port, size_t queueSize) {
+
+    if (!isMulticastIp(multicastIp)) {
+        LINX_ERROR("IP address is not multicast: %s", multicastIp.c_str());
+        return nullptr;
+    }
+
+        auto socket = std::make_shared<UdpSocket>();
+    if (socket->open() < 0) {
+        LINX_ERROR("Failed to open UDP socket for server on port: %d", port);
+        return nullptr;
+    }
+    if (socket->bind(port, multicastIp) < 0) {
+        LINX_ERROR("Failed to bind UDP socket for server on port: %d", port);
+        return nullptr;
+    }
+    if (socket->joinMulticastGroup(multicastIp) < 0) {
+        LINX_ERROR("Failed to join multicast group: %s", multicastIp.c_str());
+        return nullptr;
+    }
+
+    // Add argument for service name
+    std::string serviceName = multicastIp + ":" + std::to_string(port);
+    auto efd = std::make_unique<LinxEventFd>();
+    auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
+
+    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serviceName.c_str(), socket->getFd(), multicastIp.c_str(), port);
+    return std::make_shared<UdpServer>(serviceName, socket, std::move(queue));
+}
+
+std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize) {
+    std::string ip = "0.0.0.0";
 
     auto socket = std::make_shared<UdpSocket>();
     if (socket->open() < 0) {
@@ -20,13 +50,6 @@ std::shared_ptr<UdpServer> createServer(uint16_t port, bool useMulticast, size_t
     if (socket->bind(port) < 0) {
         LINX_ERROR("Failed to bind UDP socket for server on port: %d", port);
         return nullptr;
-    }
-
-    if (isMulticastIp(ip)) {
-        if (socket->joinMulticastGroup(ip) < 0) {
-            LINX_ERROR("Failed to join multicast group: %s", ip.c_str());
-            return nullptr;
-        }
     }
 
     // Add argument for service name

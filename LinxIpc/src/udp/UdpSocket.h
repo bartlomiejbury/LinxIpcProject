@@ -20,7 +20,7 @@ class UdpSocket : public GenericSocket<PortInfo> {
     virtual void close();
 
     virtual int open();
-    virtual int bind(uint16_t port);
+    virtual int bind(uint16_t port, const std::string &multicastIp = "0.0.0.0");
     virtual int joinMulticastGroup(const std::string &multicastIp);
     virtual int setBroadcast(bool enable);
     virtual int setMulticastTtl(int ttl);

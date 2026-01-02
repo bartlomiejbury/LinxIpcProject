@@ -48,7 +48,7 @@ client->send(message);
 // Server
 #include "UdpLinx.h"
 
-auto server = UdpFactory::createServer(8080);
+auto server = UdpFactory::createServer(8080, 100);
 server->start();
 auto msg = server->receive(INFINITE_TIMEOUT);
 
@@ -187,13 +187,11 @@ server->start();
 #include "UdpLinx.h"
 
 // Create UDP server on port 8080
-auto server = UdpFactory::createServer(8080);
+auto server = UdpFactory::createServer(8080, 100);  // port, queueSize
 
-// Create UDP server with multicast support
-auto server = UdpFactory::createServer(8080, true);
-
-// Create UDP server with custom queue size
-auto server = UdpFactory::createServer(8080, false, 200);
+// Create UDP multicast server
+const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
+auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 8080, 100);
 
 // Start the server thread
 server->start();
@@ -431,8 +429,8 @@ int main() {
 #include "LinxIpc.h"
 
 int main() {
-    // Create UDP server on port 8080
-    auto server = UdpFactory::createServer(8080);
+    // Create UDP server on port 8080 with queue size 100
+    auto server = UdpFactory::createServer(8080, 100);
     auto handler = LinxIpcHandler(server);
 
     handler.registerCallback(20,
@@ -487,8 +485,9 @@ int main() {
 ```cpp
 #include "UdpLinx.h"
 
-// Server with multicast enabled
-auto server = UdpFactory::createServer(8080, true);
+// Server with multicast
+const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
+auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 8080, 100);
 server->start();
 
 // Client connecting to multicast address

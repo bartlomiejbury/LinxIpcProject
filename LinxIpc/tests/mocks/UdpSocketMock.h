@@ -6,7 +6,7 @@
 class UdpSocketMock : public UdpSocket {
   public:
     MOCK_METHOD(int, open, (), (override));
-    MOCK_METHOD(int, bind, (uint16_t port), (override));
+    MOCK_METHOD(int, bind, (uint16_t port, const std::string &multicastIp), (override));
     MOCK_METHOD(int, joinMulticastGroup, (const std::string &multicastAddress), (override));
     MOCK_METHOD(int, setMulticastTtl, (int ttl), (override));
     MOCK_METHOD(int, setBroadcast, (bool enable), (override));

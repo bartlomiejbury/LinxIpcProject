@@ -20,7 +20,7 @@ class UdpFactoryTests : public testing::Test {
 
 // Test successful server creation without multicast
 TEST_F(UdpFactoryTests, createServer_SuccessWithoutMulticast) {
-    auto server = UdpFactory::createServer(0, false, 10);  // Port 0 = let OS assign
+    auto server = UdpFactory::createServer(0, 10);  // Port 0 = let OS assign
 
     ASSERT_NE(server, nullptr);
     EXPECT_FALSE(server->getName().empty());
@@ -28,7 +28,8 @@ TEST_F(UdpFactoryTests, createServer_SuccessWithoutMulticast) {
 
 // Test successful server creation with multicast
 TEST_F(UdpFactoryTests, createServer_SuccessWithMulticast) {
-    auto server = UdpFactory::createServer(0, true, 10);  // Port 0 = let OS assign
+    const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
+    auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 0, 10);  // Port 0 = let OS assign
 
     ASSERT_NE(server, nullptr);
     EXPECT_FALSE(server->getName().empty());
@@ -37,7 +38,7 @@ TEST_F(UdpFactoryTests, createServer_SuccessWithMulticast) {
 // Test server creation with specific port
 TEST_F(UdpFactoryTests, createServer_WithSpecificPort) {
     // Try to create server on a high port number (less likely to be in use)
-    auto server = UdpFactory::createServer(54321, false, 10);
+    auto server = UdpFactory::createServer(54321, 10);
 
     if (server != nullptr) {
         EXPECT_FALSE(server->getName().empty());
@@ -90,9 +91,9 @@ TEST_F(UdpFactoryTests, createClient_UniqueInstanceIds) {
 
 // Test server creation with different queue sizes
 TEST_F(UdpFactoryTests, createServer_WithDifferentQueueSizes) {
-    auto server1 = UdpFactory::createServer(0, false, 10);
-    auto server2 = UdpFactory::createServer(0, false, 100);
-    auto server3 = UdpFactory::createServer(0, false, 1000);
+    auto server1 = UdpFactory::createServer(0, 10);
+    auto server2 = UdpFactory::createServer(0, 100);
+    auto server3 = UdpFactory::createServer(0, 1000);
 
     ASSERT_NE(server1, nullptr);
     ASSERT_NE(server2, nullptr);
@@ -132,7 +133,7 @@ TEST_F(UdpFactoryTests, createServer_ReturnsNullWhenSocketOpenFails) {
     EXPECT_CALL(mock, socket(AF_INET, SOCK_DGRAM, 0))
         .WillOnce(Return(-1));
 
-    auto server = UdpFactory::createServer(12345, false, 10);
+    auto server = UdpFactory::createServer(12345, 10);
     EXPECT_EQ(server, nullptr);
 }
 
@@ -145,7 +146,7 @@ TEST_F(UdpFactoryTests, createServer_ReturnsNullWhenBindFails) {
     EXPECT_CALL(mock, close(100))
         .WillOnce(Return(0));
 
-    auto server = UdpFactory::createServer(12345, false, 10);
+    auto server = UdpFactory::createServer(12345, 10);
     EXPECT_EQ(server, nullptr);
 }
 
@@ -160,7 +161,8 @@ TEST_F(UdpFactoryTests, createServer_ReturnsNullWhenJoinMulticastFails) {
     EXPECT_CALL(mock, close(100))
         .WillOnce(Return(0));
 
-    auto server = UdpFactory::createServer(12345, true, 10);  // Multicast enabled
+    const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
+    auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 12345, 10);  // Multicast enabled
     EXPECT_EQ(server, nullptr);
 }
 

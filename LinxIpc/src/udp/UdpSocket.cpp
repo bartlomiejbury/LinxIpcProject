@@ -171,11 +171,15 @@ int UdpSocket::open() {
     return 0;
 }
 
-int UdpSocket::bind(uint16_t port) {
+int UdpSocket::bind(uint16_t port, const std::string &multicastIp) {
     sockaddr_in addr{};
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    if (UdpFactory::isMulticastIp(multicastIp)) {
+        inet_aton(multicastIp.c_str(), &addr.sin_addr);
+    } else {
+        inet_aton("0.0.0.0", &addr.sin_addr);
+    }
     return ::bind(fd, (sockaddr*)&addr, sizeof(addr));
 }
 

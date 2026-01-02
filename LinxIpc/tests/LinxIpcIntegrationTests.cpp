@@ -65,9 +65,11 @@ TEST_F(LinxIpcIntegrationTests, testHandleMessageUnix) {
 
 TEST_F(LinxIpcIntegrationTests, testHandleMessageUdp) {
 
+    const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
+
     std::atomic<bool> running{true};
     std::thread handlerThread([&]() {
-        auto server = UdpFactory::createServer(12345, true, 10);
+        auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 12345, 10);
         auto handler = LinxIpcHandler(server);
         handler.registerCallback(IPC_SIG1_REQ, [&handler](const LinxReceivedMessageSharedPtr &msg, void *data) {
             RawMessage rsp(IPC_SIG1_RSP, {1, 2});
