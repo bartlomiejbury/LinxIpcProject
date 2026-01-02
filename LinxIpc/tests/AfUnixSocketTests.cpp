@@ -67,7 +67,7 @@ TEST_F(AfUnixSocketTests, close_SafeToCallMultipleTimes) {
 TEST_F(AfUnixSocketTests, receive_FailsOnInvalidSocket) {
     AfUnixSocket socket("test_socket");
     RawMessagePtr msg;
-    StringIdentifier from;
+    std::unique_ptr<IIdentifier> from;
 
     EXPECT_LT(socket.receive(&msg, &from, 10), 0);
 }
@@ -93,7 +93,7 @@ TEST_F(AfUnixSocketTests, receive_ReturnsZeroOnTimeout) {
     socket.open();
 
     RawMessagePtr msg;
-    StringIdentifier from;
+    std::unique_ptr<IIdentifier> from;
 
     // Short timeout should return 0 (timeout)
     EXPECT_EQ(socket.receive(&msg, &from, 10), 0);

@@ -10,11 +10,11 @@
 
 template<typename SocketType>
 void GenericServer<SocketType>::task() {
-    using IdentifierType = typename SocketTraits<SocketType>::Identifier;
+
     LINX_INFO("[%s] Task started", getName().c_str());
     while (true) {
         RawMessagePtr msg{};
-        IdentifierType from {};
+        std::unique_ptr<IIdentifier> from {};
 
         int ret = socket->receive(&msg, &from, INFINITE_TIMEOUT);
         if (ret == 0) {
@@ -29,18 +29,18 @@ void GenericServer<SocketType>::task() {
         auto reqId = msg->getReqId();
         if (reqId == IPC_PING_REQ) {
             RawMessage rsp = RawMessage(IPC_PING_RSP);
-            socket->send(rsp, from);
+            send(rsp, *from);
             continue;
         }
 
         auto container = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
             .message = std::move(msg),
-            .from = from.clone(),
+            .from = std::move(from),
             .server = this->weak_from_this()
         });
         if (queue->add(std::move(container)) != 0) {
             LINX_ERROR("[%s] Received reqId: 0x%x from: %s discarded - queue full",
-                      getName().c_str(), reqId, from.format().c_str());
+                      getName().c_str(), reqId, container->from->format().c_str());
         }
     }
 }

@@ -645,6 +645,23 @@ Built libraries and test applications are placed in:
 - Libraries: `build/output/lib/`
 - Executables: `build/output/bin/`
 
+### Creating Distribution Package
+
+To create a distributable package:
+
+```bash
+# Build the library first
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# Create package (version auto-detected from git)
+./create_package.sh
+```
+
+This creates a `LinxIpc-<version>.tar.gz` file containing libraries, headers, CMake configs, documentation, and examples.
+
+For detailed packaging options and distribution methods, see [DISTRIBUTION.md](doc/DISTRIBUTION.md).
+
 ## Testing
 
 ### Unit Tests

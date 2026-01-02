@@ -32,12 +32,11 @@ int GenericClient<SocketType>::send(const IMessage &message) {
 
 template<typename SocketType>
 RawMessagePtr GenericClient<SocketType>::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
-    using IdentifierType = typename SocketTraits<SocketType>::Identifier;
     RawMessagePtr msg{};
-    IdentifierType from;
+    std::unique_ptr<IIdentifier> from;
 
-    auto predicate = [this, sigsel](RawMessagePtr &msg, const std::vector<uint32_t> &sigselArg, const IdentifierType &from) {
-        if (from == this->identifier) {
+    auto predicate = [this, sigsel](RawMessagePtr &msg, const std::vector<uint32_t> &sigselArg, const std::unique_ptr<IIdentifier> &from) {
+        if (from && *from == this->identifier) {
             uint32_t reqId = msg->getReqId();
             return sigselArg.size() == 0 || std::find_if(sigselArg.begin(), sigselArg.end(),
                     [reqId](uint32_t id) { return id == reqId; }) != sigselArg.end();

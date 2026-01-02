@@ -8,7 +8,7 @@ class AfUnixSocketMock : public AfUnixSocket {
     AfUnixSocketMock() : AfUnixSocket("MOCK_SOCKET") {}
     ~AfUnixSocketMock() override = default;
     MOCK_METHOD(int, send, (const IMessage &message, const StringIdentifier &to));
-    MOCK_METHOD(int, receive, (RawMessagePtr * msg, StringIdentifier *from, int timeout));
+    MOCK_METHOD(int, receive, (RawMessagePtr * msg, std::unique_ptr<IIdentifier> *from, int timeout));
     MOCK_METHOD(int, flush, ());
     MOCK_METHOD(int, open, ());
     MOCK_METHOD(void, close, ());

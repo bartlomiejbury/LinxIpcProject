@@ -45,7 +45,7 @@ void AfUnixSocket::close() {
     }
 }
 
-int AfUnixSocket::receive(RawMessagePtr *msg, StringIdentifier *from, int timeoutMs) {
+int AfUnixSocket::receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeoutMs) {
 
     if (this->fd < 0) {
         LINX_ERROR("IPC recv on wrong IPC socket");
@@ -101,7 +101,7 @@ int AfUnixSocket::receive(RawMessagePtr *msg, StringIdentifier *from, int timeou
     }
 
     if (from) {
-        *from = StringIdentifier(&client_address.sun_path[1]);
+        *from = std::move(std::make_unique<StringIdentifier>(&client_address.sun_path[1]));
     }
 
     if (msg) {

@@ -6,11 +6,8 @@ This document describes how to package and distribute the LinxIpc library to cus
 
 ### Option 1: Create Distribution Package (Recommended for Quick Distribution)
 ```bash
-# Automatically detects version from git tags
+# Automatically detects version from git tags, uses default directories
 ./create_package.sh
-
-# Or specify a version manually
-./create_package.sh 2.0.0
 ```
 
 This creates a complete package with:
@@ -23,20 +20,21 @@ This creates a complete package with:
 ### Option 2: Install Locally (Recommended for System-Wide Installation)
 ```bash
 # Configure with install prefix
-cmake -B build -DCMAKE_INSTALL_PREFIX=/opt/LinxIpc
+cmake -B build
 
 # Build
 cmake --build build
 
 # Install (may require sudo)
-sudo cmake --install build
+sudo cmake --install build --prefix /opt/LinxIpc
 ```
 
 Result:
 ```
 /opt/LinxIpc/
 ├── lib/
-│   └── libLinxIpc.a
+│   ├── libLinxIpc.a
+|   ├── libtrace.a
 ├── include/
 │   └── LinxIpc/
 │       ├── AfUnix.h
@@ -83,15 +81,30 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 **Usage:**
 ```bash
-# Use git-detected version
+# Use git-detected version (tar.gz created in current directory)
 ./create_package.sh
-# Distribute: dist/LinxIpc-v2.0.2-5e9bf.tar.gz (if untagged commit)
-# or dist/LinxIpc-v2.0.2.tar.gz (if tagged commit)
+# Creates: LinxIpc-v2.0.2-5e9bf.tar.gz (if untagged commit)
+# or LinxIpc-v2.0.2.tar.gz (if tagged commit)
 
-# Or specify version manually
-./create_package.sh 1.0.0
-# Distribute: dist/LinxIpc-1.0.0.tar.gz
+# Specify version manually
+./create_package.sh -v 1.0.0
+# Creates: LinxIpc-1.0.0.tar.gz
+
+# Use custom build directory (e.g., for release builds)
+./create_package.sh -b build_release
+
+# Use custom staging directory
+./create_package.sh -d /tmp/dist
+
+# Full control
+./create_package.sh -v 2.0.0 -b build_release -d /tmp/dist
 ```
+
+**Notes:**
+- The tar.gz archive is created in the **current working directory** (where you invoke the script)
+- `-d DIST_DIR` specifies the staging directory (default: `./dist`) for unpacking and preparing files
+- `-b BUILD_DIR` specifies the build directory to package from (default: `./build`)
+- `-v VERSION` overrides automatic git version detection
 
 **Customer usage:**
 ```cmake
@@ -118,14 +131,14 @@ target_link_libraries(myapp PRIVATE LinxIpc_imported)
 **Installation:**
 ```bash
 # On build machine
-cmake -B build -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake -B build
 cmake --build build
 sudo cmake --install build
 
 # Or create installation package
-cmake -B build -DCMAKE_INSTALL_PREFIX=/tmp/LinxIpc-install
+cmake -B build
 cmake --build build
-cmake --install build
+cmake --install build --prefix /tmp/LinxIpc-install
 tar -czf LinxIpc-install.tar.gz -C /tmp LinxIpc-install
 ```
 
@@ -299,9 +312,9 @@ make
 ### Test Installation
 ```bash
 # Install to temporary location
-cmake -B build -DCMAKE_INSTALL_PREFIX=/tmp/test-install
+cmake -B build
 cmake --build build
-cmake --install build
+cmake --install build --prefix =/tmp/test-install
 
 # Test find_package
 cd /tmp/test-project

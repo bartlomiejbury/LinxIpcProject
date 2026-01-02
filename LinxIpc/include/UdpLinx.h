@@ -22,24 +22,16 @@ class PortInfo : public IIdentifier {
         isRestrictedIp = UdpFactory::isBroadcastIp(ip) || UdpFactory::isMulticastIp(ip);
     }
 
-    bool operator==(const PortInfo &other) const {
-        if (isRestrictedIp || other.isRestrictedIp) {
-            return port == other.port;
-        }
-        return ip == other.ip && port == other.port;
-    }
-
     std::string format() const override {
         return ip + ":" + std::to_string(port);
     }
 
     bool isEqual(const IIdentifier &other) const override {
         const auto *otherPort = dynamic_cast<const PortInfo*>(&other);
-        return otherPort && ip == otherPort->ip && port == otherPort->port;
-    }
-
-    std::unique_ptr<IIdentifier> clone() const override {
-        return std::make_unique<PortInfo>(ip, port);
+        if (isRestrictedIp || otherPort->isRestrictedIp) {
+            return port == otherPort->port;
+        }
+        return ip == otherPort->ip && port == otherPort->port;
     }
 };
 

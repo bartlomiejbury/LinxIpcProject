@@ -22,13 +22,18 @@ class IIdentifier {
     virtual ~IIdentifier() = default;
     virtual std::string format() const = 0;
     virtual bool isEqual(const IIdentifier &other) const = 0;
+
+    bool operator==(const IIdentifier &other) const {
+        return isEqual(other);
+    }
 };
 ```
 
 **Purpose:**
 - Defines contract for all identifier types
 - `format()`: Returns string representation for logging/display
-- `isEqual()`: Type-safe equality comparison
+- `isEqual()`: Type-safe equality comparison implementation
+- `operator==`: Delegates to `isEqual()` for idiomatic C++ comparison
 
 ### StringIdentifier
 
@@ -136,7 +141,7 @@ class CustomIdentifier : public IIdentifier {
 class MyCustomSocket : public GenericSocket<CustomIdentifier> {
   public:
     int send(const IMessage &msg, const CustomIdentifier &to) override;
-    int receive(RawMessagePtr *msg, CustomIdentifier *from, int timeoutMs) override;
+    int receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeoutMs) override;
     // ... other methods
 };
 ```
@@ -188,11 +193,12 @@ template class GenericServer<MyCustomSocket>;
 ## Benefits
 
 1. **Type Safety**: Compile-time checking of identifier types
-2. **Polymorphism**: Interface allows runtime type checking via `isEqual()`
+2. **Polymorphism**: Interface allows runtime type checking via `isEqual()` and `operator==`
 3. **Extensibility**: New socket types don't require modifying generic templates
 4. **Zero Overhead**: Template instantiation eliminates abstraction cost
 5. **Testability**: Each identifier type can be tested independently
 6. **Documentation**: `format()` method provides consistent string representation
+7. **Move Semantics**: Uses `std::unique_ptr` for efficient ownership transfer without cloning
 
 ## Design Patterns
 

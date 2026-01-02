@@ -23,7 +23,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: LinxIpc-package
-          path: dist/LinxIpc-*/
+          path: build/dist/LinxIpc-*/
 
       - name: Add job summary
         run: |

@@ -18,7 +18,7 @@ int UdpSocket::getFd() const {
     return fd;
 }
 
-int UdpSocket::receive(RawMessagePtr *msg, PortInfo *from, int timeoutMs) {
+int UdpSocket::receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeoutMs) {
 
     if (this->fd < 0) {
         LINX_ERROR("IPC recv on wrong IPC socket");
@@ -74,10 +74,10 @@ int UdpSocket::receive(RawMessagePtr *msg, PortInfo *from, int timeoutMs) {
     }
 
     if (from) {
-        *from = PortInfo{
+        *from = std::make_unique<PortInfo>(
             inet_ntoa(client_address.sin_addr),
             ntohs(client_address.sin_port)
-        };
+        );
     }
 
     if (msg) {

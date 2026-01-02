@@ -91,7 +91,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
     auto msg = queue.get(IMMEDIATE_TIMEOUT, {3, 2}, nullptr);
     ASSERT_NE(msg, nullptr);
     ASSERT_EQ(msg->message.get(), msg2Ptr);
-    ASSERT_TRUE(msg->from->isEqual(from2));
+    ASSERT_TRUE(*msg->from == from2);
     ASSERT_EQ(msg->message->getReqId(), 2);
 }
 
@@ -138,7 +138,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
     auto msg = queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, &from2Identifier);
     ASSERT_NE(msg, nullptr);
     ASSERT_EQ(msg->message.get(), msg2Ptr);
-    ASSERT_TRUE(msg->from->isEqual(from2));
+    ASSERT_TRUE(*msg->from == from2);
     ASSERT_EQ(msg->message->getReqId(), 2);
 }
 
@@ -195,7 +195,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
     auto msg = queue.get(INFINITE_TIMEOUT, {3, 2}, nullptr);
     ASSERT_NE(msg, nullptr);
     ASSERT_EQ(msg->message.get(), msg2Ptr);
-    ASSERT_TRUE(msg->from->isEqual(from2));
+    ASSERT_TRUE(*msg->from == from2);
     ASSERT_EQ(msg->message->getReqId(), 2);
 }
 
@@ -253,7 +253,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
     auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, &from2Identifier);
     ASSERT_NE(msg, nullptr);
     ASSERT_EQ(msg->message.get(), msg2Ptr);
-    ASSERT_TRUE(msg->from->isEqual(from2));
+    ASSERT_TRUE(*msg->from == from2);
     ASSERT_EQ(msg->message->getReqId(), 2);
 }
 

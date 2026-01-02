@@ -13,8 +13,8 @@ class AfUnixSocket : public GenericSocket<StringIdentifier> {
 
     virtual int getFd() const;
 
-    virtual int send(const IMessage &message, const StringIdentifier &to);
-    virtual int receive(RawMessagePtr *msg, StringIdentifier *from, int timeoutMs);
+    virtual int send(const IMessage &message, const Identifier &to);
+    virtual int receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeoutMs);
 
     virtual int flush();
     virtual int open();

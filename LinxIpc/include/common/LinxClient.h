@@ -6,7 +6,7 @@ class LinxClient {
   public:
     virtual ~LinxClient() = default;
 
-        virtual bool operator==(const LinxClient &other) const {
+    virtual bool operator==(const LinxClient &other) const {
         if (this == &other) {
             return true;
         }
@@ -17,18 +17,6 @@ class LinxClient {
 
         return this->isEqual(other);
     };
-
-    virtual bool operator!=(const LinxClient &other) const {
-        if (this == &other) {
-            return false;
-        }
-
-        if (typeid(*this) != typeid(other)) {
-            return true;
-        }
-
-        return !this->isEqual(other);
-    }
 
     virtual int send(const IMessage &message) = 0;
     virtual RawMessagePtr receive(int timeoutMs, const std::vector<uint32_t> &sigsel) = 0;

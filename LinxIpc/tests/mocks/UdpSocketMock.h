@@ -11,6 +11,6 @@ class UdpSocketMock : public UdpSocket {
     MOCK_METHOD(int, setMulticastTtl, (int ttl), (override));
     MOCK_METHOD(int, setBroadcast, (bool enable), (override));
     MOCK_METHOD(int, getFd, (), (const, override));
-    MOCK_METHOD(int, receive, (RawMessagePtr *msg, PortInfo *from, int timeoutMs), (override));
+    MOCK_METHOD(int, receive, (RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeoutMs), (override));
     MOCK_METHOD(int, send, (const IMessage &message, const PortInfo &to), (override));
 };

@@ -80,7 +80,7 @@ TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
 
     auto result = server->receive(10000, sigsel);
     ASSERT_NE(result, nullptr);
-    ASSERT_TRUE(result->from->isEqual(StringIdentifier("TEST")));
+    ASSERT_TRUE(*result->from == StringIdentifier("TEST"));
     ASSERT_EQ(result->message->getReqId(), 10U);
 }
 
@@ -113,9 +113,9 @@ TEST_F(AfUnixServerTests, task_ReceivesMessageAndAddsToQueue) {
 
     // Simulate socket receiving a message
     EXPECT_CALL(*socketPtr, receive(_, _, _))
-        .WillOnce(Invoke([](RawMessagePtr *msg, StringIdentifier *from, int) {
+        .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(42);
-            *from = StringIdentifier("CLIENT1");
+            *from = std::make_unique<StringIdentifier>("CLIENT1");
             return 4;
         }))
         .WillRepeatedly(testing::Return(-1)); // Timeout for subsequent calls
@@ -134,9 +134,9 @@ TEST_F(AfUnixServerTests, task_HandlesPingRequest) {
 
     // Simulate socket receiving a ping request
     EXPECT_CALL(*socketPtr, receive(_, _, _))
-        .WillOnce(Invoke([](RawMessagePtr *msg, StringIdentifier *from, int) {
+        .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(IPC_PING_REQ);
-            *from = StringIdentifier("CLIENT1");
+            *from = std::make_unique<StringIdentifier>("CLIENT1");
             return 4;
         }))
         .WillRepeatedly(testing::Return(-1)); // Timeout for subsequent calls
@@ -159,9 +159,9 @@ TEST_F(AfUnixServerTests, task_DiscardsMessageWhenQueueFull) {
 
     // Simulate socket receiving a message
     EXPECT_CALL(*socketPtr, receive(_, _, _))
-        .WillOnce(Invoke([](RawMessagePtr *msg, StringIdentifier *from, int) {
+        .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(42);
-            *from = StringIdentifier("CLIENT1");
+            *from = std::make_unique<StringIdentifier>("CLIENT1");
             return 4;
         }))
         .WillOnce(testing::Return(-1)) // Timeout after first message
@@ -263,7 +263,6 @@ TEST_F(AfUnixServerTests, send_ReturnsErrorWithInvalidIdentifierType) {
     public:
         std::string format() const override { return "different"; }
         bool isEqual(const IIdentifier &) const override { return false; }
-        std::unique_ptr<IIdentifier> clone() const override { return std::make_unique<DifferentIdentifier>(); }
     };
 
     RawMessage msg(123);
@@ -284,7 +283,6 @@ TEST_F(AfUnixServerTests, receive_ReturnsNullWithInvalidIdentifierType) {
     public:
         std::string format() const override { return "different"; }
         bool isEqual(const IIdentifier &) const override { return false; }
-        std::unique_ptr<IIdentifier> clone() const override { return std::make_unique<DifferentIdentifier>(); }
     };
 
     auto sigsel = std::initializer_list<uint32_t>{42};

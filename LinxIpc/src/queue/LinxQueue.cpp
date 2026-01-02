@@ -91,7 +91,7 @@ LinxReceivedMessagePtr LinxQueue::findMessage(const std::vector<uint32_t> &sigse
 
     auto predicate = [&sigsel, &from](LinxReceivedMessagePtr &msg) {
         if (from != nullptr) {
-            if (!msg->from->isEqual(*from)) {
+            if (!(*msg->from == *from)) {
                 return false;
             }
         }

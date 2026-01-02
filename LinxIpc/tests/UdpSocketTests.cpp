@@ -51,7 +51,7 @@ TEST_F(UdpSocketTests, bind_SuccessfullyBindsToPort) {
 TEST_F(UdpSocketTests, receive_FailsOnInvalidSocket) {
     UdpSocket socket;
     RawMessagePtr msg;
-    PortInfo from;
+    std::unique_ptr<IIdentifier> from;
 
     EXPECT_EQ(socket.receive(&msg, &from, 10), -1);
 }
@@ -120,7 +120,7 @@ TEST_F(UdpSocketTests, receive_ReturnsZeroOnTimeout) {
     socket.bind(0);
 
     RawMessagePtr msg;
-    PortInfo from;
+    std::unique_ptr<IIdentifier> from;
 
     // Short timeout should return 0 (timeout)
     EXPECT_EQ(socket.receive(&msg, &from, 10), 0);

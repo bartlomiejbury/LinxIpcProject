@@ -13,8 +13,8 @@ class UdpSocket : public GenericSocket<PortInfo> {
 
     virtual int getFd() const;
 
-    virtual int send(const IMessage &message, const PortInfo &to);
-    virtual int receive(RawMessagePtr *msg, PortInfo *from, int timeout);
+    virtual int send(const IMessage &message, const Identifier &to);
+    virtual int receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeout);
 
     virtual int flush();
     virtual void close();

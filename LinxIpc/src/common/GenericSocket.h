@@ -14,7 +14,7 @@ class GenericSocket {
     virtual int getFd() const = 0;
 
     virtual int send(const IMessage &message, const Identifier &to) = 0;
-    virtual int receive(RawMessagePtr *msg, Identifier *from, int timeout) = 0;
+    virtual int receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int timeout) = 0;
 
     virtual int flush() = 0;
 };

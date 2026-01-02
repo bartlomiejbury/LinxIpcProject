@@ -18,15 +18,7 @@ class StringIdentifier : public IIdentifier {
 
     bool isEqual(const IIdentifier &other) const override {
         const auto *otherStr = dynamic_cast<const StringIdentifier*>(&other);
-        return otherStr && value == otherStr->value;
-    }
-
-    std::unique_ptr<IIdentifier> clone() const override {
-        return std::make_unique<StringIdentifier>(value);
-    }
-
-    bool operator==(const StringIdentifier &other) const {
-        return value == other.value;
+        return value == otherStr->value;
     }
 
     const std::string& getValue() const {

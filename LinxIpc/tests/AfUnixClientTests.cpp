@@ -55,9 +55,9 @@ TEST_F(AfUnixClientTests, receive_ReturnSocketReceivedMsg) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(2);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -70,10 +70,10 @@ TEST_F(AfUnixClientTests, receive_ReturnNullWhenFromDifferentService) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             *msg = std::make_unique<RawMessage>(2);
-            *from = StringIdentifier("TEST2");
+            *from = std::make_unique<StringIdentifier>("TEST2");
             return 4;
         }
     ));
@@ -84,10 +84,10 @@ TEST_F(AfUnixClientTests, receive_ReturnNullWhenSignalNotInSigsel) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             *msg = std::make_unique<RawMessage>(10);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -114,9 +114,9 @@ TEST_F(AfUnixClientTests, receive_ReturnMsgWhenSignalMatchAny) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(10);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -139,9 +139,9 @@ TEST_F(AfUnixClientTests, sendReceive_ReturnCallserverSendAndReceive) {
 
     EXPECT_CALL(*socketPtr, send(Ref(msg), _)).WillOnce(Return(0));
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillRepeatedly(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(12);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -167,9 +167,9 @@ TEST_F(AfUnixClientTests, connect_ReturnTrueWhenRspReceived) {
     auto client = AfUnixClient("test_instance", std::move(socket), StringIdentifier("TEST"));
 
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -183,9 +183,9 @@ TEST_F(AfUnixClientTests, connect_NotCallReceiveWhenSendFail) {
         .WillOnce(Return(-1))
         .WillOnce(Return(2));
     EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Invoke(
-        [](RawMessagePtr* msg, StringIdentifier* from, int) {
+        [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }
     ));
@@ -199,15 +199,15 @@ TEST_F(AfUnixClientTests, connect_SendAgainWhenNoReponseReceived) {
     EXPECT_CALL(*socketPtr, send(signalMatcher(IPC_PING_REQ), _)).Times(2);
     EXPECT_CALL(*socketPtr, receive(_, _, _))
         .WillOnce(Invoke(
-            [](RawMessagePtr*, StringIdentifier*, int) {
+            [](RawMessagePtr*, std::unique_ptr<IIdentifier>*, int) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 return -1;
             }
         ))
         .WillOnce(Invoke(
-            [](RawMessagePtr* msg, StringIdentifier* from, int) {
+            [](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
                 *msg = std::make_unique<RawMessage>(IPC_PING_RSP);
-                *from = StringIdentifier(StringIdentifier("TEST"));
+                *from = std::make_unique<StringIdentifier>("TEST");
                 return 4;
             }
         ));
@@ -253,19 +253,19 @@ TEST_F(AfUnixClientTests, receive_LoopsContinueUntilCorrectMessageReceived) {
     // Second call returns wrong service name
     // Third call returns correct message
     EXPECT_CALL(*socketPtr, receive(_, _, _))
-        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+        .WillOnce(Invoke([](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(5);  // Wrong signal
-            *from = StringIdentifier(StringIdentifier("TEST"));
+            *from = std::make_unique<StringIdentifier>("TEST");
             return 4;
         }))
-        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+        .WillOnce(Invoke([](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(2);  // Right signal
-            *from = StringIdentifier("WRONG_SERVICE");  // Wrong service name
+            *from = std::make_unique<StringIdentifier>("WRONG_SERVICE");  // Wrong service name
             return 4;
         }))
-        .WillOnce(Invoke([](RawMessagePtr* msg, StringIdentifier* from, int) {
+        .WillOnce(Invoke([](RawMessagePtr* msg, std::unique_ptr<IIdentifier>* from, int) {
             *msg = std::make_unique<RawMessage>(3);  // Right signal
-            *from = StringIdentifier(StringIdentifier("TEST"));  // Right service name
+            *from = std::make_unique<StringIdentifier>("TEST");  // Right service name
             return 4;
         }));
 
