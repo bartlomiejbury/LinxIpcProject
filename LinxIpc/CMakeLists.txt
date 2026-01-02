@@ -64,7 +64,7 @@ if(LINXIPC_INSTALL)
     # Generate the version file
     write_basic_package_version_file(
         ${CMAKE_CURRENT_BINARY_DIR}/LinxIpcConfigVersion.cmake
-        VERSION 1.0.0
+        VERSION ${PROJECT_VERSION}
         COMPATIBILITY SameMajorVersion
     )
 

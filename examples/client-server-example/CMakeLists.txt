@@ -10,7 +10,7 @@ option(USE_INSTALLED_LINXIPC "Use installed LinxIpc via find_package()" ON)
 if(USE_INSTALLED_LINXIPC)
     # Find the installed LinxIpc package
     # CMake will look in standard locations and CMAKE_PREFIX_PATH
-    find_package(LinxIpc 1.0 REQUIRED)
+    find_package(LinxIpc REQUIRED)
 
     # Display what was found
     message(STATUS "===========================================")

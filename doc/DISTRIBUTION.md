@@ -6,7 +6,11 @@ This document describes how to package and distribute the LinxIpc library to cus
 
 ### Option 1: Create Distribution Package (Recommended for Quick Distribution)
 ```bash
-./create_package.sh 1.0.0
+# Automatically detects version from git tags
+./create_package.sh
+
+# Or specify a version manually
+./create_package.sh 2.0.0
 ```
 
 This creates a complete package with:
@@ -53,8 +57,8 @@ After installation, customers can use:
 cmake_minimum_required(VERSION 3.20)
 project(MyApp)
 
-# Find LinxIpc
-find_package(LinxIpc 1.0 REQUIRED)
+# Find LinxIpc (accepts any version)
+find_package(LinxIpc REQUIRED)
 
 # Link to application
 add_executable(myapp main.cpp)
@@ -79,6 +83,12 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 **Usage:**
 ```bash
+# Use git-detected version
+./create_package.sh
+# Distribute: dist/LinxIpc-v2.0.2-5e9bf.tar.gz (if untagged commit)
+# or dist/LinxIpc-v2.0.2.tar.gz (if tagged commit)
+
+# Or specify version manually
 ./create_package.sh 1.0.0
 # Distribute: dist/LinxIpc-1.0.0.tar.gz
 ```
@@ -121,7 +131,7 @@ tar -czf LinxIpc-install.tar.gz -C /tmp LinxIpc-install
 
 **Customer usage:**
 ```cmake
-find_package(LinxIpc 1.0 REQUIRED)
+find_package(LinxIpc REQUIRED)
 target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 ```
 
@@ -141,22 +151,22 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 ### Build Regular Package
 ```bash
-# Clean build
+# Clean build (version auto-detected from git)
 cmake -B build
 cmake --build build
 
-# Create distribution
-./create_package.sh 1.0.0
+# Create distribution (version auto-detected from git)
+./create_package.sh
 ```
 
 ### Build Release Package
 ```bash
-# Release build
+# Release build (version auto-detected from git)
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
-# Create package
-./create_package.sh 1.0.0
+# Create package (version auto-detected from git)
+./create_package.sh
 ```
 
 ### Build with Coverage (Development)
@@ -172,7 +182,7 @@ cmake --build build_ut --target gcov_LinxIpc-ut
 The distribution package includes:
 
 ```
-LinxIpc-1.0.0/
+LinxIpc-<version>/  # e.g., LinxIpc-v2.0.2/ or LinxIpc-v2.0.2-5e9bf/
 ├── lib/
 │   └── libLinxIpc.a           # Static library
 ├── include/
@@ -221,7 +231,7 @@ target_link_libraries(myapp PRIVATE LinxIpc_imported pthread)
 cmake_minimum_required(VERSION 3.20)
 project(MyApp)
 
-find_package(LinxIpc 1.0 REQUIRED)
+find_package(LinxIpc REQUIRED)
 
 add_executable(myapp main.cpp)
 target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
@@ -229,19 +239,55 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 ## Versioning
 
-Update version in:
-1. `LinxIpc/CMakeLists.txt` - write_basic_package_version_file()
-2. `create_package.sh` - When calling the script
+LinxIpc uses **automatic git-based versioning**:
+
+### How It Works
+- **Tagged commit**: Uses the git tag as-is (e.g., `v2.0.2`)
+- **Untagged commit**: Uses latest tag + short commit SHA (e.g., `v2.0.2-5e9bf`)
+- **No tags**: Falls back to `1.0.0`
+
+### Version Detection
+Both CMake and `create_package.sh` automatically detect the version:
+
+```bash
+# CMake build - version detected automatically
+cmake -B build
+cmake --build build
+
+# Package creation - version detected automatically
+./create_package.sh
+
+# Or override with specific version
+./create_package.sh 2.1.0
+```
+
+### Creating New Versions
+```bash
+# Create a new version tag
+git tag -a v2.0.2 -m "Release version 2.0.2"
+
+# Push the tag
+git push origin v2.0.2
+
+# Build and package will now use v2.0.2
+cmake -B build
+./create_package.sh
+```
+
+### Version Variables
+- `PROJECT_VERSION_FULL`: Complete version with commit hash (e.g., `v2.0.2-5e9bf`)
+- `PROJECT_VERSION`: Numeric version only (e.g., `2.0.2`) - used for CMake compatibility
+- `LinxIpc_VERSION`: Version exposed to customers via `find_package()`
 
 ## Testing the Package
 
 ### Test Distribution Package
 ```bash
-# Create and extract
-./create_package.sh 1.0.0
+# Create and extract (version auto-detected)
+./create_package.sh
 cd dist
-tar -xzf LinxIpc-1.0.0.tar.gz
-cd LinxIpc-1.0.0/examples
+tar -xzf LinxIpc-*.tar.gz  # Extract the created package
+cd LinxIpc-*/examples      # Enter the versioned directory
 
 # Build example
 mkdir build && cd build
@@ -285,12 +331,12 @@ cmake -B build
 
 ## Release Checklist
 
-- [ ] Update version numbers
-- [ ] Build release configuration
+- [ ] Create git tag for new version (e.g., `git tag -a v2.0.2 -m "Release v2.0.2"`)
+- [ ] Push tag to repository (`git push origin v2.0.2`)
+- [ ] Build release configuration (`cmake -B build -DCMAKE_BUILD_TYPE=Release`)
 - [ ] Run all tests
 - [ ] Generate coverage report
 - [ ] Update documentation
-- [ ] Create distribution package
+- [ ] Create distribution package (`./create_package.sh` - uses git tag automatically)
 - [ ] Test package on clean system
-- [ ] Tag release in git
 - [ ] Archive package

@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
-project(LinxIpc VERSION 1.0.0 LANGUAGES CXX)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/top.cmake)
+
+project(LinxIpc VERSION ${PROJECT_NUMERIC_VERSION} LANGUAGES CXX)
+message(STATUS "LinxIpc Version: ${PROJECT_VERSION_FULL}")
+message(STATUS "LinxIpc Numeric Version: ${PROJECT_NUMERIC_VERSION}")
 
 option(LINXIPC_INSTALL "Install LinxIpc library" ON)
 

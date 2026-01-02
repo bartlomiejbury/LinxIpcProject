@@ -1,3 +1,47 @@
+macro(determine_project_version)
+    # Try to get exact tag on current commit
+    execute_process(
+        COMMAND git describe --exact-match --tags
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_TAG
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+        RESULT_VARIABLE GIT_TAG_RESULT
+    )
+
+    if(GIT_TAG_RESULT EQUAL 0)
+        # Current commit has a tag, use it
+        set(PROJECT_VERSION_FULL ${GIT_TAG})
+    else()
+        # No tag on current commit, use latest tag + commit SHA
+        execute_process(
+            COMMAND git describe --tags --abbrev=0
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE LATEST_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+            RESULT_VARIABLE LATEST_TAG_RESULT
+        )
+
+        if(LATEST_TAG_RESULT EQUAL 0)
+            # Get short commit SHA
+            execute_process(
+                COMMAND git rev-parse --short HEAD
+                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                OUTPUT_VARIABLE COMMIT_SHA
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            set(PROJECT_VERSION_FULL "${LATEST_TAG}-${COMMIT_SHA}")
+        else()
+            # Fallback if git is not available or no tags exist
+            set(PROJECT_VERSION_FULL "1.0.0")
+        endif()
+    endif()
+
+    # Extract numeric version (e.g., v2.0.2-5e9bf -> 2.0.2) for CMake VERSION parameter
+    string(REGEX REPLACE "^v?([0-9]+\\.[0-9]+\\.[0-9]+).*" "\\1" PROJECT_NUMERIC_VERSION ${PROJECT_VERSION_FULL})
+endmacro()
 
 function(add_to_ut)
 
@@ -102,3 +146,4 @@ message(STATUS "#################################")
 
 add_option(VAR USE_LOGGING)
 add_option(VAR UNIT_TESTS)
+determine_project_version()

@@ -4,7 +4,25 @@
 
 set -e
 
-VERSION=${1:-1.0.0}
+# Determine version from git tags (same logic as CMakeLists.txt)
+if [ -z "$1" ]; then
+    # Try to get exact tag on current commit
+    if GIT_TAG=$(git describe --exact-match --tags 2>/dev/null); then
+        VERSION="$GIT_TAG"
+    else
+        # Get latest tag + commit SHA
+        if LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null); then
+            # Get short commit SHA
+            COMMIT_SHA=$(git rev-parse --short HEAD 2>/dev/null)
+            VERSION="${LATEST_TAG}-${COMMIT_SHA}"
+        else
+            VERSION="1.0.0"
+        fi
+    fi
+else
+    VERSION="$1"
+fi
+
 PROJECT_ROOT=$(cd "$(dirname "$0")" && pwd)
 BUILD_DIR="$PROJECT_ROOT/build"
 DIST_DIR="$PROJECT_ROOT/dist"
