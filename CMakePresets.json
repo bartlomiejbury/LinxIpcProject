@@ -21,7 +21,8 @@
             "binaryDir": "${sourceDir}/build_ut/",
             "cacheVariables": {
                 "UNIT_TESTS": "1",
-                "USE_LOGGING": "4",
+                "TRACE_LEVEL": "4",
+                "CMAKE_MESSAGE_LOG_LEVEL": "VERBOSE",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         }

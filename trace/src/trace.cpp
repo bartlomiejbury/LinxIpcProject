@@ -28,7 +28,7 @@ static void vtrace(int severity, const char *fileName, int lineNum, const char *
 }
 
 void trace_init() {
-    int defaultSeverity = USE_LOGGING;
+    int defaultSeverity = TRACE_LEVEL;
     openlog( NULL, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER );
 
     if (const char* env_severity = std::getenv( "LOG_LEVEL" )) {

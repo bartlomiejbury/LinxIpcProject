@@ -67,7 +67,7 @@ target_link_libraries(myapp PRIVATE LinxIpc::LinxIpc)
 
 **Complete working example:** See [examples/client-server-example/](examples/client-server-example/)
 
-**Important:** If you build LinxIpc with `-DUSE_LOGGING=4`, this setting is automatically propagated to customer builds through CMake's target properties. Customers don't need to manually set USE_LOGGING.
+**Important:** If you build LinxIpc with `-DTRACE_LEVEL=4`, this setting is automatically propagated to customer builds through CMake's target properties. Customers don't need to manually set TRACE_LEVEL.
 
 ## Distribution Methods
 
@@ -104,7 +104,7 @@ set_target_properties(LinxIpc_imported PROPERTIES
 target_link_libraries(myapp PRIVATE LinxIpc_imported)
 ```
 
-**Note:** LinxIpc's internal logging is already compiled in. If you built LinxIpc with `-DUSE_LOGGING=4`, you only need to define `USE_LOGGING` if you want to use trace macros in **your own code**. The `trace.h` header defaults to `USE_LOGGING=0` if not specified.
+**Note:** LinxIpc's internal logging is already compiled in. If you built LinxIpc with `-DTRACE_LEVEL=4`, you only need to define `TRACE_LEVEL` if you want to use trace macros in **your own code**. The `trace.h` header defaults to `TRACE_LEVEL=0` if not specified.
 
 ### 2. System Installation
 

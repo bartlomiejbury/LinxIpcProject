@@ -1,9 +1,9 @@
 #pragma once
 
 // Default logging level if not specified by build system
-// Can be overridden with -DUSE_LOGGING=4 at compile time
-#ifndef USE_LOGGING
-#define USE_LOGGING 0
+// Can be overridden with -DTRACE_LEVEL=4 at compile time
+#ifndef TRACE_LEVEL
+#define TRACE_LEVEL 0
 #endif
 
 #define SEVERITY_ERROR 1
@@ -24,7 +24,7 @@ void trace_error(const char *fileName, int lineNum, const char *format, ...);
 }
 #endif
 
-#if USE_LOGGING >= SEVERITY_ERROR
+#if TRACE_LEVEL >= SEVERITY_ERROR
     extern "C" void trace_init();
     extern "C" void trace_close();
     #define TRACE_INIT() trace_init()
@@ -36,19 +36,19 @@ void trace_error(const char *fileName, int lineNum, const char *format, ...);
     #define TRACE_ERROR(...)
 #endif
 
-#if USE_LOGGING >= SEVERITY_WARNING
+#if TRACE_LEVEL >= SEVERITY_WARNING
     #define TRACE_WARNING(...) trace_warning(__FILE__, __LINE__, ##__VA_ARGS__)
 #else
     #define TRACE_WARNING(...)
 #endif
 
-#if USE_LOGGING >= SEVERITY_INFO
+#if TRACE_LEVEL >= SEVERITY_INFO
     #define TRACE_INFO(...) trace_info(__FILE__, __LINE__, ##__VA_ARGS__)
 #else
     #define TRACE_INFO(...)
 #endif
 
-#if USE_LOGGING >= SEVERITY_DEBUG
+#if TRACE_LEVEL >= SEVERITY_DEBUG
     #define TRACE_DEBUG(...) trace_debug(__FILE__, __LINE__, ##__VA_ARGS__)
     #define TRACE_ENTER() trace_debug(__FILE__, __LINE__, "%s enter", __func__)
     #define TRACE_EXIT() trace_debug(__FILE__, __LINE__, "%s exit", __func__)
@@ -58,6 +58,6 @@ void trace_error(const char *fileName, int lineNum, const char *format, ...);
     #define TRACE_EXIT()
 #endif
 
-#if USE_LOGGING > SEVERITY_DEBUG
+#if TRACE_LEVEL > SEVERITY_DEBUG
     #error "Cannot set log level > SEVERITY_DEBUG"
 #endif

@@ -501,23 +501,23 @@ LinxIpc includes a built-in logging system that can be configured at compile-tim
 
 ### Compile-Time Configuration
 
-Set the `USE_LOGGING` level when configuring CMake:
+Set the `TRACE_LEVEL` level when configuring CMake:
 
 ```bash
 # No logging (default if not specified)
 cmake -B build
 
 # Error level only
-cmake -B build -DUSE_LOGGING=1
+cmake -B build -DTRACE_LEVEL=1
 
 # Warning and error
-cmake -B build -DUSE_LOGGING=2
+cmake -B build -DTRACE_LEVEL=2
 
 # Info, warning, and error
-cmake -B build -DUSE_LOGGING=3
+cmake -B build -DTRACE_LEVEL=3
 
 # All levels including debug
-cmake -B build -DUSE_LOGGING=4
+cmake -B build -DTRACE_LEVEL=4
 ```
 
 **Logging Levels:**
@@ -624,19 +624,19 @@ cmake --build build
 
 ```bash
 # Error level only
-cmake -B build -DUSE_LOGGING=1
+cmake -B build -DTRACE_LEVEL=1
 cmake --build build
 
 # Warning and error
-cmake -B build -DUSE_LOGGING=2
+cmake -B build -DTRACE_LEVEL=2
 cmake --build build
 
 # Info, warning, and error
-cmake -B build -DUSE_LOGGING=3
+cmake -B build -DTRACE_LEVEL=3
 cmake --build build
 
 # All levels including debug
-cmake -B build -DUSE_LOGGING=4
+cmake -B build -DTRACE_LEVEL=4
 cmake --build build
 ```
 

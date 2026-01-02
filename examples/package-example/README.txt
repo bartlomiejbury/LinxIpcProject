@@ -11,14 +11,14 @@ Contents:
 Logging Configuration (Optional):
 ----------------------------------
 LinxIpc's internal logging is already compiled into the library and will work
-automatically. You only need to define USE_LOGGING if you want to use trace
+automatically. You only need to define TRACE_LEVEL if you want to use trace
 logging in YOUR OWN application code.
 
 To enable trace macros in your application:
-  g++ -DUSE_LOGGING=4 -I./LinxIpc/include myapp.cpp LinxIpc/lib/libLinxIpc.a LinxIpc/lib/libtrace.a -o myapp
+  g++ -DTRACE_LEVEL=4 -I./LinxIpc/include myapp.cpp LinxIpc/lib/libLinxIpc.a LinxIpc/lib/libtrace.a -o myapp
 
 Or in CMakeLists.txt:
-  target_compile_definitions(your_app PRIVATE USE_LOGGING=4)
+  target_compile_definitions(your_app PRIVATE TRACE_LEVEL=4)
 
 Logging levels: 0=none, 1=error, 2=warning, 3=info, 4=debug
 
@@ -44,7 +44,7 @@ g++ -I./LinxIpc/include -I./LinxIpc/include/common -I./LinxIpc/include/generic \
     myapp.cpp LinxIpc/lib/libLinxIpc.a LinxIpc/lib/libtrace.a -o myapp
 
 # Optional: Enable trace logging in your own code:
-g++ -DUSE_LOGGING=4 -I./LinxIpc/include -I./LinxIpc/include/common \
+g++ -DTRACE_LEVEL=4 -I./LinxIpc/include -I./LinxIpc/include/common \
     -I./LinxIpc/include/generic -I./LinxIpc/include/message -I./LinxIpc/include/trace \
     myapp.cpp LinxIpc/lib/libLinxIpc.a LinxIpc/lib/libtrace.a -o myapp
 
