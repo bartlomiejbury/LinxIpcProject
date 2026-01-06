@@ -10,7 +10,7 @@ option(LINXIPC_INSTALL "Install LinxIpc library" ON)
 
 add_subdirectory(trace)
 add_subdirectory(LinxIpc)
-add_subdirectory(examples)
+add_subdirectory(examples EXCLUDE_FROM_ALL)
 
 if(UNIT_TESTS)
     enable_testing()
