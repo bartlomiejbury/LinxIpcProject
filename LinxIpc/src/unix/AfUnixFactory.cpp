@@ -36,7 +36,7 @@ std::shared_ptr<AfUnixClient> createClient(const std::string &serviceName) {
     }
 
     LINX_INFO("Created AF_UNIX client: %s(%d) -> server socket: %s", instanceId.c_str(), socket->getFd(), serviceName.c_str());
-    return std::make_shared<AfUnixClient>(instanceId, socket, StringIdentifier(serviceName));
+    return std::make_shared<AfUnixClient>(instanceId, socket, UnixInfo(serviceName));
 }
 
 } // namespace AfUnixFactory

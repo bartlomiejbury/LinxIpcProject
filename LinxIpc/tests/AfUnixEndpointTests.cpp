@@ -1,4 +1,4 @@
-#include "StringIdentifier.h"
+#include "UnixInfo.h"
 #include "gtest/gtest.h"
 #include "AfUnixEndpoint.h"
 #include "AfUnixServer.h"
@@ -67,7 +67,7 @@ TEST_F(AfUnixEndpointTests, receive_ReturnsMessageWhenServerReturnsMessage) {
 
     auto msg = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
         .message = std::make_unique<RawMessage>(42),
-        .from = std::make_unique<StringIdentifier>("TEST"),
+        .from = std::make_unique<UnixInfo>("TEST"),
         .server = server
     });
 

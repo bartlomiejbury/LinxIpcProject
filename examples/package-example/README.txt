@@ -46,7 +46,7 @@ g++ -DTRACE_LEVEL=4 -I./LinxIpc/include -I./LinxIpc/include/common \
 
 Example Application:
 --------------------
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "UdpLinx.h"
 #include <iostream>
 

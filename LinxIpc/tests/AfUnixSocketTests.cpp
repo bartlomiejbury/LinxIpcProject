@@ -76,7 +76,7 @@ TEST_F(AfUnixSocketTests, receive_FailsOnInvalidSocket) {
 TEST_F(AfUnixSocketTests, send_FailsOnInvalidSocket) {
     AfUnixSocket socket("test_socket");
     RawMessage msg(42);
-    StringIdentifier to("other_socket");
+    UnixInfo to("other_socket");
 
     EXPECT_LT(socket.send(msg, to), 0);
 }
@@ -169,7 +169,7 @@ TEST_F(AfUnixSocketTests, send_FailsWhenDestinationDoesNotExist) {
     socket.open();
 
     RawMessage msg(42);
-    StringIdentifier to("nonexistent_socket");
+    UnixInfo to("nonexistent_socket");
 
     // Should fail because destination doesn't exist
     EXPECT_LT(socket.send(msg, to), 0);

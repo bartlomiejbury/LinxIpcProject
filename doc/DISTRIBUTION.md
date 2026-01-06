@@ -37,7 +37,7 @@ Result:
 |   ├── libtrace.a
 ├── include/
 │   └── LinxIpc/
-│       ├── AfUnix.h
+│       ├── UnixLinx.h
 │       ├── UdpLinx.h
 │       └── ...
 └── lib/cmake/LinxIpc/
@@ -199,7 +199,7 @@ LinxIpc-<version>/  # e.g., LinxIpc-v2.0.2/ or LinxIpc-v2.0.2-5e9bf/
 ├── lib/
 │   └── libLinxIpc.a           # Static library
 ├── include/
-│   ├── AfUnix.h               # AF_UNIX interface
+│   ├── UnixLinx.h             # AF_UNIX interface
 │   ├── UdpLinx.h              # UDP interface
 │   ├── common/                # Common headers
 │   ├── generic/               # Generic client/server

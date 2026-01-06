@@ -27,14 +27,14 @@ A high-performance IPC (Inter-Process Communication) library for Linux supportin
 
 ```cpp
 // Server
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 auto server = AfUnixFactory::createServer("MyServer");
 server->start();
 auto msg = server->receive(INFINITE_TIMEOUT);
 
 // Client
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 auto client = AfUnixFactory::createClient("MyClient");
 client->connect(5000);
@@ -70,7 +70,7 @@ client->send(message);
 - **UdpServer/UdpClient**: UDP socket implementation (with multicast support)
 - **AfUnixFactory/UdpFactory**: Protocol-specific factories for creating endpoints
 - **LinxIpcHandler**: Message dispatcher with callback registration
-- **IIdentifier**: Interface for client/server identification (StringIdentifier, PortInfo)
+- **IIdentifier**: Interface for client/server identification (UnixInfo, PortInfo)
 
 For detailed architecture information, see [ARCHITECTURE.md](doc/ARCHITECTURE.md).
 
@@ -170,7 +170,7 @@ if (bytesWritten == 0) {
 
 **Unix Domain Socket Server:**
 ```cpp
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 // Create server with default queue size (100)
 auto server = AfUnixFactory::createServer("MyServer");
@@ -225,7 +225,7 @@ auto msg = server->receive(INFINITE_TIMEOUT, {20, 30});
 
 **Receive from specific client:**
 ```cpp
-StringIdentifier clientId("ClientName");
+UnixInfo clientId("ClientName");
 auto msg = server->receive(INFINITE_TIMEOUT, LINX_ANY_SIG, &clientId);
 ```
 
@@ -243,7 +243,7 @@ if (msg) {
 Register callbacks for specific message types:
 
 ```cpp
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "common/LinxIpc.h"
 
 auto server = AfUnixFactory::createServer("MyServer");
@@ -302,7 +302,7 @@ while (true) {
 
 **Unix Domain Socket Client:**
 ```cpp
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 auto client = AfUnixFactory::createClient("MyClientName");
 ```
@@ -367,7 +367,7 @@ LINX_DEFAULT_QUEUE_SIZE  // 100
 **Server (receiver.cpp):**
 ```cpp
 #include <stdio.h>
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "common/LinxIpc.h"
 
 int main() {
@@ -399,7 +399,7 @@ int main() {
 **Client (sender.cpp):**
 ```cpp
 #include <stdio.h>
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 int main() {
     auto client = AfUnixFactory::createClient("MySender");
@@ -703,7 +703,7 @@ cmake --build build
 ```
 LinxIpc/                    # Main library
 ├── include/                # Public headers
-│   ├── AfUnix.h           # Unix domain socket API
+│   ├── UnixLinx.h         # Unix domain socket API
 │   ├── UdpLinx.h          # UDP API
 │   ├── LinxIpc.h          # Core IPC definitions
 │   └── common/            # Common headers

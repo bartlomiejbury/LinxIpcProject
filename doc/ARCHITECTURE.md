@@ -8,7 +8,7 @@ The LinxIpc framework uses an interface-based design pattern for socket identifi
 
 ```
 IIdentifier (interface)
-├── StringIdentifier (Unix domain sockets)
+├── UnixInfo (Unix domain sockets)
 └── PortInfo (UDP sockets)
 ```
 
@@ -35,17 +35,17 @@ class IIdentifier {
 - `isEqual()`: Type-safe equality comparison implementation
 - `operator==`: Delegates to `isEqual()` for idiomatic C++ comparison
 
-### StringIdentifier
+### UnixInfo
 
-**File:** `LinxIpc/include/AfUnix.h`
+**File:** `LinxIpc/include/UnixLinx.h`
 
 Wraps `std::string` for Unix domain socket paths.
 
 ```cpp
-class StringIdentifier : public IIdentifier {
+class UnixInfo : public IIdentifier {
   public:
-    StringIdentifier() = default;
-    explicit StringIdentifier(const std::string &value);
+    UnixInfo() = default;
+    explicit UnixInfo(const std::string &value);
 
     std::string format() const override;  // Returns the string
     bool isEqual(const IIdentifier &other) const override;
@@ -55,7 +55,7 @@ class StringIdentifier : public IIdentifier {
 
 **Usage:**
 ```cpp
-StringIdentifier id("/tmp/my_socket");
+UnixInfo id("/tmp/my_socket");
 std::string path = id.getValue();
 ```
 

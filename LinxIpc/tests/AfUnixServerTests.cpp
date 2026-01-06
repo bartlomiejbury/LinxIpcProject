@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "AfUnixSocketMock.h"
 #include "LinxIpc.h"
 #include "LinxMessageIds.h"
@@ -69,7 +69,7 @@ TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
 
     auto msg = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
         .message = std::make_unique<RawMessage>(10),
-        .from = std::make_unique<StringIdentifier>("TEST")
+        .from = std::make_unique<UnixInfo>("TEST")
     });
 
     EXPECT_CALL(*queuePtr, get(_, _, _)).WillOnce(Invoke(
@@ -80,7 +80,7 @@ TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
 
     auto result = server->receive(10000, sigsel);
     ASSERT_NE(result, nullptr);
-    ASSERT_TRUE(*result->from == StringIdentifier("TEST"));
+    ASSERT_TRUE(*result->from == UnixInfo("TEST"));
     ASSERT_EQ(result->message->getReqId(), 10U);
 }
 
@@ -115,7 +115,7 @@ TEST_F(AfUnixServerTests, task_ReceivesMessageAndAddsToQueue) {
     EXPECT_CALL(*socketPtr, receive(_, _, _))
         .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(42);
-            *from = std::make_unique<StringIdentifier>("CLIENT1");
+            *from = std::make_unique<UnixInfo>("CLIENT1");
             return 4;
         }))
         .WillRepeatedly(testing::Return(-1)); // Timeout for subsequent calls
@@ -136,13 +136,13 @@ TEST_F(AfUnixServerTests, task_HandlesPingRequest) {
     EXPECT_CALL(*socketPtr, receive(_, _, _))
         .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(IPC_PING_REQ);
-            *from = std::make_unique<StringIdentifier>("CLIENT1");
+            *from = std::make_unique<UnixInfo>("CLIENT1");
             return 4;
         }))
         .WillRepeatedly(testing::Return(-1)); // Timeout for subsequent calls
 
     // Expect ping response to be sent
-    EXPECT_CALL(*socketPtr, send(testing::_, StringIdentifier("CLIENT1"))).Times(1);
+    EXPECT_CALL(*socketPtr, send(testing::_, UnixInfo("CLIENT1"))).Times(1);
 
     // Ping messages should NOT be added to queue
     EXPECT_CALL(*queuePtr, add(_)).Times(0);
@@ -161,7 +161,7 @@ TEST_F(AfUnixServerTests, task_DiscardsMessageWhenQueueFull) {
     EXPECT_CALL(*socketPtr, receive(_, _, _))
         .WillOnce(Invoke([](RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, int) {
             *msg = std::make_unique<RawMessage>(42);
-            *from = std::make_unique<StringIdentifier>("CLIENT1");
+            *from = std::make_unique<UnixInfo>("CLIENT1");
             return 4;
         }))
         .WillOnce(testing::Return(-1)) // Timeout after first message
@@ -210,7 +210,7 @@ TEST_F(AfUnixServerTests, receive_ReturnsMessageWithCorrectReqId) {
 
     auto msg = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
         .message = std::make_unique<RawMessage>(100),
-        .from = std::make_unique<StringIdentifier>("SENDER")
+        .from = std::make_unique<UnixInfo>("SENDER")
     });
 
     EXPECT_CALL(*queuePtr, get(_, _, _)).WillOnce(Invoke(
@@ -249,7 +249,7 @@ TEST_F(AfUnixServerTests, send_ReturnsErrorWhenSocketFails) {
     EXPECT_CALL(*socketPtr, send(_, _)).WillOnce(Return(-5));
 
     RawMessage msg(123);
-    StringIdentifier to("CLIENT");
+    UnixInfo to("CLIENT");
     int result = server->send(msg, to);
 
     ASSERT_EQ(result, -5);

@@ -3,7 +3,7 @@
 #include "LinxIpc.h"
 #include "LinxServerMock.h"
 #include "IIdentifier.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 using namespace ::testing;
 
@@ -94,7 +94,7 @@ TEST_F(LinxIpcHandlerTests, send) {
     auto handler = LinxIpcHandler(server);
 
     RawMessage message(42);
-    StringIdentifier to("destination");
+    UnixInfo to("destination");
 
     EXPECT_CALL(*server, send(_, _)).WillOnce(Return(100));
     ASSERT_EQ(handler.send(message, to), 100);
@@ -106,7 +106,7 @@ TEST_F(LinxIpcHandlerTests, receive) {
 
     auto msg = std::make_shared<LinxReceivedMessage>();
     msg->message = std::make_unique<RawMessage>(10);
-    msg->from = std::make_unique<StringIdentifier>("sender");
+    msg->from = std::make_unique<UnixInfo>("sender");
 
     EXPECT_CALL(*server, receive(1000, _, _)).WillOnce(Return(msg));
     auto result = handler.receive(1000, LINX_ANY_SIG, LINX_ANY_FROM);
@@ -118,7 +118,7 @@ TEST_F(LinxIpcHandlerTests, sendResponse_Success) {
 
     auto msg = std::make_shared<LinxReceivedMessage>();
     msg->message = std::make_unique<RawMessage>(10);
-    msg->from = std::make_unique<StringIdentifier>("sender");
+    msg->from = std::make_unique<UnixInfo>("sender");
     msg->server = server;
 
     RawMessage response(20);
@@ -132,7 +132,7 @@ TEST_F(LinxIpcHandlerTests, sendResponse_FailureWhenServerExpired) {
 
     auto msg = std::make_shared<LinxReceivedMessage>();
     msg->message = std::make_unique<RawMessage>(10);
-    msg->from = std::make_unique<StringIdentifier>("sender");
+    msg->from = std::make_unique<UnixInfo>("sender");
     msg->server = server;
 
     // Let the server expire by resetting the shared_ptr

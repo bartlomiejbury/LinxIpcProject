@@ -1,13 +1,13 @@
 #include <gmock/gmock.h>
 #include "AfUnixSocket.h"
 #include "LinxIpc.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
 class AfUnixSocketMock : public AfUnixSocket {
   public:
     AfUnixSocketMock() : AfUnixSocket("MOCK_SOCKET") {}
     ~AfUnixSocketMock() override = default;
-    MOCK_METHOD(int, send, (const IMessage &message, const StringIdentifier &to));
+    MOCK_METHOD(int, send, (const IMessage &message, const UnixInfo &to));
     MOCK_METHOD(int, receive, (RawMessagePtr * msg, std::unique_ptr<IIdentifier> *from, int timeout));
     MOCK_METHOD(int, flush, ());
     MOCK_METHOD(int, open, ());

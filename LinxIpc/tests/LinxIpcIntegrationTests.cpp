@@ -1,6 +1,6 @@
 #include <thread>
 #include "gtest/gtest.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "UdpLinx.h"
 
 using namespace ::testing;
@@ -153,7 +153,7 @@ TEST_F(LinxIpcIntegrationTests, testConnectTwoServers) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     auto startTime = std::chrono::steady_clock::now();
-    secondServer->send(RawMessage(IPC_SIG1_REQ), StringIdentifier("TestService"));
+    secondServer->send(RawMessage(IPC_SIG1_REQ), UnixInfo("TestService"));
     auto rsp1 = secondServer->receive(1000, {IPC_SIG1_RSP}, LINX_ANY_FROM);
     auto endTime = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);

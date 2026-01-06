@@ -101,7 +101,7 @@ int AfUnixSocket::receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from
     }
 
     if (from) {
-        *from = std::move(std::make_unique<StringIdentifier>(&client_address.sun_path[1]));
+        *from = std::move(std::make_unique<UnixInfo>(&client_address.sun_path[1]));
     }
 
     if (msg) {
@@ -111,7 +111,7 @@ int AfUnixSocket::receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from
     return len;
 }
 
-int AfUnixSocket::send(const IMessage &message, const StringIdentifier &to) {
+int AfUnixSocket::send(const IMessage &message, const UnixInfo &to) {
 
     if (this->fd < 0) {
         LINX_ERROR("IPC send on wrong IPC socket");

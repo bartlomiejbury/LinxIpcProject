@@ -1,6 +1,6 @@
 #include <thread>
 #include "gtest/gtest.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 #include "LinxClientMock.h"
 #include "LinxEventFdMock.h"
 #include "LinxIpc.h"
@@ -22,7 +22,7 @@ class LinxQueueTests : public testing::Test {
     LinxReceivedMessagePtr createMsgFromClient(const std::string &clientName, uint32_t reqId) {
         return std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
             .message = std::make_unique<RawMessage>(reqId),
-            .from = std::make_unique<StringIdentifier>(clientName),
+            .from = std::make_unique<UnixInfo>(clientName),
         });
     }
 };
@@ -85,7 +85,7 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalNrInQueue) {
 
     LinxReceivedMessagePtr msg2 = createMsgFromClient("from2", 2);
     auto msg2Ptr = msg2->message.get();
-    StringIdentifier from2("from2");
+    UnixInfo from2("from2");
     queue.add(std::move(msg2));
 
     auto msg = queue.get(IMMEDIATE_TIMEOUT, {3, 2}, nullptr);
@@ -112,7 +112,7 @@ TEST_F(LinxQueueTests, get_Immediate_DecrementSizeWhenElementFound) {
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 2);
-    StringIdentifier from3Identifier("from3");
+    UnixInfo from3Identifier("from3");
 
     LinxReceivedMessagePtr msg1 = createMsgFromClient("from1", 1);
     queue.add(std::move(msg1));
@@ -125,14 +125,14 @@ TEST_F(LinxQueueTests, get_Immediate_ReturnNullWhenNoSignalSenderInQueue) {
 
 TEST_F(LinxQueueTests, get_Immediate_ReturnMsgWhenSignalSenderInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 2);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     LinxReceivedMessagePtr msg1 = createMsgFromClient("from1", 1);
     queue.add(std::move(msg1));
 
     LinxReceivedMessagePtr msg2 = createMsgFromClient("from2", 2);
     auto msg2Ptr = msg2->message.get();
-    StringIdentifier from2("from2");
+    UnixInfo from2("from2");
     queue.add(std::move(msg2));
 
     auto msg = queue.get(IMMEDIATE_TIMEOUT, LINX_ANY_SIG, &from2Identifier);
@@ -189,7 +189,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
 
     LinxReceivedMessagePtr msg2 = createMsgFromClient("from2", 2);
     auto msg2Ptr = msg2->message.get();
-    StringIdentifier from2("from2");
+    UnixInfo from2("from2");
     queue.add(std::move(msg2));
 
     auto msg = queue.get(INFINITE_TIMEOUT, {3, 2}, nullptr);
@@ -201,7 +201,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalNrInQueue) {
 
 TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 2);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     std::thread producer([&queue, this]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -218,7 +218,7 @@ TEST_F(LinxQueueTests, get_Infinite_CallWaitWhenNoSignalSenderInQueue) {
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 5);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     std::thread producer([&queue, this]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -240,14 +240,14 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMessageSignalSenderArriveInQueue) {
 
 TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 2);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     LinxReceivedMessagePtr msg1 = createMsgFromClient("from1", 1);
     queue.add(std::move(msg1));
 
     LinxReceivedMessagePtr msg2 = createMsgFromClient("from2", 2);
     auto msg2Ptr = msg2->message.get();
-    StringIdentifier from2("from2");
+    UnixInfo from2("from2");
     queue.add(std::move(msg2));
 
     auto msg = queue.get(INFINITE_TIMEOUT, LINX_ANY_SIG, &from2Identifier);
@@ -259,7 +259,7 @@ TEST_F(LinxQueueTests, get_Infinite_ReturnMsgWhenSignalSenderInQueue) {
 
 TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
     auto queue = LinxQueue(std::move(efdMock), 5);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     std::thread producer([&queue, this]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -280,7 +280,7 @@ TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenSignalArrive) {
 
 TEST_F(LinxQueueTests, get_Infinite_DecrementSizeWhenElementInQueue) {
     auto queue = LinxQueue(std::move(efdMock), 2);
-    StringIdentifier from2Identifier("from2");
+    UnixInfo from2Identifier("from2");
 
     LinxReceivedMessagePtr msg1 = createMsgFromClient("from1", 1);
     queue.add(std::move(msg1));

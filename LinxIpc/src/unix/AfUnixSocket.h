@@ -4,9 +4,9 @@
 #include <sys/un.h>
 #include "LinxIpc.h"
 #include "GenericSocket.h"
-#include "AfUnix.h"
+#include "UnixLinx.h"
 
-class AfUnixSocket : public GenericSocket<StringIdentifier> {
+class AfUnixSocket : public GenericSocket<UnixInfo> {
   public:
     AfUnixSocket(const std::string &socketName);
     virtual ~AfUnixSocket();

@@ -7,17 +7,17 @@
 class AfUnixSocket;
 
 // String-based identifier wrapper
-class StringIdentifier : public IIdentifier {
+class UnixInfo : public IIdentifier {
   public:
-    StringIdentifier() = default;
-    explicit StringIdentifier(const std::string &value) : value(value) {}
+    UnixInfo() = default;
+    explicit UnixInfo(const std::string &value) : value(value) {}
 
     std::string format() const override {
         return value;
     }
 
     bool isEqual(const IIdentifier &other) const override {
-        const auto *otherStr = dynamic_cast<const StringIdentifier*>(&other);
+        const auto *otherStr = dynamic_cast<const UnixInfo*>(&other);
         return value == otherStr->value;
     }
 
@@ -32,7 +32,7 @@ class StringIdentifier : public IIdentifier {
 // Socket traits specialization
 template<>
 struct SocketTraits<AfUnixSocket> {
-    using Identifier = StringIdentifier;
+    using Identifier = UnixInfo;
 };
 
 
