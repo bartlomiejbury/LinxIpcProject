@@ -13,7 +13,7 @@ class GenericServer: public LinxServer {
   public:
     using IdentifierType = typename SocketTraits<SocketType>::Identifier;
 
-    GenericServer(const std::string &serviceName,
+    GenericServer(const std::string &serverId,
                   const std::shared_ptr<SocketType> &socket,
                   std::unique_ptr<LinxQueue> &&queue);
     virtual ~GenericServer();
@@ -29,7 +29,7 @@ class GenericServer: public LinxServer {
     std::string getName() const override;
 
   protected:
-    std::string serviceName;
+    std::string serverId;
     std::shared_ptr<SocketType> socket;
     std::unique_ptr<LinxQueue> queue;
     std::thread workerThread;

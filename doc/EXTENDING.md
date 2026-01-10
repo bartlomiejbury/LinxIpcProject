@@ -139,7 +139,7 @@ using BluetoothServer = GenericServer<BluetoothServerSocket>;
 
 // Factory function
 namespace BluetoothServerFactory {
-    std::shared_ptr<BluetoothServer> create(const std::string &serviceName,
+    std::shared_ptr<BluetoothServer> create(const std::string &serverId,
                                              uint16_t channel,
                                              size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
 }
@@ -192,7 +192,7 @@ std::shared_ptr<BluetoothClient> BluetoothClient::create(const uint8_t address[6
 
 namespace BluetoothServerFactory {
 
-std::shared_ptr<BluetoothServer> create(const std::string &serviceName,
+std::shared_ptr<BluetoothServer> create(const std::string &serverId,
                                          uint16_t channel,
                                          size_t queueSize) {
     auto socket = std::make_shared<BluetoothServerSocket>(channel);

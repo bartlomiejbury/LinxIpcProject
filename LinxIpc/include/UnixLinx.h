@@ -40,6 +40,6 @@ using AfUnixClient = GenericClient<AfUnixSocket>;
 using AfUnixServer = GenericServer<AfUnixSocket>;
 
 namespace AfUnixFactory {
-    std::shared_ptr<AfUnixClient> createClient(const std::string &serviceName);
-    std::shared_ptr<AfUnixServer> createServer(const std::string &serviceName, size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
+    std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket);
+    std::shared_ptr<AfUnixServer> createServer(const std::string &socketName, size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
 }

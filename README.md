@@ -36,7 +36,7 @@ auto msg = server->receive(INFINITE_TIMEOUT);
 // Client
 #include "UnixLinx.h"
 
-auto client = AfUnixFactory::createClient("MyClient");
+auto client = AfUnixFactory::createClient("MyServer");
 client->connect(5000);
 RawMessage message(20);
 client->send(message);
@@ -304,7 +304,7 @@ while (true) {
 ```cpp
 #include "UnixLinx.h"
 
-auto client = AfUnixFactory::createClient("MyClientName");
+auto client = AfUnixFactory::createClient("MyServer");
 ```
 
 **UDP Client:**
@@ -402,7 +402,7 @@ int main() {
 #include "UnixLinx.h"
 
 int main() {
-    auto client = AfUnixFactory::createClient("MySender");
+    auto client = AfUnixFactory::createClient("MyServer");
 
     if (!client->connect(5000)) {
         printf("Failed to connect\n");

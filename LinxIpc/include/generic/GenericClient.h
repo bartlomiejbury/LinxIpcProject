@@ -14,7 +14,7 @@ class GenericClient : public LinxClient {
     using IdentifierType = typename SocketTraits<SocketType>::Identifier;
     using PredicateType = std::function<bool(RawMessagePtr&, const std::vector<uint32_t>&, const IdentifierType&)>;
 
-    GenericClient(const std::string &instanceId,
+    GenericClient(const std::string &clientId,
                   const std::shared_ptr<SocketType> &socket,
                   const IdentifierType &identifier);
     virtual ~GenericClient();
@@ -28,7 +28,7 @@ class GenericClient : public LinxClient {
     std::string getName() const override;
 
   protected:
-    std::string instanceId;
+    std::string clientId;
     std::shared_ptr<SocketType> socket;
     IdentifierType identifier;
 };

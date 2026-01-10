@@ -47,12 +47,12 @@ void GenericServer<SocketType>::task() {
 
 template<typename SocketType>
 GenericServer<SocketType>::GenericServer(
-    const std::string &serviceName,
+    const std::string &serverId,
     const std::shared_ptr<SocketType> &socket,
     std::unique_ptr<LinxQueue> &&queue) {
     assert(queue);
     assert(socket);
-    this->serviceName = serviceName;
+    this->serverId = serverId;
     this->socket = std::move(socket);
     this->queue = std::move(queue);
 }
@@ -131,5 +131,5 @@ LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
 
 template<typename SocketType>
 std::string GenericServer<SocketType>::getName() const {
-    return serviceName;
+    return serverId;
 }

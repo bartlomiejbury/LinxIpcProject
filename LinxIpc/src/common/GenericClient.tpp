@@ -7,10 +7,10 @@
 #include "GenericSocket.h"
 
 template<typename SocketType>
-GenericClient<SocketType>::GenericClient(const std::string &instanceId,
+GenericClient<SocketType>::GenericClient(const std::string &clientId,
                                          const std::shared_ptr<SocketType> &socket,
                                          const IdentifierType &identifier)
-    : instanceId(instanceId), socket(socket), identifier(identifier) {
+    : clientId(clientId), socket(socket), identifier(identifier) {
 }
 
 template<typename SocketType>
@@ -103,5 +103,5 @@ bool GenericClient<SocketType>::isEqual(const LinxClient &other) const {
 
 template<typename SocketType>
 std::string GenericClient<SocketType>::getName() const {
-    return instanceId;
+    return clientId;
 }

@@ -30,13 +30,12 @@ std::shared_ptr<UdpServer> createMulticastServer(const std::string &multicastIp,
         return nullptr;
     }
 
-    // Add argument for service name
-    std::string serviceName = multicastIp + ":" + std::to_string(port);
+    std::string serverId = multicastIp + ":" + std::to_string(port);
     auto efd = std::make_unique<LinxEventFd>();
     auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
 
-    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serviceName.c_str(), socket->getFd(), multicastIp.c_str(), port);
-    return std::make_shared<UdpServer>(serviceName, socket, std::move(queue));
+    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), multicastIp.c_str(), port);
+    return std::make_shared<UdpServer>(serverId, socket, std::move(queue));
 }
 
 std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize) {
@@ -52,13 +51,12 @@ std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize) {
         return nullptr;
     }
 
-    // Add argument for service name
-    std::string serviceName = ip + ":" + std::to_string(port);
+    std::string serverId = ip + ":" + std::to_string(port);
     auto efd = std::make_unique<LinxEventFd>();
     auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
 
-    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serviceName.c_str(), socket->getFd(), ip.c_str(), port);
-    return std::make_shared<UdpServer>(serviceName, socket, std::move(queue));
+    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), ip.c_str(), port);
+    return std::make_shared<UdpServer>(serverId, socket, std::move(queue));
 }
 
 std::shared_ptr<UdpClient> createClient(const std::string &ip, uint16_t port) {
@@ -83,10 +81,10 @@ std::shared_ptr<UdpClient> createClient(const std::string &ip, uint16_t port) {
 
     static std::mt19937 gen(std::random_device{}());
     std::uniform_int_distribution<> dis(0, 65535);
-    std::string instanceId = "client_" + std::to_string(dis(gen)) + "_" + ip + ":" + std::to_string(port);
+    std::string clientId = "client_" + std::to_string(dis(gen)) + "_" + ip + ":" + std::to_string(port);
 
-    LINX_INFO("Created UDP client: %s(%d) -> server socket: %s:%d", instanceId.c_str(), socket->getFd(), ip.c_str(), port);
-    return std::make_shared<UdpClient>(instanceId, socket, PortInfo(ip, port));
+    LINX_INFO("Created UDP client: %s(%d) -> server socket: %s:%d", clientId.c_str(), socket->getFd(), ip.c_str(), port);
+    return std::make_shared<UdpClient>(clientId, socket, PortInfo(ip, port));
 }
 
 bool isBroadcastIp(const std::string &ip) {
