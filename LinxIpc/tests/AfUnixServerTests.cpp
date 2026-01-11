@@ -29,22 +29,35 @@ class AfUnixServerTests : public testing::Test {
         queuePtr = queue.get();
         ON_CALL(*queuePtr, get(_, _, _)).WillByDefault(Return(ByMove(LinxReceivedMessagePtr(nullptr))));
         ON_CALL(*queuePtr, getFd()).WillByDefault(Return(1));
+        ON_CALL(*socketPtr, getFd()).WillByDefault(Return(2));
     }
 };
 
 TEST_F(AfUnixServerTests, getPollFdReturnQueueGetFdResult) {
     auto server = AfUnixServer("TEST", socket, std::move(queue));
+    server.start();
     ASSERT_EQ(server.getPollFd(), 1);
+    server.stop();
+}
+
+TEST_F(AfUnixServerTests, getPollFdReturnSocketGetFdResult) {
+    auto server = AfUnixServer("TEST", socket, std::move(queue));
+    ASSERT_EQ(server.getPollFd(), 2);
 }
 
 TEST_F(AfUnixServerTests, receive_callQueueWithClient) {
     auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
 
     auto sigsel = std::initializer_list<uint32_t>{4};
-    const IIdentifier *fromOpt = nullptr; // TODO: Update test to use identifier
+    const IIdentifier *fromOpt = nullptr;
+
+    // Start the server so it uses the queue
+    server->start();
 
     EXPECT_CALL(*queuePtr, get(10000, SigselMatcher(sigsel), fromOpt));
     server->receive(10000, sigsel, nullptr);
+
+    server->stop();
 }
 
 TEST_F(AfUnixServerTests, receive_callQueueWithNullOpt) {
@@ -52,8 +65,13 @@ TEST_F(AfUnixServerTests, receive_callQueueWithNullOpt) {
     auto sigsel = std::initializer_list<uint32_t>{4};
     const IIdentifier *fromOpt = nullptr;
 
+    // Start the server so it uses the queue
+    server.start();
+
     EXPECT_CALL(*queuePtr, get(10000, SigselMatcher(sigsel), fromOpt));
     server.receive(10000, sigsel);
+
+    server.stop();
 }
 
 TEST_F(AfUnixServerTests, receive_ReturnNullWhenQueueReturnNull) {
@@ -61,6 +79,111 @@ TEST_F(AfUnixServerTests, receive_ReturnNullWhenQueueReturnNull) {
     auto sigsel = std::initializer_list<uint32_t>{4};
 
     ASSERT_EQ(server.receive(10000, sigsel), nullptr);
+}
+
+TEST_F(AfUnixServerTests, receive_WithoutStart_UsesSocketDirectly) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto sigsel = std::initializer_list<uint32_t>{100};
+
+    // Create a message that the socket will return
+    auto msg = std::make_unique<RawMessage>(100);
+    auto from = std::make_unique<UnixInfo>("CLIENT");
+
+    // Without starting, receive should call socket directly, not queue
+    EXPECT_CALL(*socketPtr, receive(_, _, _))
+        .WillOnce(Invoke([&](RawMessagePtr *msgOut, std::unique_ptr<IIdentifier> *fromOut, int) {
+            *msgOut = std::move(msg);
+            *fromOut = std::move(from);
+            return 1;
+        }));
+
+    // Queue should NOT be called
+    EXPECT_CALL(*queuePtr, get(_, _, _)).Times(0);
+
+    auto result = server->receive(10000, sigsel);
+    ASSERT_NE(result, nullptr);
+    ASSERT_EQ(result->message->getReqId(), 100U);
+    ASSERT_TRUE(*result->from == UnixInfo("CLIENT"));
+}
+
+TEST_F(AfUnixServerTests, receive_WithoutStart_FiltersMessages) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto sigsel = std::initializer_list<uint32_t>{200};
+
+    // Create messages with different reqIds
+    auto msg1 = std::make_unique<RawMessage>(100);  // Should be filtered
+    auto msg2 = std::make_unique<RawMessage>(200);  // Should pass
+    auto from1 = std::make_unique<UnixInfo>("CLIENT1");
+    auto from2 = std::make_unique<UnixInfo>("CLIENT2");
+
+    int callCount = 0;
+    EXPECT_CALL(*socketPtr, receive(_, _, _))
+        .WillOnce(Invoke([&](RawMessagePtr *msgOut, std::unique_ptr<IIdentifier> *fromOut, int) {
+            callCount++;
+            *msgOut = std::move(msg1);
+            *fromOut = std::move(from1);
+            return 1;
+        }))
+        .WillOnce(Invoke([&](RawMessagePtr *msgOut, std::unique_ptr<IIdentifier> *fromOut, int) {
+            callCount++;
+            *msgOut = std::move(msg2);
+            *fromOut = std::move(from2);
+            return 1;
+        }));
+
+    auto result = server->receive(10000, sigsel);
+    ASSERT_NE(result, nullptr);
+    ASSERT_EQ(result->message->getReqId(), 200U);
+    ASSERT_EQ(callCount, 2);  // Should have called socket twice (filtered first, accepted second)
+}
+
+TEST_F(AfUnixServerTests, receive_WithoutStart_HandlesTimeout) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto sigsel = std::initializer_list<uint32_t>{100};
+
+    // Socket returns timeout (0)
+    EXPECT_CALL(*socketPtr, receive(_, _, _)).WillOnce(Return(0));
+
+    auto result = server->receive(10000, sigsel);
+    ASSERT_EQ(result, nullptr);
+}
+
+TEST_F(AfUnixServerTests, receive_WithoutStart_HandlesPingRequest) {
+    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto sigsel = std::initializer_list<uint32_t>{100};
+
+    // Create PING request and normal message
+    auto pingMsg = std::make_unique<RawMessage>(IPC_PING_REQ);
+    auto normalMsg = std::make_unique<RawMessage>(100);
+    auto from1 = std::make_unique<UnixInfo>("CLIENT1");
+    auto from2 = std::make_unique<UnixInfo>("CLIENT2");
+
+    int callCount = 0;
+    EXPECT_CALL(*socketPtr, receive(_, _, _))
+        .WillOnce(Invoke([&](RawMessagePtr *msgOut, std::unique_ptr<IIdentifier> *fromOut, int) {
+            callCount++;
+            *msgOut = std::move(pingMsg);
+            *fromOut = std::move(from1);
+            return 1;
+        }))
+        .WillOnce(Invoke([&](RawMessagePtr *msgOut, std::unique_ptr<IIdentifier> *fromOut, int) {
+            callCount++;
+            *msgOut = std::move(normalMsg);
+            *fromOut = std::move(from2);
+            return 1;
+        }));
+
+    // Expect PING response to be sent
+    EXPECT_CALL(*socketPtr, send(_, _))
+        .WillOnce(Invoke([](const IMessage &msg, const auto &) {
+            EXPECT_EQ(msg.getReqId(), IPC_PING_RSP);
+            return 1;
+        }));
+
+    auto result = server->receive(10000, sigsel);
+    ASSERT_NE(result, nullptr);
+    ASSERT_EQ(result->message->getReqId(), 100U);
+    ASSERT_EQ(callCount, 2);  // Ping + normal message
 }
 
 TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
@@ -72,6 +195,8 @@ TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
         .from = std::make_unique<UnixInfo>("TEST")
     });
 
+    server->start();
+
     EXPECT_CALL(*queuePtr, get(_, _, _)).WillOnce(Invoke(
         [msg = std::move(msg)](int, const std::vector<uint32_t>&, const IIdentifier*) mutable {
             return std::move(msg);
@@ -82,6 +207,8 @@ TEST_F(AfUnixServerTests, endpoint_receiveMsg) {
     ASSERT_NE(result, nullptr);
     ASSERT_TRUE(*result->from == UnixInfo("TEST"));
     ASSERT_EQ(result->message->getReqId(), 10U);
+
+    server->stop();
 }
 
 TEST_F(AfUnixServerTests, stop_DoNothingWhenNotStarted) {
@@ -200,8 +327,12 @@ TEST_F(AfUnixServerTests, receive_WithFromContext_PassesCorrectOptional) {
 
     auto sigsel = std::initializer_list<uint32_t>{10, 20};
 
+    server->start();
+
     EXPECT_CALL(*queuePtr, get(5000, SigselMatcher(sigsel), nullptr));
     server->receive(5000, sigsel, LINX_ANY_FROM);
+
+    server->stop();
 }
 
 TEST_F(AfUnixServerTests, receive_ReturnsMessageWithCorrectReqId) {
@@ -213,6 +344,8 @@ TEST_F(AfUnixServerTests, receive_ReturnsMessageWithCorrectReqId) {
         .from = std::make_unique<UnixInfo>("SENDER")
     });
 
+    server->start();
+
     EXPECT_CALL(*queuePtr, get(_, _, _)).WillOnce(Invoke(
         [msg = std::move(msg)](int, const std::vector<uint32_t>&, const IIdentifier*) mutable {
             return std::move(msg);
@@ -222,6 +355,8 @@ TEST_F(AfUnixServerTests, receive_ReturnsMessageWithCorrectReqId) {
     auto result = server->receive(1000, sigsel);
     ASSERT_NE(result, nullptr);
     ASSERT_EQ(result->message->getReqId(), 100U);
+
+    server->stop();
 }
 
 TEST_F(AfUnixServerTests, receive_MultipleSignalsInSigsel) {
@@ -230,8 +365,12 @@ TEST_F(AfUnixServerTests, receive_MultipleSignalsInSigsel) {
     auto sigsel = std::initializer_list<uint32_t>{1, 2, 3, 4, 5};
     const IIdentifier *fromOpt = nullptr;
 
+    server.start();
+
     EXPECT_CALL(*queuePtr, get(1000, SigselMatcher(sigsel), fromOpt));
     server.receive(1000, sigsel);
+
+    server.stop();
 }
 
 TEST_F(AfUnixServerTests, stop_MultipleCalls_SafeToCall) {

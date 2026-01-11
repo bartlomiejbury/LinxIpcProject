@@ -34,5 +34,13 @@ class GenericServer: public LinxServer {
     std::unique_ptr<LinxQueue> queue;
     std::thread workerThread;
 
+    LinxReceivedMessagePtr receiveFromSocket(int timeoutMs,
+              const std::vector<uint32_t> &sigsel,
+              const IIdentifier *identifier);
+
+    LinxReceivedMessageSharedPtr receiveFromTask(int timeoutMs,
+              const std::vector<uint32_t> &sigsel,
+              const IIdentifier *identifier);
+
     void task();
 };

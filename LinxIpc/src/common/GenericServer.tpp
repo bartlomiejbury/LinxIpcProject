@@ -6,6 +6,8 @@
 #include "LinxMessageIds.h"
 #include "LinxQueue.h"
 #include "LinxTrace.h"
+#include "LinxMessageFilter.h"
+#include "Deadline.h"
 #include <stdio.h>
 
 template<typename SocketType>
@@ -13,36 +15,19 @@ void GenericServer<SocketType>::task() {
 
     LINX_INFO("[%s] Task started", getName().c_str());
     while (true) {
-        RawMessagePtr msg{};
-        std::unique_ptr<IIdentifier> from {};
-
-        int ret = socket->receive(&msg, &from, INFINITE_TIMEOUT);
-        if (ret == 0) {
-            LINX_INFO("[%s] socket closed, Task stopping", getName().c_str());
-            break;
-        }
-        if (ret < 0) {
-            LINX_ERROR("[%s] receive error: %d, Task stopping", getName().c_str(), ret);
+        auto container = receiveFromSocket(INFINITE_TIMEOUT, LINX_ANY_SIG, LINX_ANY_FROM);
+        if (!container) {
             break;
         }
 
-        auto reqId = msg->getReqId();
-        if (reqId == IPC_PING_REQ) {
-            RawMessage rsp = RawMessage(IPC_PING_RSP);
-            send(rsp, *from);
-            continue;
-        }
-
-        auto container = std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
-            .message = std::move(msg),
-            .from = std::move(from),
-            .server = this->weak_from_this()
-        });
+        uint32_t reqId = container->message->getReqId();
+        (void)reqId;  // Suppress unused variable warning
         if (queue->add(std::move(container)) != 0) {
-            LINX_ERROR("[%s] Received reqId: 0x%x from: %s discarded - queue full",
-                      getName().c_str(), reqId, container->from->format().c_str());
+            LINX_ERROR("[%s] Received reqId: 0x%x discarded - queue full",
+                      getName().c_str(), reqId);
         }
     }
+    LINX_INFO("[%s] Task stopped", getName().c_str());
 }
 
 template<typename SocketType>
@@ -85,7 +70,10 @@ void GenericServer<SocketType>::stop() {
 
 template<typename SocketType>
 int GenericServer<SocketType>::getPollFd() const {
-    return queue->getFd();
+    if (workerThread.joinable()) {
+        return queue->getFd();
+    }
+    return socket->getFd();
 }
 
 template<typename SocketType>
@@ -108,12 +96,12 @@ int GenericServer<SocketType>::send(const IMessage &message, const IIdentifier &
 }
 
 template<typename SocketType>
-LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
+LinxReceivedMessageSharedPtr GenericServer<SocketType>::receiveFromTask(
     int timeoutMs,
     const std::vector<uint32_t> &sigsel,
-    const IIdentifier *from) {
+    const IIdentifier *identifier) {
 
-    auto recvMsg = queue->get(timeoutMs, sigsel, from);
+    auto recvMsg = queue->get(timeoutMs, sigsel, identifier);
     if (recvMsg != nullptr) {
         LINX_DEBUG("[%s] Received reqId: 0x%x", getName().c_str(), recvMsg->message->getReqId());
         return recvMsg;
@@ -122,6 +110,68 @@ LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
     return recvMsg;
 }
 
+template<typename SocketType>
+LinxReceivedMessagePtr GenericServer<SocketType>::receiveFromSocket(
+    int timeoutMs,
+    const std::vector<uint32_t> &sigsel,
+    const IIdentifier *identifier) {
+
+    RawMessagePtr msg{};
+    std::unique_ptr<IIdentifier> from;
+
+    auto predicate = [identifier, &sigsel](const RawMessagePtr &msg, const std::unique_ptr<IIdentifier> &from) {
+        return LinxMessageFilter::matchesFrom(from.get(), identifier) &&
+               LinxMessageFilter::matchesSignalSelector(*msg, sigsel);
+    };
+
+    auto deadline = Deadline(timeoutMs);
+    do {
+        int timeout = deadline.getRemainingTimeMs();
+        int ret = socket->receive(&msg, &from, timeout);
+        if (ret == 0) {
+            LINX_DEBUG("[%s] receive timeout", getName().c_str());
+            return nullptr;
+        }
+        if (ret < 0) {
+            LINX_ERROR("[%s] receive error: %d", getName().c_str(), ret);
+            return nullptr;
+        }
+
+        auto reqId = msg->getReqId();
+        if (reqId == IPC_PING_REQ) {
+            RawMessage rsp = RawMessage(IPC_PING_RSP);
+            send(rsp, *from);
+            continue;
+        }
+
+        if (predicate(msg, from)) {
+            return std::make_unique<LinxReceivedMessage>(LinxReceivedMessage{
+                .message = std::move(msg),
+                .from = std::move(from),
+                .server = this->weak_from_this()
+            });
+        }
+    } while (!deadline.isExpired());
+
+    LINX_ERROR("[%s] receive timed out", getName().c_str());
+    return nullptr;
+}
+
+template<typename SocketType>
+LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
+    int timeoutMs,
+    const std::vector<uint32_t> &sigsel,
+    const IIdentifier *from) {
+
+    if (workerThread.joinable()) {
+        return receiveFromTask(timeoutMs, sigsel, from);
+    } else {
+        return receiveFromSocket(timeoutMs, sigsel, from);
+    }
+
+    LINX_ERROR("[%s] receive failed - invalid identifier type", getName().c_str());
+    return nullptr;
+}
 
 template<typename SocketType>
 std::string GenericServer<SocketType>::getName() const {

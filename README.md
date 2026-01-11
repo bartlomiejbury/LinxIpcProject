@@ -178,7 +178,9 @@ auto server = AfUnixFactory::createServer("MyServer");
 // Or specify custom queue size
 auto server = AfUnixFactory::createServer("MyServer", 200);
 
-// Start the server thread
+// Start the server thread (optional)
+// When started, messages are received in a background thread and queued
+// When not started, receive() blocks and reads directly from the socket
 server->start();
 ```
 
@@ -193,11 +195,27 @@ auto server = UdpFactory::createServer(8080, 100);  // port, queueSize
 const std::string LINX_MULTICAST_IP_ADDRESS = "239.0.0.1";
 auto server = UdpFactory::createMulticastServer(LINX_MULTICAST_IP_ADDRESS, 8080, 100);
 
-// Start the server thread
+// Start the server thread (optional)
 server->start();
 ```
 
 ### Receiving Messages
+
+**Server Operation Modes:**
+
+Servers can operate in two modes:
+
+1. **With Background Thread** (after calling `start()`):
+   - Messages are received in a background thread
+   - Messages are queued for processing
+   - `receive()` reads from the queue (non-blocking if messages are available)
+   - Use `getPollFd()` to integrate with event loops
+   - Best for handling multiple concurrent clients
+
+2. **Without Background Thread** (without calling `start()`):
+   - `receive()` blocks and reads directly from the socket
+   - No queuing - simpler operation
+   - Best for single-threaded synchronous request/response patterns
 
 **Receive any message:**
 ```cpp
@@ -364,7 +382,7 @@ LINX_DEFAULT_QUEUE_SIZE  // 100
 
 ## Complete Example
 
-**Server (receiver.cpp):**
+**Asynchronous Server with Handler (receiver.cpp):**
 ```cpp
 #include <stdio.h>
 #include "UnixLinx.h"
@@ -390,6 +408,33 @@ int main() {
 
     while (true) {
         handler.handleMessage(1000);
+    }
+
+    return 0;
+}
+```
+
+**Synchronous Server without Background Thread:**
+```cpp
+#include <stdio.h>
+#include "UnixLinx.h"
+
+int main() {
+    auto server = AfUnixFactory::createServer("MyServer");
+    // Note: NOT calling start() - server operates synchronously
+
+    while (true) {
+        // Blocks until a message is received
+        auto msg = server->receive(INFINITE_TIMEOUT, {20});
+        if (msg) {
+            printf("Received: 0x%x from %s\n",
+                   msg->message->getReqId(),
+                   msg->from->format().c_str());
+
+            // Send response back
+            RawMessage response(21);
+            msg->sendResponse(response);
+        }
     }
 
     return 0;
