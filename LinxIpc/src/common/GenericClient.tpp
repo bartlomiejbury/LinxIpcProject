@@ -5,6 +5,7 @@
 #include "LinxTrace.h"
 #include "LinxMessageIds.h"
 #include "GenericSocket.h"
+#include "LinxMessageFilter.h"
 
 template<typename SocketType>
 GenericClient<SocketType>::GenericClient(const std::string &clientId,
@@ -35,13 +36,9 @@ RawMessagePtr GenericClient<SocketType>::receive(int timeoutMs, const std::vecto
     RawMessagePtr msg{};
     std::unique_ptr<IIdentifier> from;
 
-    auto predicate = [this, sigsel](RawMessagePtr &msg, const std::vector<uint32_t> &sigselArg, const std::unique_ptr<IIdentifier> &from) {
-        if (from && *from == this->identifier) {
-            uint32_t reqId = msg->getReqId();
-            return sigselArg.size() == 0 || std::find_if(sigselArg.begin(), sigselArg.end(),
-                    [reqId](uint32_t id) { return id == reqId; }) != sigselArg.end();
-        }
-        return false;
+    auto predicate = [this, &sigsel](const RawMessagePtr &msg, const std::unique_ptr<IIdentifier> &from) {
+        return LinxMessageFilter::matchesFrom(from.get(), &identifier) &&
+               LinxMessageFilter::matchesSignalSelector(*msg, sigsel);
     };
 
     auto deadline = Deadline(timeoutMs);
@@ -56,7 +53,7 @@ RawMessagePtr GenericClient<SocketType>::receive(int timeoutMs, const std::vecto
             LINX_ERROR("[%s] receive error: %d", getName().c_str(), ret);
             return nullptr;
         }
-        if (predicate(msg, sigsel, from)) {
+        if (predicate(msg, from)) {
             return msg;
         }
     } while (!deadline.isExpired());

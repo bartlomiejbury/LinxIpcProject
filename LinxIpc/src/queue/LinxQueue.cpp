@@ -3,6 +3,7 @@
 #include "LinxIpc.h"
 #include "LinxQueue.h"
 #include "IIdentifier.h"
+#include "LinxMessageFilter.h"
 
 LinxQueue::LinxQueue(std::unique_ptr<LinxEventFd> &&efd, int size): efd{std::move(efd)}, max_size{size} {
     assert(this->efd);
@@ -89,16 +90,9 @@ LinxReceivedMessagePtr LinxQueue::waitForMessage(int timeoutMs, const std::vecto
 
 LinxReceivedMessagePtr LinxQueue::findMessage(const std::vector<uint32_t> &sigsel, const IIdentifier *from) {
 
-    auto predicate = [&sigsel, &from](LinxReceivedMessagePtr &msg) {
-        if (from != nullptr) {
-            if (!(*msg->from == *from)) {
-                return false;
-            }
-        }
-
-        uint32_t reqId = msg->message->getReqId();
-        return sigsel.size() == 0 || std::find_if(sigsel.begin(), sigsel.end(),
-                                                      [reqId](uint32_t id) { return id == reqId; }) != sigsel.end();
+    auto predicate = [&sigsel, &from](const LinxReceivedMessagePtr &msg) {
+        return LinxMessageFilter::matchesFrom(msg->from.get(), from) &&
+               LinxMessageFilter::matchesSignalSelector(*msg->message, sigsel);
     };
 
     if (auto it = std::find_if(queue.begin(), queue.end(), predicate); it != queue.end()) {

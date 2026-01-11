@@ -113,21 +113,15 @@ LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
     const std::vector<uint32_t> &sigsel,
     const IIdentifier *from) {
 
-    // Downcast to the concrete identifier type
-    const auto *typedFrom = dynamic_cast<const IdentifierType*>(from);
-    if (typedFrom || from == LINX_ANY_FROM) {
-        auto recvMsg = queue->get(timeoutMs, sigsel, from);
-        if (recvMsg != nullptr) {
-            LINX_DEBUG("[%s] Received reqId: 0x%x", getName().c_str(), recvMsg->message->getReqId());
-            return recvMsg;
-        }
-
-        return nullptr;
+    auto recvMsg = queue->get(timeoutMs, sigsel, from);
+    if (recvMsg != nullptr) {
+        LINX_DEBUG("[%s] Received reqId: 0x%x", getName().c_str(), recvMsg->message->getReqId());
+        return recvMsg;
     }
 
-    LINX_ERROR("[%s] receive failed - invalid identifier type", getName().c_str());
-    return nullptr;
+    return recvMsg;
 }
+
 
 template<typename SocketType>
 std::string GenericServer<SocketType>::getName() const {
