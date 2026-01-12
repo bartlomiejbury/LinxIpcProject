@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GenericSimpleServer.h"
 #include "GenericServer.h"
 #include "GenericClient.h"
 #include <memory>
@@ -37,9 +38,11 @@ struct SocketTraits<AfUnixSocket> {
 
 
 using AfUnixClient = GenericClient<AfUnixSocket>;
+using AfUnixSimpleServer = GenericSimpleServer<AfUnixSocket>;
 using AfUnixServer = GenericServer<AfUnixSocket>;
 
 namespace AfUnixFactory {
     std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket);
+    std::shared_ptr<AfUnixSimpleServer> createSimpleServer(const std::string &socketName);
     std::shared_ptr<AfUnixServer> createServer(const std::string &socketName, size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
 }

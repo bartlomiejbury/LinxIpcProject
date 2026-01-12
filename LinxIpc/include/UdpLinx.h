@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GenericSimpleServer.h"
 #include "GenericServer.h"
 #include "GenericClient.h"
 
@@ -42,10 +43,12 @@ struct SocketTraits<UdpSocket> {
 };
 
 
+using UdpSimpleServer = GenericSimpleServer<UdpSocket>;
 using UdpServer = GenericServer<UdpSocket>;
 using UdpClient = GenericClient<UdpSocket>;
 
 namespace UdpFactory {
+    std::shared_ptr<UdpSimpleServer> createSimpleServer(uint16_t port);
     std::shared_ptr<UdpServer> createMulticastServer(const std::string &multicastIp, uint16_t port, size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
     std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize = LINX_DEFAULT_QUEUE_SIZE);
     std::shared_ptr<UdpClient> createClient(const std::string &ip, uint16_t port);

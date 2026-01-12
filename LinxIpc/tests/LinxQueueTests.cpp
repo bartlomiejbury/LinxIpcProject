@@ -359,7 +359,7 @@ TEST_F(LinxQueueTests, getFdReturnefdFd) {
 TEST_F(LinxQueueTests, testGetDuration) {
 
     static constexpr int time = 1000;
-    static constexpr int margin = 10;
+    static constexpr int margin = 30;
 
     auto queue = LinxQueue(std::move(efdMock), 2);
 

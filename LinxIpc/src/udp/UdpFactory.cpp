@@ -4,38 +4,28 @@
 #include "LinxEventFd.h"
 #include "LinxQueue.h"
 #include "LinxTrace.h"
+#include "GenericSimpleServer.tpp"
 #include "GenericServer.tpp"
 #include "GenericClient.tpp"
 
 namespace UdpFactory {
 
-std::shared_ptr<UdpServer> createMulticastServer(const std::string &multicastIp, uint16_t port, size_t queueSize) {
+std::shared_ptr<UdpSimpleServer> createSimpleServer(uint16_t port) {
+    std::string ip = "0.0.0.0";
 
-    if (!isMulticastIp(multicastIp)) {
-        LINX_ERROR("IP address is not multicast: %s", multicastIp.c_str());
-        return nullptr;
-    }
-
-        auto socket = std::make_shared<UdpSocket>();
+    auto socket = std::make_shared<UdpSocket>();
     if (socket->open() < 0) {
         LINX_ERROR("Failed to open UDP socket for server on port: %d", port);
         return nullptr;
     }
-    if (socket->bind(port, multicastIp) < 0) {
+    if (socket->bind(port) < 0) {
         LINX_ERROR("Failed to bind UDP socket for server on port: %d", port);
         return nullptr;
     }
-    if (socket->joinMulticastGroup(multicastIp) < 0) {
-        LINX_ERROR("Failed to join multicast group: %s", multicastIp.c_str());
-        return nullptr;
-    }
 
-    std::string serverId = multicastIp + ":" + std::to_string(port);
-    auto efd = std::make_unique<LinxEventFd>();
-    auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
-
-    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), multicastIp.c_str(), port);
-    return std::make_shared<UdpServer>(serverId, socket, std::move(queue));
+    std::string serverId = ip + ":" + std::to_string(port);
+    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), ip.c_str(), port);
+    return std::make_shared<UdpSimpleServer>(serverId, socket);
 }
 
 std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize) {
@@ -55,7 +45,36 @@ std::shared_ptr<UdpServer> createServer(uint16_t port, size_t queueSize) {
     auto efd = std::make_unique<LinxEventFd>();
     auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
 
-    LINX_INFO("Created UDP server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), ip.c_str(), port);
+    LINX_INFO("Created UDP worker server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), ip.c_str(), port);
+    return std::make_shared<UdpServer>(serverId, socket, std::move(queue));
+}
+
+std::shared_ptr<UdpServer> createMulticastServer(const std::string &multicastIp, uint16_t port, size_t queueSize) {
+
+    if (!isMulticastIp(multicastIp)) {
+        LINX_ERROR("IP address is not multicast: %s", multicastIp.c_str());
+        return nullptr;
+    }
+
+    auto socket = std::make_shared<UdpSocket>();
+    if (socket->open() < 0) {
+        LINX_ERROR("Failed to open UDP socket for server on port: %d", port);
+        return nullptr;
+    }
+    if (socket->bind(port, multicastIp) < 0) {
+        LINX_ERROR("Failed to bind UDP socket for server on port: %d", port);
+        return nullptr;
+    }
+    if (socket->joinMulticastGroup(multicastIp) < 0) {
+        LINX_ERROR("Failed to join multicast group: %s", multicastIp.c_str());
+        return nullptr;
+    }
+
+    std::string serverId = multicastIp + ":" + std::to_string(port);
+    auto efd = std::make_unique<LinxEventFd>();
+    auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
+
+    LINX_INFO("Created UDP worker server: %s(%d), socket: %s:%d", serverId.c_str(), socket->getFd(), multicastIp.c_str(), port);
     return std::make_shared<UdpServer>(serverId, socket, std::move(queue));
 }
 
@@ -103,5 +122,6 @@ bool isMulticastIp(const std::string &ip) {
 } // namespace UdpFactory
 
 // Explicit template instantiation
+template class GenericSimpleServer<UdpSocket>;
 template class GenericServer<UdpSocket>;
 template class GenericClient<UdpSocket>;

@@ -3,10 +3,22 @@
 #include "AfUnixSocket.h"
 #include "LinxEventFd.h"
 #include "LinxQueue.h"
+#include "GenericSimpleServer.tpp"
 #include "GenericServer.tpp"
 #include "GenericClient.tpp"
 
 namespace AfUnixFactory {
+
+std::shared_ptr<AfUnixSimpleServer> createSimpleServer(const std::string &socketName) {
+    auto socket = std::make_shared<AfUnixSocket>(socketName);
+    if (socket->open() < 0) {
+        LINX_ERROR("Failed to open AF_UNIX socket for server: %s", socketName.c_str());
+        return nullptr;
+    }
+
+    LINX_INFO("Created AF_UNIX server: %s(%d), socket: %s", socketName.c_str(), socket->getFd(), socketName.c_str());
+    return std::make_shared<AfUnixSimpleServer>(socketName, socket);
+}
 
 std::shared_ptr<AfUnixServer> createServer(const std::string &socketName, size_t queueSize) {
     auto socket = std::make_shared<AfUnixSocket>(socketName);
@@ -18,7 +30,7 @@ std::shared_ptr<AfUnixServer> createServer(const std::string &socketName, size_t
     auto efd = std::make_unique<LinxEventFd>();
     auto queue = std::make_unique<LinxQueue>(std::move(efd), queueSize);
 
-    LINX_INFO("Created AF_UNIX server: %s(%d), socket: %s", socketName.c_str(), socket->getFd(), socketName.c_str());
+    LINX_INFO("Created AF_UNIX worker server: %s(%d), socket: %s", socketName.c_str(), socket->getFd(), socketName.c_str());
     return std::make_shared<AfUnixServer>(socketName, socket, std::move(queue));
 }
 
@@ -40,5 +52,6 @@ std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket) {
 } // namespace AfUnixFactory
 
 // Explicit template instantiation
+template class GenericSimpleServer<AfUnixSocket>;
 template class GenericServer<AfUnixSocket>;
 template class GenericClient<AfUnixSocket>;

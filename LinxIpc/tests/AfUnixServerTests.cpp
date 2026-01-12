@@ -41,7 +41,7 @@ TEST_F(AfUnixServerTests, getPollFdReturnQueueGetFdResult) {
 }
 
 TEST_F(AfUnixServerTests, getPollFdReturnSocketGetFdResult) {
-    auto server = AfUnixServer("TEST", socket, std::move(queue));
+    auto server = AfUnixSimpleServer("TEST", socket);
     ASSERT_EQ(server.getPollFd(), 2);
 }
 
@@ -82,7 +82,7 @@ TEST_F(AfUnixServerTests, receive_ReturnNullWhenQueueReturnNull) {
 }
 
 TEST_F(AfUnixServerTests, receive_WithoutStart_UsesSocketDirectly) {
-    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto server = std::make_shared<AfUnixSimpleServer>("TEST", socket);
     auto sigsel = std::initializer_list<uint32_t>{100};
 
     // Create a message that the socket will return
@@ -107,7 +107,7 @@ TEST_F(AfUnixServerTests, receive_WithoutStart_UsesSocketDirectly) {
 }
 
 TEST_F(AfUnixServerTests, receive_WithoutStart_FiltersMessages) {
-    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto server = std::make_shared<AfUnixSimpleServer>("TEST", socket);
     auto sigsel = std::initializer_list<uint32_t>{200};
 
     // Create messages with different reqIds
@@ -138,7 +138,7 @@ TEST_F(AfUnixServerTests, receive_WithoutStart_FiltersMessages) {
 }
 
 TEST_F(AfUnixServerTests, receive_WithoutStart_HandlesTimeout) {
-    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto server = std::make_shared<AfUnixSimpleServer>("TEST", socket);
     auto sigsel = std::initializer_list<uint32_t>{100};
 
     // Socket returns timeout (0)
@@ -149,7 +149,7 @@ TEST_F(AfUnixServerTests, receive_WithoutStart_HandlesTimeout) {
 }
 
 TEST_F(AfUnixServerTests, receive_WithoutStart_HandlesPingRequest) {
-    auto server = std::make_shared<AfUnixServer>("TEST", socket, std::move(queue));
+    auto server = std::make_shared<AfUnixSimpleServer>("TEST", socket);
     auto sigsel = std::initializer_list<uint32_t>{100};
 
     // Create PING request and normal message
