@@ -22,12 +22,42 @@ jobs:
           cmake -B build_ut -DUNIT_TESTS=1 -DCOVERITY=1
           cmake --build build_ut --target LinxIpc-ut
 
+      - name: Enable core dumps
+        run: |
+          ulimit -c unlimited
+          echo "/tmp/core.%e.%p" | sudo tee /proc/sys/kernel/core_pattern
+
       - name: Run unit tests and Generate coverage report
         run: |
           cmake --build build_ut --target gcov_LinxIpc-ut
           if [ -f build_ut/coverity_report/coverity_report.html ]; then
             cp build_ut/coverity_report/coverity_report.html build_ut/coverity_report/index.html
           fi
+
+      - name: Collect core dumps on failure
+        if: failure()
+        run: |
+          if compgen -G "/tmp/core.*" > /dev/null; then
+            echo "Core dumps found:"
+            ls -lh /tmp/core.*
+            mkdir -p core_dumps
+            cp /tmp/core.* core_dumps/ || true
+            for core in /tmp/core.*; do
+              echo "=== Backtrace for $core ==="
+              gdb -batch -ex "thread apply all bt" build_ut/bin/LinxIpc-ut "$core" || true
+            done
+          else
+            echo "No core dumps found"
+          fi
+
+      - name: Upload core dumps
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-dumps
+          path: core_dumps/
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
