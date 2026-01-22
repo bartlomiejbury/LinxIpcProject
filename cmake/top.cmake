@@ -107,7 +107,7 @@ option(COVERITY "enable coverity" FALSE)
 option(VALGRIND "enable valgrind" FALSE)
 
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
@@ -117,13 +117,34 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/bin)
 add_compile_options(
     $<$<COMPILE_LANGUAGE:C>:-std=gnu11>
     $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++17>
-    -Wall -Wno-psabi -ffunction-sections -fdata-sections -fno-common -fstack-protector-strong -Werror
-    "$<$<CONFIG:Debug>:SHELL:-Og>"
+    -Wall -Werror -Wno-psabi
+    -ffunction-sections
+    -fdata-sections
+    -fno-common
+    -fstack-protector-strong
 )
 
 add_link_options(
     -Wl,-Map=output.map
     -Wl,--gc-sections)
+
+# Reproducible build settings
+add_compile_options(
+    -Wno-builtin-macro-redefined
+    -D__DATE__="Jan 01 1970"
+    -D__TIME__="00:00:00"
+    -fdebug-prefix-map=${CMAKE_SOURCE_DIR}=.
+    -fdebug-prefix-map=${CMAKE_BINARY_DIR}=.
+    -frandom-seed=LinxIpc-${PROJECT_VERSION_FULL}
+)
+set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
+add_link_options(
+    -Wl,--build-id=none)
+
+# Disable IPO for unit tests (incompatible with mocking)
+if(NOT UNIT_TESTS)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
+endif()
 
 if(COVERITY)
     add_compile_options(-fprofile-arcs -ftest-coverage -fno-exceptions -fno-inline -g -O0)
