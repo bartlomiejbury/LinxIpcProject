@@ -7,21 +7,21 @@
 #include "GenericSocket.h"
 #include "LinxMessageFilter.h"
 
-template<typename SocketType>
-GenericClient<SocketType>::GenericClient(const std::string &clientId,
-                                         const std::shared_ptr<SocketType> &socket,
-                                         const IdentifierType &identifier)
+template<typename IdentifierType>
+GenericClient<IdentifierType>::GenericClient(const std::string &clientId,
+                                             const std::shared_ptr<GenericSocket<IdentifierType>> &socket,
+                                             const IdentifierType &identifier)
     : clientId(clientId), socket(socket), identifier(identifier) {
 }
 
-template<typename SocketType>
-GenericClient<SocketType>::~GenericClient() {
+template<typename IdentifierType>
+GenericClient<IdentifierType>::~GenericClient() {
     LINX_INFO("[%s] Stopping", getName().c_str());
     this->socket->close();
 }
 
-template<typename SocketType>
-int GenericClient<SocketType>::send(const IMessage &message) {
+template<typename IdentifierType>
+int GenericClient<IdentifierType>::send(const IMessage &message) {
     LINX_DEBUG("[%s] Sending message reqId: 0x%x",
             getName().c_str(), message.getReqId());
     auto ret = socket->send(message, identifier);
@@ -31,8 +31,8 @@ int GenericClient<SocketType>::send(const IMessage &message) {
     return ret;
 }
 
-template<typename SocketType>
-RawMessagePtr GenericClient<SocketType>::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
+template<typename IdentifierType>
+RawMessagePtr GenericClient<IdentifierType>::receive(int timeoutMs, const std::vector<uint32_t> &sigsel) {
     RawMessagePtr msg{};
     std::unique_ptr<IIdentifier> from;
 
@@ -62,8 +62,8 @@ RawMessagePtr GenericClient<SocketType>::receive(int timeoutMs, const std::vecto
     return nullptr;
 }
 
-template<typename SocketType>
-RawMessagePtr GenericClient<SocketType>::sendReceive(const IMessage &message, int timeoutMs,
+template<typename IdentifierType>
+RawMessagePtr GenericClient<IdentifierType>::sendReceive(const IMessage &message, int timeoutMs,
                                                                         const std::vector<uint32_t> &sigsel) {
     if (send(message) < 0) {
         return nullptr;
@@ -71,8 +71,8 @@ RawMessagePtr GenericClient<SocketType>::sendReceive(const IMessage &message, in
     return receive(timeoutMs, sigsel);
 }
 
-template<typename SocketType>
-bool GenericClient<SocketType>::connect(int timeoutMs) {
+template<typename IdentifierType>
+bool GenericClient<IdentifierType>::connect(int timeoutMs) {
     static constexpr int pingTimeout = 100;
     Deadline deadline(timeoutMs);
 
@@ -92,13 +92,13 @@ bool GenericClient<SocketType>::connect(int timeoutMs) {
     return false;
 }
 
-template<typename SocketType>
-bool GenericClient<SocketType>::isEqual(const LinxClient &other) const {
-    const auto *otherClient = dynamic_cast<const GenericClient<SocketType>*>(&other);
+template<typename IdentifierType>
+bool GenericClient<IdentifierType>::isEqual(const LinxClient &other) const {
+    const auto *otherClient = dynamic_cast<const GenericClient<IdentifierType>*>(&other);
     return this->socket == otherClient->socket && this->identifier == otherClient->identifier;
 }
 
-template<typename SocketType>
-std::string GenericClient<SocketType>::getName() const {
+template<typename IdentifierType>
+std::string GenericClient<IdentifierType>::getName() const {
     return clientId;
 }

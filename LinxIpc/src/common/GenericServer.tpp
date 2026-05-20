@@ -10,8 +10,8 @@
 #include "Deadline.h"
 #include <stdio.h>
 
-template<typename SocketType>
-void GenericServer<SocketType>::task() {
+template<typename IdentifierType>
+void GenericServer<IdentifierType>::task() {
 
     LINX_INFO("[%s] Task started", this->getName().c_str());
     while (true) {
@@ -47,23 +47,23 @@ void GenericServer<SocketType>::task() {
     }
 }
 
-template<typename SocketType>
-GenericServer<SocketType>::GenericServer(
+template<typename IdentifierType>
+GenericServer<IdentifierType>::GenericServer(
     const std::string &serverId,
-    const std::shared_ptr<SocketType> &socket,
+    const std::shared_ptr<GenericSocket<IdentifierType>> &socket,
     std::unique_ptr<LinxQueue> &&queue)
-    : GenericSimpleServer<SocketType>(serverId, socket) {
+    : GenericSimpleServer<IdentifierType>(serverId, socket) {
     assert(queue);
     this->queue = std::move(queue);
 }
 
-template<typename SocketType>
-GenericServer<SocketType>::~GenericServer() {
+template<typename IdentifierType>
+GenericServer<IdentifierType>::~GenericServer() {
     stop();
 }
 
-template<typename SocketType>
-bool GenericServer<SocketType>::start() {
+template<typename IdentifierType>
+bool GenericServer<IdentifierType>::start() {
     if (workerThread.joinable()) {
         return true;
     }
@@ -73,8 +73,8 @@ bool GenericServer<SocketType>::start() {
     return true;
 }
 
-template<typename SocketType>
-void GenericServer<SocketType>::stop() {
+template<typename IdentifierType>
+void GenericServer<IdentifierType>::stop() {
     if (workerThread.joinable()) {
         LINX_INFO("[%s] Stopping worker thread", this->getName().c_str());
         this->socket->close();
@@ -83,13 +83,13 @@ void GenericServer<SocketType>::stop() {
     }
 }
 
-template<typename SocketType>
-int GenericServer<SocketType>::getPollFd() const {
+template<typename IdentifierType>
+int GenericServer<IdentifierType>::getPollFd() const {
     return queue->getFd();
 }
 
-template<typename SocketType>
-LinxReceivedMessageSharedPtr GenericServer<SocketType>::receive(
+template<typename IdentifierType>
+LinxReceivedMessageSharedPtr GenericServer<IdentifierType>::receive(
     int timeoutMs,
     const std::vector<uint32_t> &sigsel,
     const IIdentifier *from) {

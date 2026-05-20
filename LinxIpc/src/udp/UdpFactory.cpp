@@ -120,8 +120,3 @@ bool isMulticastIp(const std::string &ip) {
 }
 
 } // namespace UdpFactory
-
-// Explicit template instantiation
-template class GenericSimpleServer<UdpSocket>;
-template class GenericServer<UdpSocket>;
-template class GenericClient<UdpSocket>;

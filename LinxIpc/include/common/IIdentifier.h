@@ -21,6 +21,3 @@ class IIdentifier {
   protected:
     virtual bool isEqual(const IIdentifier &other) const = 0;
 };
-
-template<typename SocketType>
-struct SocketTraits;

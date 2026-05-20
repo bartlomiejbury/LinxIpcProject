@@ -36,16 +36,9 @@ class PortInfo : public IIdentifier {
     }
 };
 
-// Socket traits specialization
-template<>
-struct SocketTraits<UdpSocket> {
-    using Identifier = PortInfo;
-};
-
-
-using UdpSimpleServer = GenericSimpleServer<UdpSocket>;
-using UdpServer = GenericServer<UdpSocket>;
-using UdpClient = GenericClient<UdpSocket>;
+using UdpSimpleServer = GenericSimpleServer<PortInfo>;
+using UdpServer = GenericServer<PortInfo>;
+using UdpClient = GenericClient<PortInfo>;
 
 namespace UdpFactory {
     std::shared_ptr<UdpSimpleServer> createSimpleServer(uint16_t port);

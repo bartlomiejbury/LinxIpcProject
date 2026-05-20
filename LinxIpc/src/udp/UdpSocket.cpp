@@ -87,7 +87,6 @@ int UdpSocket::receive(RawMessagePtr *msg, std::unique_ptr<IIdentifier> *from, i
     return len;
 }
 
-
 int UdpSocket::send(const IMessage &message, const PortInfo &to) {
     if (this->fd < 0) {
         LINX_ERROR("IPC send on wrong IPC socket: %s:%d", to.ip.c_str(), to.port);

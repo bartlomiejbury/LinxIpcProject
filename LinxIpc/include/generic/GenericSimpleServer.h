@@ -4,14 +4,14 @@
 #include <string>
 #include "LinxIpc.h"
 #include "IIdentifier.h"
+#include "GenericSocket.h"
 
-template<typename SocketType>
+template<typename IdentifierType>
 class GenericSimpleServer: public LinxServer {
   public:
-    using IdentifierType = typename SocketTraits<SocketType>::Identifier;
 
     GenericSimpleServer(const std::string &serverId,
-                  const std::shared_ptr<SocketType> &socket);
+                  const std::shared_ptr<GenericSocket<IdentifierType>> &socket);
     virtual ~GenericSimpleServer();
 
     LinxReceivedMessageSharedPtr receive(int timeoutMs = INFINITE_TIMEOUT,
@@ -26,5 +26,5 @@ class GenericSimpleServer: public LinxServer {
 
   protected:
     std::string serverId;
-    std::shared_ptr<SocketType> socket;
+    std::shared_ptr<GenericSocket<IdentifierType>> socket;
 };

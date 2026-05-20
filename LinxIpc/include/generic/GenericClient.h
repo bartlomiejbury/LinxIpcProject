@@ -7,15 +7,15 @@
 #include <type_traits>
 #include "LinxIpc.h"
 #include "IIdentifier.h"
+#include "GenericSocket.h"
 
-template<typename SocketType>
+template<typename IdentifierType>
 class GenericClient : public LinxClient {
   public:
-    using IdentifierType = typename SocketTraits<SocketType>::Identifier;
     using PredicateType = std::function<bool(RawMessagePtr&, const std::vector<uint32_t>&, const IdentifierType&)>;
 
     GenericClient(const std::string &clientId,
-                  const std::shared_ptr<SocketType> &socket,
+                  const std::shared_ptr<GenericSocket<IdentifierType>> &socket,
                   const IdentifierType &identifier);
     virtual ~GenericClient();
 
@@ -29,6 +29,6 @@ class GenericClient : public LinxClient {
 
   protected:
     std::string clientId;
-    std::shared_ptr<SocketType> socket;
+    std::shared_ptr<GenericSocket<IdentifierType>> socket;
     IdentifierType identifier;
 };

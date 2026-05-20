@@ -7,38 +7,38 @@
 #include "LinxMessageFilter.h"
 #include "Deadline.h"
 
-template<typename SocketType>
-GenericSimpleServer<SocketType>::GenericSimpleServer(
+template<typename IdentifierType>
+GenericSimpleServer<IdentifierType>::GenericSimpleServer(
     const std::string &serverId,
-    const std::shared_ptr<SocketType> &socket) {
+    const std::shared_ptr<GenericSocket<IdentifierType>> &socket) {
     assert(socket);
     this->serverId = serverId;
     this->socket = socket;
 }
 
-template<typename SocketType>
-GenericSimpleServer<SocketType>::~GenericSimpleServer() {
+template<typename IdentifierType>
+GenericSimpleServer<IdentifierType>::~GenericSimpleServer() {
     stop();
 }
 
-template<typename SocketType>
-bool GenericSimpleServer<SocketType>::start() {
+template<typename IdentifierType>
+bool GenericSimpleServer<IdentifierType>::start() {
     // Direct mode server doesn't need to start anything
     return true;
 }
 
-template<typename SocketType>
-void GenericSimpleServer<SocketType>::stop() {
+template<typename IdentifierType>
+void GenericSimpleServer<IdentifierType>::stop() {
     // Direct mode server doesn't need to stop anything
 }
 
-template<typename SocketType>
-int GenericSimpleServer<SocketType>::getPollFd() const {
+template<typename IdentifierType>
+int GenericSimpleServer<IdentifierType>::getPollFd() const {
     return socket->getFd();
 }
 
-template<typename SocketType>
-int GenericSimpleServer<SocketType>::send(const IMessage &message, const IIdentifier &to) {
+template<typename IdentifierType>
+int GenericSimpleServer<IdentifierType>::send(const IMessage &message, const IIdentifier &to) {
 
     // Downcast to the concrete identifier type
     const auto *typedTo = dynamic_cast<const IdentifierType*>(&to);
@@ -56,8 +56,8 @@ int GenericSimpleServer<SocketType>::send(const IMessage &message, const IIdenti
     return -1;
 }
 
-template<typename SocketType>
-LinxReceivedMessageSharedPtr GenericSimpleServer<SocketType>::receive(
+template<typename IdentifierType>
+LinxReceivedMessageSharedPtr GenericSimpleServer<IdentifierType>::receive(
     int timeoutMs,
     const std::vector<uint32_t> &sigsel,
     const IIdentifier *identifier) {
@@ -103,7 +103,7 @@ LinxReceivedMessageSharedPtr GenericSimpleServer<SocketType>::receive(
     return nullptr;
 }
 
-template<typename SocketType>
-std::string GenericSimpleServer<SocketType>::getName() const {
+template<typename IdentifierType>
+std::string GenericSimpleServer<IdentifierType>::getName() const {
     return serverId;
 }

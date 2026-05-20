@@ -9,13 +9,12 @@
 
 class LinxQueue;
 
-template<typename SocketType>
-class GenericServer: public GenericSimpleServer<SocketType> {
+template<typename IdentifierType>
+class GenericServer: public GenericSimpleServer<IdentifierType> {
   public:
-    using IdentifierType = typename SocketTraits<SocketType>::Identifier;
 
     GenericServer(const std::string &serverId,
-                  const std::shared_ptr<SocketType> &socket,
+                  const std::shared_ptr<GenericSocket<IdentifierType>> &socket,
                   std::unique_ptr<LinxQueue> &&queue);
     virtual ~GenericServer();
 

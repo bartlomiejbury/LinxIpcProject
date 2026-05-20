@@ -50,8 +50,3 @@ std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket) {
 }
 
 } // namespace AfUnixFactory
-
-// Explicit template instantiation
-template class GenericSimpleServer<AfUnixSocket>;
-template class GenericServer<AfUnixSocket>;
-template class GenericClient<AfUnixSocket>;

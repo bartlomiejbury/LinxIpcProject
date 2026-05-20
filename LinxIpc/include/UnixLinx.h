@@ -30,16 +30,9 @@ class UnixInfo : public IIdentifier {
     std::string value;
 };
 
-// Socket traits specialization
-template<>
-struct SocketTraits<AfUnixSocket> {
-    using Identifier = UnixInfo;
-};
-
-
-using AfUnixClient = GenericClient<AfUnixSocket>;
-using AfUnixSimpleServer = GenericSimpleServer<AfUnixSocket>;
-using AfUnixServer = GenericServer<AfUnixSocket>;
+using AfUnixClient = GenericClient<UnixInfo>;
+using AfUnixSimpleServer = GenericSimpleServer<UnixInfo>;
+using AfUnixServer = GenericServer<UnixInfo>;
 
 namespace AfUnixFactory {
     std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket);
