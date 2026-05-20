@@ -1,8 +1,6 @@
 #pragma once
 
-#include "GenericSimpleServer.h"
-#include "GenericServer.h"
-#include "GenericClient.h"
+#include "LinxProtocol.h"
 #include <memory>
 
 class AfUnixSocket;
@@ -30,9 +28,10 @@ class UnixInfo : public IIdentifier {
     std::string value;
 };
 
-using AfUnixClient = GenericClient<UnixInfo>;
-using AfUnixSimpleServer = GenericSimpleServer<UnixInfo>;
-using AfUnixServer = GenericServer<UnixInfo>;
+using UnixProtocol       = LinxProtocol<UnixInfo>;
+using AfUnixClient       = UnixProtocol::Client;
+using AfUnixSimpleServer = UnixProtocol::SimpleServer;
+using AfUnixServer       = UnixProtocol::Server;
 
 namespace AfUnixFactory {
     std::shared_ptr<AfUnixClient> createClient(const std::string &serverSocket);

@@ -65,9 +65,10 @@ client->send(message);
 
 - **IMessage/ILinxMessage**: Base message interface and template for typed messages
 - **RawMessage**: Message class with dynamic byte buffer payload (alias for ILinxMessage<uint8_t>)
+- **LinxProtocol\<IdentifierType\>**: Template family bundling Socket, Client, Server, and SimpleServer for a given identifier type
 - **GenericServer/GenericClient**: Generic template framework for transport protocols
-- **AfUnixServer/AfUnixClient**: Unix domain socket implementation
-- **UdpServer/UdpClient**: UDP socket implementation (with multicast support)
+- **AfUnixServer/AfUnixClient**: Unix domain socket implementation (`UnixProtocol::Server/Client`)
+- **UdpServer/UdpClient**: UDP socket implementation (`UdpProtocol::Server/Client`, with multicast support)
 - **AfUnixFactory/UdpFactory**: Protocol-specific factories for creating endpoints
 - **LinxIpcHandler**: Message dispatcher with callback registration
 - **IIdentifier**: Interface for client/server identification (UnixInfo, PortInfo)
@@ -776,7 +777,8 @@ The LinxIpc framework is designed to be extensible. You can add support for new 
 
 1. Implementing the socket interface for your transport protocol
 2. Creating a new identifier type derived from `IIdentifier`
-3. Using the `GenericServer` and `GenericClient` templates
+3. Instantiating `LinxProtocol<YourIdentifier>` to get the full set of generic types
+4. Providing a factory to construct the concrete socket and endpoints
 
 For detailed information on extending the library, see [EXTENDING.md](doc/EXTENDING.md).
 

@@ -89,23 +89,19 @@ PortInfo info("192.168.1.100", 8080);
 
 ### GenericClient
 
-**Template:** `GenericClient<SocketType>`
-
-**IdentifierType** is automatically extracted from `SocketType` using `SocketTraits`.
+**Template:** `GenericClient<IdentifierType>`
 
 Type aliases:
-- `AfUnixClient = GenericClient<AfUnixSocket>`
-- `UdpClient = GenericClient<UdpSocket>`
+- `AfUnixClient = GenericClient<UnixInfo>`
+- `UdpClient = GenericClient<PortInfo>`
 
 ### GenericServer
 
-**Template:** `GenericServer<SocketType>`
-
-**IdentifierType** is automatically extracted from `SocketType` using `SocketTraits`.
+**Template:** `GenericServer<IdentifierType>`
 
 Type aliases:
-- `AfUnixServer = GenericServer<AfUnixSocket>`
-- `UdpServer = GenericServer<UdpSocket>`
+- `AfUnixServer = GenericServer<UnixInfo>`
+- `UdpServer = GenericServer<PortInfo>`
 
 ## Adding New Socket Types
 
@@ -146,28 +142,13 @@ class MyCustomSocket : public GenericSocket<CustomIdentifier> {
 };
 ```
 
-### 3. Register Socket Traits
-
-Add a `SocketTraits` specialization in your header file:
+### 3. Define Type Aliases
 
 ```cpp
-// Specialize SocketTraits for your socket type
-template<>
-struct SocketTraits<MyCustomSocket> {
-    using Identifier = CustomIdentifier;
-};
-```
-
-### 4. Define Type Aliases
-
-```cpp
-// MyCustomClient.h
-#include "GenericClient.h"
-using MyCustomClient = GenericClient<MyCustomSocket>;
-
-// MyCustomServer.h
-#include "GenericServer.h"
-using MyCustomServer = GenericServer<MyCustomSocket>;
+#include "LinxProtocol.h"
+using MyProtocol     = LinxProtocol<CustomIdentifier>;
+using MyCustomClient = MyProtocol::Client;
+using MyCustomServer = MyProtocol::Server;
 ```
 
 ### 5. Create Factory Functions
@@ -186,8 +167,8 @@ namespace MyCustomServerFactory {
 
 ```cpp
 // In .cpp files
-template class GenericClient<MyCustomSocket>;
-template class GenericServer<MyCustomSocket>;
+template class GenericClient<CustomIdentifier>;
+template class GenericServer<CustomIdentifier>;
 ```
 
 ## Benefits

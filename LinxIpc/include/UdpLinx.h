@@ -1,8 +1,6 @@
 #pragma once
 
-#include "GenericSimpleServer.h"
-#include "GenericServer.h"
-#include "GenericClient.h"
+#include "LinxProtocol.h"
 
 class UdpSocket;
 
@@ -36,9 +34,10 @@ class PortInfo : public IIdentifier {
     }
 };
 
-using UdpSimpleServer = GenericSimpleServer<PortInfo>;
-using UdpServer = GenericServer<PortInfo>;
-using UdpClient = GenericClient<PortInfo>;
+using UdpProtocol     = LinxProtocol<PortInfo>;
+using UdpSimpleServer = UdpProtocol::SimpleServer;
+using UdpServer       = UdpProtocol::Server;
+using UdpClient       = UdpProtocol::Client;
 
 namespace UdpFactory {
     std::shared_ptr<UdpSimpleServer> createSimpleServer(uint16_t port);

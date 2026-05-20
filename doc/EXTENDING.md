@@ -7,13 +7,12 @@ This guide demonstrates how to add a new socket type with a custom identifier to
 The framework uses a template-based design with these key components:
 
 1. **Identifier Type**: Defines how to identify communication endpoints
-2. **Socket Traits**: Maps socket types to their identifier types
-3. **Socket Classes**: Handle low-level communication
-4. **Generic Classes**: Provide common functionality via templates
-   - `GenericClient<SocketType>`
-   - `GenericServer<SocketType>`
+2. **Socket Classes**: Handle low-level communication
+3. **Generic Classes**: Provide common functionality via templates
+   - `GenericClient<IdentifierType>`
+   - `GenericServer<IdentifierType>`
 
-**Key Design**: The identifier type is automatically extracted from the socket type using `SocketTraits`, eliminating redundant template parameters.
+**Key Design**: All generic templates share the same `IdentifierType` parameter, grouped by `LinxProtocol<IdentifierType>`.
 
 ## Example: Adding a Bluetooth Socket
 
@@ -108,16 +107,14 @@ class BluetoothClient : public GenericClient<BluetoothClientSocket> {
 
 **Note**: The client class doesn't need to override anything - `getName()` automatically uses the identifier's `format()` method!
 
-### Step 4: Register Socket Traits
-
-Add socket traits specialization in your header:
+### Step 4: Create LinxProtocol Alias
 
 ```cpp
-// In BluetoothTypes.h or your socket header
-template<>
-struct SocketTraits<BluetoothClientSocket> {
-    using Identifier = BluetoothAddress;
-};
+// In BluetoothTypes.h
+#include "LinxProtocol.h"
+using BluetoothProtocol = LinxProtocol<BluetoothAddress>;
+using BluetoothClient   = BluetoothProtocol::Client;
+using BluetoothServer   = BluetoothProtocol::Server;
 ```
 
 ### Step 5: Create Server
@@ -134,8 +131,7 @@ Create `include/bluetooth/BluetoothServer.h`:
 class LinxQueue;
 class BluetoothServerSocket;
 
-// Type alias for Bluetooth server
-using BluetoothServer = GenericServer<BluetoothServerSocket>;
+// BluetoothServer alias is defined via BluetoothProtocol in BluetoothTypes.h
 
 // Factory function
 namespace BluetoothServerFactory {
@@ -164,11 +160,11 @@ The implementations just need to call base class constructors and provide explic
 #include "BluetoothClientSocket.h"
 #include "GenericClient.tpp"
 
-template class GenericClient<BluetoothClientSocket>;
+template class GenericClient<BluetoothAddress>;
 
 BluetoothClient::BluetoothClient(const std::shared_ptr<BluetoothClientSocket> &socket,
                                  const BluetoothAddress &address)
-    : GenericClient<BluetoothClientSocket>(socket, address) {
+    : GenericClient<BluetoothAddress>(socket, address) {
 }
 
 std::shared_ptr<BluetoothClient> BluetoothClient::create(const uint8_t address[6],
@@ -206,15 +202,14 @@ std::shared_ptr<BluetoothServer> create(const std::string &serverId,
 } // namespace BluetoothServerFactory
 
 // Explicit template instantiation
-template class GenericServer<BluetoothServerSocket>;
+template class GenericServer<BluetoothAddress>;
 ```
 ## Checklist for New Socket Type
 
 - [ ] Create identifier type with `operator==` and optional `format()` method (e.g., `BluetoothTypes.h`)
 - [ ] Implement socket classes inheriting from `GenericSocket<YourIdentifierType>`
-- [ ] Register `SocketTraits` specialization mapping your socket type to identifier type
-- [ ] Create client class inheriting from `GenericClient<YourSocket>`
-- [ ] Create server type alias (e.g., `using YourServer = GenericServer<YourSocket>`)
+- [ ] Instantiate `LinxProtocol<YourIdentifier>` to obtain type aliases
+- [ ] Use `YourProtocol::Client` / `YourProtocol::Server` as type aliases
 - [ ] Add explicit template instantiations in .cpp files
 - [ ] Write unit tests
 
